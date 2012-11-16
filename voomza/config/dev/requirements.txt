@@ -3,4 +3,4 @@ MySQL-python
 south
 django-celery
 django_facebook
-
+pil

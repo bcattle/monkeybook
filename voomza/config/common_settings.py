@@ -33,6 +33,7 @@ INSTALLED_APPS = (
     'south',
     'djcelery',
     'kombu.transport.django',
+    'django_facebook',
 )
 INSTALLED_APPS += OUR_APPS
 

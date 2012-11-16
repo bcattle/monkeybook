@@ -43,7 +43,7 @@ CELERY_RESULT_DBURI = 'mysql://%s:%s@%s:%s/%s' % (
 MEDIA_ROOT = os.path.join(ROOT_PATH, 'media')
 
 # URL prefix for media (uploaded) files
-MEDIA_URL = ''
+MEDIA_URL = '/media/'
 #MEDIA_URL = '//s3.amazonaws.com/%s/' % AWS_STORAGE_BUCKET_NAME
 
 # Needed for compressor's local cache?
