@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+
+{# invite_friends_to_sign.html                                  #}
+{# Bryan Cattle     11/14/2012                                  #}
+{#                                                              #}
+{# This page allows users to send "requests" to their friends,  #}
+{# to sign their yearbook.                                      #}
+{#                                                              #}
+{# UI elements:                                                 #}
+{#  - List of friends with checkboxes                           #}
+{#  - "Select all" button/checkbox                              #}
+{#  - Input box, type to filter names                           #}
+{#  - Submit button                                             #}
+{#  - Skip button                                               #}
+{#                                                              #}
+{# Data in:                                                     #}
+{#  - "Top friends", pulled via AJAX request                    #}
+{#  - all other friends, pulled via Ajax request                #}
+{#                                                              #}
+{# Data out:                                                    #}
+{#  - calls facebook js request dialog with list of friends     #}
+{#                                                              #}
+{# Interactions:                                                #}
+{#  - Typing in the search box filters by name                  #}
+{#  - Potentially, once a user is checked they move to a        #}
+{#    separate pane where all checked users stack up            #}
+{#  - If request dialog submitted successfully, redirect        #}
+{#    to "vote badges" page                                     #}
+{#                                                              #}
+
+{% block body %}
+    <div>
+{#        Loading spinner #}
+{#    (hidden): #}
+{#        Message #}
+{#        Skip link #}
+{#        Submit button #}
+{#        Select all button#}
+{#        Type to search friends input #}
+{#        List of friends #}
+    </div>
+{% endblock %}
+
+{% block javascript %}
+    <script src="{% static 'js/jquery-1.7.2.min.js' %}"></script>
+    <script src="{% static 'js/jquery-Mustache.js' %}"></script>
+    <script src="{% static 'js/mustache.js' %}"></script>
+
+    <script type="text/html">
+        <ul>
+{#            Small photo #}
+{#            Name #}
+        </ul>
+    </script>
+
+    <script id="friend-div"  type="text/javascript">
+        $(document).ready(function() {
+            $.Mustache.addFromDom('dom-template');
+
+{#          Make ajax call for top friends #}
+
+{#          Make ajax call for rest of friends #}
+
+        });
+    </script>
+{% endblock %}
