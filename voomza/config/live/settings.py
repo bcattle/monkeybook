@@ -1,14 +1,13 @@
 from voomza.config.common_settings import *
 
-DEBUG = True
+DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
 ## Facebook
 
-FACEBOOK_APP_ID = '111183162379123'
-FACEBOOK_APP_SECRET = 'd9afe8c407fd0577883312f8b8b23204'
-FACEBOOK_CANVAS_PAGE = 'http://apps.facebook.com/yearbook_dev/'
-
+FACEBOOK_APP_ID = '524135734282912'
+FACEBOOK_APP_SECRET = 'dc7bf6738d5ed766c8f780705c43fc8f'
+FACEBOOK_CANVAS_PAGE = 'http://apps.facebook.com/yearbook/'
 
 ## Database
 
@@ -17,10 +16,10 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'yearbook_dev',
         'USER': 'yearbook',
-        'PASSWORD': 'yearbook',
-        'HOST': '127.0.0.1',
+        'PASSWORD': '8jmrnBsP',
+        'HOST': 'rds-my-yearbook.cnqssbbdxaki.us-west-2.rds.amazonaws.com',
         'PORT': '3306',
-    }
+        }
 }
 
 ## Celery
@@ -49,7 +48,7 @@ MEDIA_URL = '/media/'
 #MEDIA_URL = '//s3.amazonaws.com/%s/' % AWS_STORAGE_BUCKET_NAME
 
 # Needed for compressor's local cache?
-STATIC_ROOT = os.path.join(ROOT_PATH, 'static')
+STATIC_ROOT = '/home/ubuntu/src/voomza_static/'
 COMPRESS_ROOT = STATIC_ROOT
 
 # URL prefix for static files.
@@ -60,10 +59,10 @@ COMPRESS_URL = STATIC_URL
 
 ## Django settings
 
-ROOT_URLCONF = 'voomza.config.dev.urls'
+ROOT_URLCONF = 'voomza.config.live.urls'
 
 # Python dotted path to the WSGI application used by Django's runserver.
-WSGI_APPLICATION = 'voomza.config.dev.wsgi.application'
+WSGI_APPLICATION = 'voomza.config.live.wsgi.application'
 
 
 ## Logging

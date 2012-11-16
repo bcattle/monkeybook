@@ -1,22 +1,12 @@
 import djcelery
 djcelery.setup_loader()
 
-## Admins
-
-ADMINS = (
-    ('Voomza Admin', 'admin@voomza.com'),
-    ('Bryan Cattle', 'bryan@voomza.com'),
-)
-
-MANAGERS = ADMINS
-
-
 ## Installed aps
 
 OUR_APPS = (
     'account',
     'core',
-    'signup',
+    'yearbook',
 )
 
 INSTALLED_APPS = (
@@ -40,15 +30,42 @@ INSTALLED_APPS += OUR_APPS
 AUTH_PROFILE_MODULE = 'account.UserProfile'
 
 
+## Facebook
+FACEBOOK_DEFAULT_SCOPE = [
+    'user_birthday',
+    'user_relationships',
+    'user_likes',
+    'user_photos',
+    'user_location',
+    'user_checkins',
+    'user_status',
+    'friends_likes',
+    'friends_photos',
+#    'friends_status',
+    'read_stream',
+    # TODO:
+#    'publish_actions',
+]
+
+FACEBOOK_STORE_LOCAL_IMAGE = False
+FACEBOOK_STORE_LIKES = False
+FACEBOOK_STORE_FRIENDS = True
+FACEBOOK_CELERY_STORE = True
+FACEBOOK_CELERY_TOKEN_EXTEND = True
+
+
+## Admins
+
+ADMINS = (
+    ('Voomza Admin', 'admin@voomza.com'),
+    ('Bryan Cattle', 'bryan@voomza.com'),
+)
+MANAGERS = ADMINS
+
+
 ## Themed URL prefixes
 
 DAJAXICE_MEDIA_PREFIX = 'js'
-
-
-## Sessions
-
-SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
-
 
 
 ## Paths and locations
