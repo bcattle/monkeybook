@@ -17,7 +17,9 @@ def invite_friends_to_sign(request,
         Select all
         Send invites    POST back to this view
     """
-    context = {}
+    context = {
+        next_view: next_view
+    }
     return render_to_response(template_name, context, RequestContext(request))
 
 

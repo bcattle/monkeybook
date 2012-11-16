@@ -1,5 +1,7 @@
 {% extends 'base.html' %}
 {% load staticfiles %}
+{% load url from future %}
+{% load dajaxice_templatetags %}
 
 {# invite_friends_to_sign.html                                  #}
 {# Bryan Cattle     11/14/2012                                  #}
@@ -30,38 +32,62 @@
 {#                                                              #}
 
 {% block body %}
-    <div>
-{#        Loading spinner #}
-{#    (hidden): #}
 {#        Message #}
 {#        Skip link #}
-{#        Submit button #}
-{#        Select all button#}
-{#        Type to search friends input #}
-{#        List of friends #}
+    <h1>Invite friends to sign your yearbook</h1>
+    <a href="{% url next_url %}">Skip >></a>
+    <div>
+        <div class="loading">
+{#        Loading spinner #}
+        </div>
+        <div class="loaded" style="display:none;">
+            {#    (hidden): #}
+            <div class="list_actions">
+                <div style="float:left;">
+                    {#        Select none button#}
+                </div>
+                <div style="float:left;">
+                    {#        Submit button #}
+                </div>
+            </div>
+            <div class="list_search">
+                {#        Type to search friends input #}
+
+            </div>
+            <div class="list">
+                {#        List of friends #}
+            </div>
+        </div>
     </div>
 {% endblock %}
 
 {% block javascript %}
+    {% dajaxice_js_import %}
     <script src="{% static 'js/jquery-1.7.2.min.js' %}"></script>
-    <script src="{% static 'js/jquery-Mustache.js' %}"></script>
-    <script src="{% static 'js/mustache.js' %}"></script>
-
-    <script type="text/html">
-        <ul>
-{#            Small photo #}
-{#            Name #}
-        </ul>
-    </script>
-
-    <script id="friend-div"  type="text/javascript">
+    <script type="text/javascript">
         $(document).ready(function() {
-            $.Mustache.addFromDom('dom-template');
+            Dajaxice.setup({'default_exception_callback': friendsTimeout});
+            setTimeout(friendsTimeout, 10000);
 
 {#          Make ajax call for top friends #}
 
 {#          Make ajax call for rest of friends #}
 
         });
+
+        var loaded = false;
+        function friendsLoaded() {
+            if (!loaded) {
+                $('.loading').hide();
+                $('.loaded').show();
+            }
+        }
+
+        function friendsTimeout() {
+            if (!loaded) {
+                // Only run if the first call timed out
+
+            }
+        }
     </script>
 {% endblock %}

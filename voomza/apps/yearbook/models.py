@@ -2,22 +2,13 @@ from django.db import models
 from django.contrib.auth.models import User
 
 
-class TopFriend(models.Model):
-    """
-    A subset of the user's friends, ranked in
-    order of how close the relationship is
-    """
-    user = models.ForeignKey('account.UserProfile')
-    friend = models.ForeignKey('account.FacebookUserWithPic')
-    rank = models.PositiveSmallIntegerField()
-
-
 class TopFriendStats(models.Model):
     """
     All of the scores we pulled to calculate
     who a user's top friends were
     """
-    top_friend = models.OneToOneField(TopFriend)
+    user = models.ForeignKey('account.UserProfile')
+    friend = models.ForeignKey('account.YearbookFacebookUser')
     tagged_with = models.PositiveSmallIntegerField(help_text='How many times you\'re tagged with this person')
     you_posts_to = models.PositiveSmallIntegerField(help_text='How many times you posted to this person ')
     you_photos_liked = models.PositiveSmallIntegerField(help_text='How many times you liked a photo from this person')
@@ -46,7 +37,7 @@ class BadgeVote(models.Model):
     from_user = models.ForeignKey(User)
     # To a FacebookUser, because the person nominated
     # may or may not be in the app
-    to_facebook_user = models.ForeignKey('account.FacebookUserWithPic')
+    to_facebook_user = models.ForeignKey('account.YearbookFacebookUser')
     created_at = models.DateTimeField(auto_now_add=True)
 
 

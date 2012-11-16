@@ -24,6 +24,7 @@ INSTALLED_APPS = (
     'djcelery',
     'kombu.transport.django',
     'django_facebook',
+    'dajaxice',
 )
 INSTALLED_APPS += OUR_APPS
 
@@ -49,7 +50,7 @@ FACEBOOK_DEFAULT_SCOPE = [
 
 FACEBOOK_STORE_LOCAL_IMAGE = False
 FACEBOOK_STORE_LIKES = False
-FACEBOOK_STORE_FRIENDS = True
+FACEBOOK_STORE_FRIENDS = False      # Suppress this in the fb app, we do it ourselves
 FACEBOOK_CELERY_STORE = True
 FACEBOOK_CELERY_TOKEN_EXTEND = True
 
@@ -90,6 +91,7 @@ STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
     #    'django.contrib.staticfiles.finders.DefaultStorageFinder',
     'compressor.finders.CompressorFinder',
+    'dajaxice.finders.DajaxiceFinder',
 )
 
 
@@ -118,7 +120,7 @@ SECRET_KEY = '-a66lr&amp;kmv+ubi@y_prjq*m#ryoo*8bk$pee@$h^*vm%ek)#)-'
 TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader',
-#     'django.template.loaders.eggs.Loader',
+    'django.template.loaders.eggs.Loader',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -134,6 +136,7 @@ MIDDLEWARE_CLASSES = (
 from django.conf.global_settings import TEMPLATE_CONTEXT_PROCESSORS
 TEMPLATE_CONTEXT_PROCESSORS += (
     'django_facebook.context_processors.facebook',
+    'django.core.context_processors.request',
 )
 
 AUTHENTICATION_BACKENDS = (

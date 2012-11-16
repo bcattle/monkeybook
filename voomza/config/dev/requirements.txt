@@ -4,3 +4,4 @@ south
 django-celery
 django_facebook
 pil
+django-dajaxice
