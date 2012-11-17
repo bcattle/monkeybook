@@ -3,6 +3,7 @@ from django.shortcuts import redirect, render_to_response
 from django.contrib.auth.decorators import login_required
 from django_facebook.api import require_persistent_graph
 from django_facebook.tasks import get_and_store_friends
+from celery import group
 from voomza.apps.yearbook.api import YearbookFacebookUserConverter
 from yearbook.tasks import get_and_store_top_friends_fast, get_optional_profile_fields
 
@@ -15,13 +16,17 @@ def begin_signup(request):
     graph = require_persistent_graph(request)
     facebook = YearbookFacebookUserConverter(graph)
 
-    # Pull their top friends using the quick algorithm, needed for the first page
-    top_friends_fast_async = get_and_store_top_friends_fast.delay(request.user, facebook)
-    # Save the handle in the session so we can get it later
-    request.session['top_friends_fast_async'] = top_friends_fast_async
+    # Pull top friends and all friends
 
-    # Store their friends
-    get_and_store_friends.delay(request.user, facebook)
+    get_and_store_top_friends_fast(request.user, facebook)
+
+    friends_job = group([
+        get_and_store_top_friends_fast.subtask(request.user, facebook),
+        get_and_store_friends.subtask(request.user, facebook)
+    ])
+    friends_async = friends_job.apply_async()
+    request.session['pull_friends_async'] = friends_async
+
     # Pull the optional fields in 5 minutes
     get_optional_profile_fields.apply_async(args=[request.user, facebook], countdown=60*5)
 

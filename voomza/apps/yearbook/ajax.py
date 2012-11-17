@@ -30,15 +30,14 @@ def get_friends(request, offset=0):
     if not offset:
         # Was called with `offset` of zero
 
-        # The user's top friends are stored as a nonzero value
-        # in the field YearbookFacebookUser.top_friends_order
+        # If requests are currently running, give them 10 seconds to finish
+        friends_async = request.session.get('pull_friends_async')
+        if friends_async and not friends_async.ready():
+            friends_async.get(timeout=10)
 
-        # There could be a couple cases:
-        #  - their friends haven't been pulled yet, no values in table
-        #  - their friends were pulled but top friends code hasn't run yet
-        #  - top friends code has been run
-
-        request.session['top_friends_fast_async']
+        # Pull friends in descending order of top friend
+        # First, pull top friends
+        # Then pull everyone else
 
         # Pull their top friend: order_by `top_friends_order`
         try:

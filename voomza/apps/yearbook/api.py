@@ -5,9 +5,11 @@ from django_facebook.signals import facebook_post_store_friends
 from django_facebook.utils import get_profile_class, mass_get_or_create
 from voomza.apps.account.models import YearbookFacebookUser
 from voomza.apps.yearbook import settings as yearbook_settings
-from voomza.apps.yearbook.models import TopFriend, TopFriendStat
+from voomza.apps.yearbook.models import TopFriendStat
 
 logger = logging.getLogger(__name__)
+
+gender_map = dict(female='F', male='M')
 
 class YearbookFacebookUserConverter(FacebookUserConverter):
     """
@@ -48,7 +50,6 @@ class YearbookFacebookUserConverter(FacebookUserConverter):
 
             global_defaults = dict(user_id=user.id)
             default_dict = {}
-            gender_map = dict(female='F', male='M')
             for f in friends:
                 name = f.get('name')
                 picture = f.get('pic_small')
@@ -74,43 +75,70 @@ class YearbookFacebookUserConverter(FacebookUserConverter):
         return friends
 
 
-    def get_and_store_top_friends_fast(self, user):
+    def get_and_store_top_friends_fast(self, user, pull_all_friends_when_done=False):
         """
         Gets the users friends using the "quick" algorithm
+
+        pull_all_friends_when_done: fire off a task to pull all friends
+                                    after this function completes
         """
         # If they already have any top friends, skip
-        if TopFriend.objects.filter(user=user).exists():
+        if YearbookFacebookUser.objects.filter(user=user).exclude(top_friends_order=0).exists():
             logger.debug('User already has top friends, skipping "fast algorithm"')
             return
 
         # Who are they in the most photos with?
-        response = self.open_facebook.fql(
-            'SELECT subject FROM photo_tag WHERE object_id IN '
-            '   (SELECT object_id FROM photo_tag WHERE subject=me()) AND subject!=me() '
-            'LIMIT 100')
+        results = self.open_facebook.batch_fql({
+            'tagged_photos': 'SELECT subject FROM photo_tag WHERE object_id IN '
+                             '       (SELECT object_id FROM photo_tag WHERE subject=me()) AND subject!=me() '
+                             'LIMIT 100',
 
-        # We got a list of user ids this user is with
+            'tagged_users': 'SELECT uid, name, sex, pic_small FROM user WHERE uid IN '
+                            '   (SELECT subject FROM photo_tag WHERE object_id IN '
+                            '       (SELECT object_id FROM photo_tag WHERE subject=me()) AND subject!=me()) '
+                            'LIMIT 100'
+        })
+        tagged_photos = results['tagged_photos']
+        tagged_users = results['tagged_users']
+
         # Collapse to a frequencies and user_ids
-        ids = []
-        for photo_tag in response:
+        all_ids = []
+        for photo in tagged_photos:
             try:
-                ids.append(int(photo_tag['subject']))
+                all_ids.append(int(photo['subject']))
             # Skip anything that's not an integer
             except ValueError: pass
 
-        counted = [(id, ids.count(id)) for id in ids]
+        all_users = {}
+        for u in tagged_users:
+            try:
+                all_users[int(u['uid'])] = u
+            # Skip anything that's not an integer
+            except ValueError: pass
+
+        counted = [(id, all_ids.count(id)) for id in all_ids]
         counted_in_order = OrderedDict(sorted(counted, key=lambda t: t[1], reverse=True))
-        # Holds {user_id: "topness index"}
-        ids_in_order = {str(id): dict(rank=index) for index,id in enumerate(counted_in_order)}
+
+        # Holds {user_id: rank="topness index", other fields... }
+        friends_ranked = {}
+        for index,id in enumerate(counted_in_order):
+            try:
+                f = dict(top_friends_order=index+1, **all_users[id])
+                f.pop('uid')
+                if f.get('sex'):
+                    f['gender'] = gender_map[f.get('sex')]
+                    f.pop('sex')
+                friends_ranked[str(id)] = f
+            except KeyError: pass
 
         # Only updates if they don't already exist
         # i.e. this shouldn't overwrite the "non-fast" algorithm
         current, created = mass_get_or_create(
-            model_class=TopFriend,
-            base_queryset=TopFriend.objects.filter(user=user),
-            id_field='friend_id',
-            default_dict=ids_in_order,
-            global_defaults=dict(user=user),
+            model_class=YearbookFacebookUser,
+            base_queryset=YearbookFacebookUser.objects.filter(user_id=user.id),
+            id_field='facebook_id',
+            default_dict=friends_ranked,
+            global_defaults=dict(user_id=user.id),
         )
 
         # Save the counts for debugging?
@@ -125,4 +153,4 @@ class YearbookFacebookUserConverter(FacebookUserConverter):
                 global_defaults=dict(user=user),
             )
 
-        logger.info('found %s top friends', len(ids))
+        logger.info('found %s top friends', len(all_users))

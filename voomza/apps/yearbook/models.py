@@ -2,15 +2,6 @@ from django.db import models
 from django.contrib.auth.models import User
 
 
-class TopFriend(models.Model):
-    user = models.ForeignKey('auth.User', related_name='top_friends')
-    friend_id = models.BigIntegerField()
-    rank = models.PositiveSmallIntegerField(default=0, db_index=True, help_text='The higher the better')
-
-    class Meta:
-        unique_together = ['user', 'friend_id']
-
-
 class TopFriendStat(models.Model):
     """
     All of the scores we pulled to calculate
