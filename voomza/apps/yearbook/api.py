@@ -52,11 +52,11 @@ class YearbookFacebookUserConverter(FacebookUserConverter):
             default_dict = {}
             for f in friends:
                 name = f.get('name')
-                picture = f.get('pic_small')
+                pic_small = f.get('pic_small')
                 gender = None
                 if f.get('sex'):
                     gender = gender_map[f.get('sex')]
-                default_dict[str(f['id'])] = dict(name=name, gender=gender, picture=picture)
+                default_dict[str(f['id'])] = dict(name=name, gender=gender, pic_small=pic_small)
             id_field = 'facebook_id'
 
             current_friends, inserted_friends = mass_get_or_create(
@@ -75,12 +75,9 @@ class YearbookFacebookUserConverter(FacebookUserConverter):
         return friends
 
 
-    def get_and_store_top_friends_fast(self, user, pull_all_friends_when_done=False):
+    def get_and_store_top_friends_fast(self, user):
         """
         Gets the users friends using the "quick" algorithm
-
-        pull_all_friends_when_done: fire off a task to pull all friends
-                                    after this function completes
         """
         # If they already have any top friends, skip
         if YearbookFacebookUser.objects.filter(user=user).exclude(top_friends_order=0).exists():
@@ -117,7 +114,7 @@ class YearbookFacebookUserConverter(FacebookUserConverter):
             except ValueError: pass
 
         counted = [(id, all_ids.count(id)) for id in all_ids]
-        counted_in_order = OrderedDict(sorted(counted, key=lambda t: t[1], reverse=True))
+        counted_in_order = OrderedDict(sorted(counted, key=lambda t: t[1]))
 
         # Holds {user_id: rank="topness index", other fields... }
         friends_ranked = {}
@@ -154,3 +151,4 @@ class YearbookFacebookUserConverter(FacebookUserConverter):
             )
 
         logger.info('found %s top friends', len(all_users))
+

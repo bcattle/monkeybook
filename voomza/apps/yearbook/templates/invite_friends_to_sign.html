@@ -39,6 +39,7 @@
     <div>
         <div class="loading">
 {#        Loading spinner #}
+            <p>Loading ...</p>
         </div>
         <div class="loaded" style="display:none;">
             {#    (hidden): #}
@@ -56,6 +57,12 @@
             </div>
             <div class="list">
                 {#        List of friends #}
+                <form action="" method="POST">
+                    {% csrf_token %}
+                    <ul class="friends_list">
+
+                    </ul>
+                </form>
             </div>
         </div>
     </div>
@@ -64,20 +71,45 @@
 {% block javascript %}
     {% dajaxice_js_import %}
     <script src="{% static 'js/jquery-1.7.2.min.js' %}"></script>
+    <script src="{% static 'js/mustache.js' %}"></script>
+    <script type="text/html" id="friend_template">
+        <li>
+            <input name="friend_[[ facebook_id ]]" value="[[ facebook_id ]]" type="checkbox">
+            <img src="[[ pic_small ]]">[[ name ]]
+        </li>
+    </script>
     <script type="text/javascript">
+        var loaded = false;
+        var currOffset = 0;
+        var friendTemplate = null;
+
+        function onGetFriends(friends) {
+            friendsLoaded();
+            // Dump the friends into the list
+            var list = $('.friends_list');
+            for (var idx in friends) {
+                list.append(Mustache.to_html(friendTemplate, friends[idx]));
+            }
+            // If the list wasn't empty, request another page of results
+            if (friends.length) {
+                currOffset += friends.length;
+                Dajaxice.yearbook.get_friends(onGetFriends, {'offset': currOffset});
+            }
+        }
+
         $(document).ready(function() {
             Dajaxice.setup({'default_exception_callback': friendsTimeout});
+            Mustache.tags = ['[[', ']]'];
+            friendTemplate = $('#friend_template').html();
             setTimeout(friendsTimeout, 10000);
 
-{#          Make ajax call for top friends #}
-
-{#          Make ajax call for rest of friends #}
-
+            // Get the first page of friends
+            Dajaxice.yearbook.get_friends(onGetFriends, {'offset': 0});
         });
 
-        var loaded = false;
         function friendsLoaded() {
             if (!loaded) {
+                var loaded = true;
                 $('.loading').hide();
                 $('.loaded').show();
             }
@@ -86,7 +118,7 @@
         function friendsTimeout() {
             if (!loaded) {
                 // Only run if the first call timed out
-
+{#                Show an error message #}
             }
         }
     </script>

@@ -37,8 +37,7 @@ class YearbookFacebookUser(models.Model):
     name = models.TextField(blank=True, null=True)
     gender = models.CharField(choices=(('F', 'female'), ('M', 'male')), blank=True, null=True, max_length=1)
     pic_small = models.CharField(max_length=200, blank=True)
-    top_friends_order = models.PositiveSmallIntegerField(default=0, help_text='A nonzero value indicates this user is '
-                                                                              'one of user_id\'s top friends',
+    top_friends_order = models.PositiveSmallIntegerField(default=0, help_text='Higher the better',
                                                          db_index=True)
     objects = FacebookUserManager()
 
