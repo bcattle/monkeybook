@@ -16,7 +16,7 @@ def begin_signup(request):
 
     # Pull top friends
     fast_friends_async = get_and_store_top_friends_fast.delay(request.user, facebook, pull_all_friends_when_done=True)
-    request.session['fast_friends_async'] = fast_friends_async
+    request.session['fast_friends_task_id'] = fast_friends_async.task_id
 
     # Pull the optional fields in 5 minutes
     get_optional_profile_fields.apply_async(args=[request.user, facebook], countdown=60*5)

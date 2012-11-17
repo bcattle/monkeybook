@@ -22,20 +22,19 @@ DATABASES = {
         }
 }
 
+## Sessions
+
+SESSION_ENGINE = 'redis_sessions.session'
+SESSION_REDIS_HOST = 'localhost'
+SESSION_REDIS_PORT = 6379
+SESSION_REDIS_DB = 0
+SESSION_REDIS_PREFIX = 'session'
+
 ## Celery
 
 #CELERYD_CONCURRENCY = 2            # By default, the number of CPUs is used
-
-# DB-backed
-BROKER_URL = 'django://'
-CELERY_RESULT_BACKEND = 'database'
-CELERY_RESULT_DBURI = 'mysql://%s:%s@%s:%s/%s' % (
-    DATABASES['default']['USER'],
-    DATABASES['default']['PASSWORD'],
-    DATABASES['default']['HOST'],
-    DATABASES['default']['PORT'],
-    DATABASES['default']['NAME']
-)
+BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = BROKER_URL
 
 
 ## Static files storage

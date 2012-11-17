@@ -104,7 +104,11 @@
             setTimeout(friendsTimeout, 10000);
 
             // Get the first page of friends
-            Dajaxice.yearbook.get_friends(onGetFriends, {'offset': 0});
+            // we don't trust this function, so we keep calling it to make sure
+            // new results didn't come into the server
+            window.setInterval(function() {
+                Dajaxice.yearbook.get_friends(onGetFriends, {'offset': currOffset})
+            }, 3000);
         });
 
         function friendsLoaded() {

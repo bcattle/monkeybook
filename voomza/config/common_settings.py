@@ -22,7 +22,6 @@ INSTALLED_APPS = (
     # 'django.contrib.admindocs',
     'south',
     'djcelery',
-    'kombu.transport.django',
     'django_facebook',
     'dajaxice',
 )
