@@ -1,0 +1,2 @@
+
+STORE_TOP_FRIEND_STATS = True

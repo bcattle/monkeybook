@@ -8,54 +8,15 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding model 'UserProfile'
-        db.create_table('account_userprofile', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('about_me', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('facebook_id', self.gf('django.db.models.fields.BigIntegerField')(unique=True, null=True, blank=True)),
-            ('access_token', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('facebook_name', self.gf('django.db.models.fields.CharField')(max_length=255, null=True, blank=True)),
-            ('facebook_profile_url', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('website_url', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('blog_url', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('date_of_birth', self.gf('django.db.models.fields.DateField')(null=True, blank=True)),
-            ('gender', self.gf('django.db.models.fields.CharField')(max_length=1, null=True, blank=True)),
-            ('raw_data', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('facebook_open_graph', self.gf('django.db.models.fields.BooleanField')(default=True)),
-            ('image', self.gf('django.db.models.fields.files.ImageField')(max_length=255, null=True, blank=True)),
-            ('user', self.gf('django.db.models.fields.related.OneToOneField')(to=orm['auth.User'], unique=True)),
-            ('first_name', self.gf('django.db.models.fields.CharField')(max_length=40, blank=True)),
-            ('locale', self.gf('django.db.models.fields.CharField')(max_length=10, blank=True)),
-            ('significant_other', self.gf('django.db.models.fields.related.ForeignKey')(related_name='+', null=True, to=orm['account.YearbookFacebookUser'])),
-        ))
-        db.send_create_signal('account', ['UserProfile'])
-
-        # Adding M2M table for field family on 'UserProfile'
-        db.create_table('account_userprofile_family', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('userprofile', models.ForeignKey(orm['account.userprofile'], null=False)),
-            ('yearbookfacebookuser', models.ForeignKey(orm['account.yearbookfacebookuser'], null=False))
-        ))
-        db.create_unique('account_userprofile_family', ['userprofile_id', 'yearbookfacebookuser_id'])
-
-        # Adding model 'YearbookFacebookUser'
-        db.create_table('account_yearbookfacebookuser', (
-            ('facebookuser_ptr', self.gf('django.db.models.fields.related.OneToOneField')(to=orm['django_facebook.FacebookUser'], unique=True, primary_key=True)),
-            ('picture', self.gf('django.db.models.fields.CharField')(max_length=200, blank=True)),
-            ('top_friends_order', self.gf('django.db.models.fields.PositiveSmallIntegerField')(default=0, db_index=True)),
-        ))
-        db.send_create_signal('account', ['YearbookFacebookUser'])
+        # Deleting field 'UserProfile.image'
+        db.delete_column('account_userprofile', 'image')
 
 
     def backwards(self, orm):
-        # Deleting model 'UserProfile'
-        db.delete_table('account_userprofile')
-
-        # Removing M2M table for field family on 'UserProfile'
-        db.delete_table('account_userprofile_family')
-
-        # Deleting model 'YearbookFacebookUser'
-        db.delete_table('account_yearbookfacebookuser')
+        # Adding field 'UserProfile.image'
+        db.add_column('account_userprofile', 'image',
+                      self.gf('django.db.models.fields.files.ImageField')(max_length=255, null=True, blank=True),
+                      keep_default=False)
 
 
     models = {
@@ -64,6 +25,7 @@ class Migration(SchemaMigration):
             'about_me': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'access_token': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'blog_url': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
+            'current_page': ('django.db.models.fields.CharField', [], {'default': "'invite_friends_to_sign'", 'max_length': '40'}),
             'date_of_birth': ('django.db.models.fields.DateField', [], {'null': 'True', 'blank': 'True'}),
             'facebook_id': ('django.db.models.fields.BigIntegerField', [], {'unique': 'True', 'null': 'True', 'blank': 'True'}),
             'facebook_name': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
@@ -73,11 +35,10 @@ class Migration(SchemaMigration):
             'first_name': ('django.db.models.fields.CharField', [], {'max_length': '40', 'blank': 'True'}),
             'gender': ('django.db.models.fields.CharField', [], {'max_length': '1', 'null': 'True', 'blank': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'image': ('django.db.models.fields.files.ImageField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
             'locale': ('django.db.models.fields.CharField', [], {'max_length': '10', 'blank': 'True'}),
             'raw_data': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'significant_other': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'+'", 'null': 'True', 'to': "orm['account.YearbookFacebookUser']"}),
-            'user': ('django.db.models.fields.related.OneToOneField', [], {'to': "orm['auth.User']", 'unique': 'True'}),
+            'user': ('django.db.models.fields.related.OneToOneField', [], {'related_name': "'profile'", 'unique': 'True', 'to': "orm['auth.User']"}),
             'website_url': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'})
         },
         'account.yearbookfacebookuser': {

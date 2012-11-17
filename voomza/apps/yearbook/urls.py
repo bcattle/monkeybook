@@ -1,5 +1,5 @@
 from django.conf.urls import patterns, include, url
-from signup.views import *
+from views import *
 #from django.views.generic.base import TemplateView
 
 urlpatterns = patterns('',

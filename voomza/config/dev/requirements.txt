@@ -5,3 +5,5 @@ django-celery
 django_facebook
 pil
 django-dajaxice
+ipython
+ipdb

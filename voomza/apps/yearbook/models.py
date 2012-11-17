@@ -2,25 +2,34 @@ from django.db import models
 from django.contrib.auth.models import User
 
 
-class TopFriendStats(models.Model):
+class TopFriend(models.Model):
+    user = models.ForeignKey('auth.User', related_name='top_friends')
+    friend_id = models.BigIntegerField()
+    rank = models.PositiveSmallIntegerField(default=0, db_index=True, help_text='The higher the better')
+
+    class Meta:
+        unique_together = ['user', 'friend_id']
+
+
+class TopFriendStat(models.Model):
     """
     All of the scores we pulled to calculate
     who a user's top friends were
     """
-    user = models.ForeignKey('account.UserProfile')
-    friend = models.ForeignKey('account.YearbookFacebookUser')
-    tagged_with = models.PositiveSmallIntegerField(help_text='How many times you\'re tagged with this person')
-    you_posts_to = models.PositiveSmallIntegerField(help_text='How many times you posted to this person ')
-    you_photos_liked = models.PositiveSmallIntegerField(help_text='How many times you liked a photo from this person')
-    you_links_liked = models.PositiveSmallIntegerField(help_text='How many times you liked a link from this person')
-    you_statuses_liked = models.PositiveSmallIntegerField(help_text='How many times you liked a status from this person')
-    them_posts_to = models.PositiveSmallIntegerField(help_text='How many times they posted to you')
-    them_comment_to_photo = models.PositiveSmallIntegerField(help_text='How many times they commented on your photo')
-    them_comment_to_link = models.PositiveSmallIntegerField(help_text='How many times they commented on your link')
-    them_comment_to_status = models.PositiveSmallIntegerField(help_text='How many times they commented on your status')
-    them_like_photo = models.PositiveSmallIntegerField(help_text='How many times they liked your photo')
-    them_like_link = models.PositiveSmallIntegerField(help_text='How many times they liked your link')
-    them_like_status = models.PositiveSmallIntegerField(help_text='How many times they liked your status')
+    user = models.ForeignKey('auth.User', related_name='top_friend_stats')
+    friend_id = models.BigIntegerField()
+    tagged_with = models.PositiveSmallIntegerField(null=True, help_text='How many times you\'re tagged with this person')
+    you_posts_to = models.PositiveSmallIntegerField(null=True, help_text='How many times you posted to this person ')
+    you_photos_liked = models.PositiveSmallIntegerField(null=True, help_text='How many times you liked a photo from this person')
+    you_links_liked = models.PositiveSmallIntegerField(null=True, help_text='How many times you liked a link from this person')
+    you_statuses_liked = models.PositiveSmallIntegerField(null=True, help_text='How many times you liked a status from this person')
+    them_posts_to = models.PositiveSmallIntegerField(null=True, help_text='How many times they posted to you')
+    them_comment_to_photo = models.PositiveSmallIntegerField(null=True, help_text='How many times they commented on your photo')
+    them_comment_to_link = models.PositiveSmallIntegerField(null=True, help_text='How many times they commented on your link')
+    them_comment_to_status = models.PositiveSmallIntegerField(null=True, help_text='How many times they commented on your status')
+    them_like_photo = models.PositiveSmallIntegerField(null=True, help_text='How many times they liked your photo')
+    them_like_link = models.PositiveSmallIntegerField(null=True, help_text='How many times they liked your link')
+    them_like_status = models.PositiveSmallIntegerField(null=True, help_text='How many times they liked your status')
 
 
 class Badge(models.Model):

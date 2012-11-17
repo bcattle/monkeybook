@@ -1,8 +1,11 @@
-import logging
+import logging, timeit
+from collections import OrderedDict
 from django_facebook.api import FacebookUserConverter
 from django_facebook.signals import facebook_post_store_friends
 from django_facebook.utils import get_profile_class, mass_get_or_create
 from voomza.apps.account.models import YearbookFacebookUser
+from voomza.apps.yearbook import settings as yearbook_settings
+from voomza.apps.yearbook.models import TopFriend, TopFriendStat
 
 logger = logging.getLogger(__name__)
 
@@ -69,3 +72,57 @@ class YearbookFacebookUserConverter(FacebookUserConverter):
         )
 
         return friends
+
+
+    def get_and_store_top_friends_fast(self, user):
+        """
+        Gets the users friends using the "quick" algorithm
+        """
+        # If they already have any top friends, skip
+        if TopFriend.objects.filter(user=user).exists():
+            logger.debug('User already has top friends, skipping "fast algorithm"')
+            return
+
+        # Who are they in the most photos with?
+        response = self.open_facebook.fql(
+            'SELECT subject FROM photo_tag WHERE object_id IN '
+            '   (SELECT object_id FROM photo_tag WHERE subject=me()) AND subject!=me() '
+            'LIMIT 100')
+
+        # We got a list of user ids this user is with
+        # Collapse to a frequencies and user_ids
+        ids = []
+        for photo_tag in response:
+            try:
+                ids.append(int(photo_tag['subject']))
+            # Skip anything that's not an integer
+            except ValueError: pass
+
+        counted = [(id, ids.count(id)) for id in ids]
+        counted_in_order = OrderedDict(sorted(counted, key=lambda t: t[1], reverse=True))
+        # Holds {user_id: "topness index"}
+        ids_in_order = {str(id): dict(rank=index) for index,id in enumerate(counted_in_order)}
+
+        # Only updates if they don't already exist
+        # i.e. this shouldn't overwrite the "non-fast" algorithm
+        current, created = mass_get_or_create(
+            model_class=TopFriend,
+            base_queryset=TopFriend.objects.filter(user=user),
+            id_field='friend_id',
+            default_dict=ids_in_order,
+            global_defaults=dict(user=user),
+        )
+
+        # Save the counts for debugging?
+        if yearbook_settings.STORE_TOP_FRIEND_STATS:
+            counts_for_db = {str(id): dict(tagged_with=count) for id,count in counted_in_order.items()}
+            # We don't overwrite existing entries
+            mass_get_or_create(
+                model_class=TopFriendStat,
+                base_queryset=TopFriendStat.objects.filter(user=user),
+                id_field='friend_id',
+                default_dict=counts_for_db,
+                global_defaults=dict(user=user),
+            )
+
+        logger.info('found %s top friends', len(ids))

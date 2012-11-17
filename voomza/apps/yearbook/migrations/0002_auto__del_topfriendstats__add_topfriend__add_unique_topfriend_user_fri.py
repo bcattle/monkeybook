@@ -8,78 +8,79 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Deleting model 'TopFriend'
-        db.delete_table('yearbook_topfriend')
+        # Deleting model 'TopFriendStats'
+        db.delete_table('yearbook_topfriendstats')
 
-        # Deleting field 'TopFriendStats.top_friend'
-        db.delete_column('yearbook_topfriendstats', 'top_friend_id')
-
-        # Adding field 'TopFriendStats.user'
-        db.add_column('yearbook_topfriendstats', 'user',
-                      self.gf('django.db.models.fields.related.ForeignKey')(default=1, to=orm['account.UserProfile']),
-                      keep_default=False)
-
-        # Adding field 'TopFriendStats.friend'
-        db.add_column('yearbook_topfriendstats', 'friend',
-                      self.gf('django.db.models.fields.related.ForeignKey')(default=1, to=orm['account.YearbookFacebookUser']),
-                      keep_default=False)
-
-
-        # Changing field 'BadgeVote.to_facebook_user'
-        db.alter_column('yearbook_badgevote', 'to_facebook_user_id', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['account.YearbookFacebookUser']))
-
-    def backwards(self, orm):
         # Adding model 'TopFriend'
         db.create_table('yearbook_topfriend', (
-            ('rank', self.gf('django.db.models.fields.PositiveSmallIntegerField')()),
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('friend', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['account.FacebookUserWithPic'])),
-            ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['account.UserProfile'])),
+            ('user', self.gf('django.db.models.fields.related.ForeignKey')(related_name='top_friends', to=orm['auth.User'])),
+            ('friend_id', self.gf('django.db.models.fields.BigIntegerField')()),
+            ('rank', self.gf('django.db.models.fields.PositiveSmallIntegerField')(default=0, db_index=True)),
         ))
         db.send_create_signal('yearbook', ['TopFriend'])
 
-        # Adding field 'TopFriendStats.top_friend'
-        db.add_column('yearbook_topfriendstats', 'top_friend',
-                      self.gf('django.db.models.fields.related.OneToOneField')(default=1, to=orm['yearbook.TopFriend'], unique=True),
-                      keep_default=False)
+        # Adding unique constraint on 'TopFriend', fields ['user', 'friend_id']
+        db.create_unique('yearbook_topfriend', ['user_id', 'friend_id'])
 
-        # Deleting field 'TopFriendStats.user'
-        db.delete_column('yearbook_topfriendstats', 'user_id')
+        # Adding model 'TopFriendStat'
+        db.create_table('yearbook_topfriendstat', (
+            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('user', self.gf('django.db.models.fields.related.ForeignKey')(related_name='top_friend_stats', to=orm['auth.User'])),
+            ('friend_id', self.gf('django.db.models.fields.BigIntegerField')()),
+            ('tagged_with', self.gf('django.db.models.fields.PositiveSmallIntegerField')()),
+            ('you_posts_to', self.gf('django.db.models.fields.PositiveSmallIntegerField')()),
+            ('you_photos_liked', self.gf('django.db.models.fields.PositiveSmallIntegerField')()),
+            ('you_links_liked', self.gf('django.db.models.fields.PositiveSmallIntegerField')()),
+            ('you_statuses_liked', self.gf('django.db.models.fields.PositiveSmallIntegerField')()),
+            ('them_posts_to', self.gf('django.db.models.fields.PositiveSmallIntegerField')()),
+            ('them_comment_to_photo', self.gf('django.db.models.fields.PositiveSmallIntegerField')()),
+            ('them_comment_to_link', self.gf('django.db.models.fields.PositiveSmallIntegerField')()),
+            ('them_comment_to_status', self.gf('django.db.models.fields.PositiveSmallIntegerField')()),
+            ('them_like_photo', self.gf('django.db.models.fields.PositiveSmallIntegerField')()),
+            ('them_like_link', self.gf('django.db.models.fields.PositiveSmallIntegerField')()),
+            ('them_like_status', self.gf('django.db.models.fields.PositiveSmallIntegerField')()),
+        ))
+        db.send_create_signal('yearbook', ['TopFriendStat'])
 
-        # Deleting field 'TopFriendStats.friend'
-        db.delete_column('yearbook_topfriendstats', 'friend_id')
 
+    def backwards(self, orm):
+        # Removing unique constraint on 'TopFriend', fields ['user', 'friend_id']
+        db.delete_unique('yearbook_topfriend', ['user_id', 'friend_id'])
 
-        # Changing field 'BadgeVote.to_facebook_user'
-        db.alter_column('yearbook_badgevote', 'to_facebook_user_id', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['account.FacebookUserWithPic']))
+        # Adding model 'TopFriendStats'
+        db.create_table('yearbook_topfriendstats', (
+            ('them_like_status', self.gf('django.db.models.fields.PositiveSmallIntegerField')()),
+            ('you_statuses_liked', self.gf('django.db.models.fields.PositiveSmallIntegerField')()),
+            ('you_links_liked', self.gf('django.db.models.fields.PositiveSmallIntegerField')()),
+            ('them_posts_to', self.gf('django.db.models.fields.PositiveSmallIntegerField')()),
+            ('them_comment_to_photo', self.gf('django.db.models.fields.PositiveSmallIntegerField')()),
+            ('them_like_link', self.gf('django.db.models.fields.PositiveSmallIntegerField')()),
+            ('them_like_photo', self.gf('django.db.models.fields.PositiveSmallIntegerField')()),
+            ('them_comment_to_link', self.gf('django.db.models.fields.PositiveSmallIntegerField')()),
+            ('you_photos_liked', self.gf('django.db.models.fields.PositiveSmallIntegerField')()),
+            ('tagged_with', self.gf('django.db.models.fields.PositiveSmallIntegerField')()),
+            ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['account.UserProfile'])),
+            ('you_posts_to', self.gf('django.db.models.fields.PositiveSmallIntegerField')()),
+            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('friend', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['account.YearbookFacebookUser'])),
+            ('them_comment_to_status', self.gf('django.db.models.fields.PositiveSmallIntegerField')()),
+        ))
+        db.send_create_signal('yearbook', ['TopFriendStats'])
+
+        # Deleting model 'TopFriend'
+        db.delete_table('yearbook_topfriend')
+
+        # Deleting model 'TopFriendStat'
+        db.delete_table('yearbook_topfriendstat')
+
 
     models = {
-        'account.userprofile': {
-            'Meta': {'object_name': 'UserProfile'},
-            'about_me': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'access_token': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'blog_url': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'date_of_birth': ('django.db.models.fields.DateField', [], {'null': 'True', 'blank': 'True'}),
-            'facebook_id': ('django.db.models.fields.BigIntegerField', [], {'unique': 'True', 'null': 'True', 'blank': 'True'}),
-            'facebook_name': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
-            'facebook_open_graph': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
-            'facebook_profile_url': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'family': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'+'", 'symmetrical': 'False', 'to': "orm['account.YearbookFacebookUser']"}),
-            'first_name': ('django.db.models.fields.CharField', [], {'max_length': '40', 'blank': 'True'}),
-            'gender': ('django.db.models.fields.CharField', [], {'max_length': '1', 'null': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'image': ('django.db.models.fields.files.ImageField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
-            'locale': ('django.db.models.fields.CharField', [], {'max_length': '10', 'blank': 'True'}),
-            'raw_data': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'significant_other': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'+'", 'to': "orm['account.YearbookFacebookUser']"}),
-            'user': ('django.db.models.fields.related.OneToOneField', [], {'to': "orm['auth.User']", 'unique': 'True'}),
-            'website_url': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'})
-        },
         'account.yearbookfacebookuser': {
             'Meta': {'object_name': 'YearbookFacebookUser', '_ormbases': ['django_facebook.FacebookUser']},
             'facebookuser_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': "orm['django_facebook.FacebookUser']", 'unique': 'True', 'primary_key': 'True'}),
             'picture': ('django.db.models.fields.CharField', [], {'max_length': '200', 'blank': 'True'}),
-            'top_friends_order': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '0'})
+            'top_friends_order': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '0', 'db_index': 'True'})
         },
         'auth.group': {
             'Meta': {'object_name': 'Group'},
@@ -140,9 +141,16 @@ class Migration(SchemaMigration):
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'to_facebook_user': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['account.YearbookFacebookUser']"})
         },
-        'yearbook.topfriendstats': {
-            'Meta': {'object_name': 'TopFriendStats'},
-            'friend': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['account.YearbookFacebookUser']"}),
+        'yearbook.topfriend': {
+            'Meta': {'unique_together': "(['user', 'friend_id'],)", 'object_name': 'TopFriend'},
+            'friend_id': ('django.db.models.fields.BigIntegerField', [], {}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'rank': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '0', 'db_index': 'True'}),
+            'user': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'top_friends'", 'to': "orm['auth.User']"})
+        },
+        'yearbook.topfriendstat': {
+            'Meta': {'object_name': 'TopFriendStat'},
+            'friend_id': ('django.db.models.fields.BigIntegerField', [], {}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'tagged_with': ('django.db.models.fields.PositiveSmallIntegerField', [], {}),
             'them_comment_to_link': ('django.db.models.fields.PositiveSmallIntegerField', [], {}),
@@ -152,7 +160,7 @@ class Migration(SchemaMigration):
             'them_like_photo': ('django.db.models.fields.PositiveSmallIntegerField', [], {}),
             'them_like_status': ('django.db.models.fields.PositiveSmallIntegerField', [], {}),
             'them_posts_to': ('django.db.models.fields.PositiveSmallIntegerField', [], {}),
-            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['account.UserProfile']"}),
+            'user': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'top_friend_stats'", 'to': "orm['auth.User']"}),
             'you_links_liked': ('django.db.models.fields.PositiveSmallIntegerField', [], {}),
             'you_photos_liked': ('django.db.models.fields.PositiveSmallIntegerField', [], {}),
             'you_posts_to': ('django.db.models.fields.PositiveSmallIntegerField', [], {}),

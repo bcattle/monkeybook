@@ -5,7 +5,7 @@ from django_facebook.api import require_persistent_graph
 from voomza.apps.account.models import YearbookFacebookUser
 from voomza.apps.core.utils import flush_transaction
 from voomza.apps.yearbook.api import YearbookFacebookUserConverter
-from voomza.apps.yearbook.tasks import pull_quick_top_friends
+from voomza.apps.yearbook.tasks import get_and_store_top_friends_fast
 
 FRIENDS_PER_PAGE = 20
 
@@ -37,6 +37,8 @@ def get_friends(request, offset=0):
         #  - their friends haven't been pulled yet, no values in table
         #  - their friends were pulled but top friends code hasn't run yet
         #  - top friends code has been run
+
+        request.session['top_friends_fast_async']
 
         # Pull their top friend: order_by `top_friends_order`
         try:

@@ -3,17 +3,18 @@ from dajaxice.core import dajaxice_autodiscover, dajaxice_config
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 # Enable admin
-#from django.contrib import admin
-#admin.autodiscover()
+from django.contrib import admin
+admin.autodiscover()
 
 # Enable dajaxice
 dajaxice_autodiscover()
 
 common_urls = patterns('',
+    url(r'', include('account.urls')),
     url(r'', include('core.urls')),
-    url(r'', include('signup.urls')),
+    url(r'', include('yearbook.urls')),
     # Admin
-#    url(r'^admin/', include(admin.site.urls)),
+    url(r'^admin/', include(admin.site.urls)),
     # Autosuggest
 #    url(r'^%s/' % settings.SELECTABLE_MEDIA_PREFIX, include('selectable.urls')),
     # General ajax

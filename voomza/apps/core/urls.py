@@ -1,7 +1,8 @@
 from django.conf.urls import patterns, include, url
 from django.views.generic.base import TemplateView
+from voomza.apps.core.views import homepage
 
 urlpatterns = patterns('',
-  url(r'^$', TemplateView.as_view(template_name='homepage.html'), name='homepage'),
+    url(r'^$', homepage, name='homepage'),
 )
 

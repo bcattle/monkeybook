@@ -17,7 +17,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # Uncomment the next line to enable the admin:
-    # 'django.contrib.admin',
+    'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
     'south',
@@ -28,11 +28,16 @@ INSTALLED_APPS = (
 )
 INSTALLED_APPS += OUR_APPS
 
+## Auth
+
 AUTH_PROFILE_MODULE = 'account.UserProfile'
+LOGIN_URL = '/'
 
 
 ## Facebook
+
 FACEBOOK_DEFAULT_SCOPE = [
+    'email',
     'user_birthday',
     'user_relationships',
     'user_likes',
@@ -64,11 +69,6 @@ ADMINS = (
 MANAGERS = ADMINS
 
 
-## Themed URL prefixes
-
-DAJAXICE_MEDIA_PREFIX = 'js'
-
-
 ## Paths and locations
 
 import os
@@ -90,7 +90,7 @@ STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
     #    'django.contrib.staticfiles.finders.DefaultStorageFinder',
-    'compressor.finders.CompressorFinder',
+#    'compressor.finders.CompressorFinder',
     'dajaxice.finders.DajaxiceFinder',
 )
 
