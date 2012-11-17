@@ -22,11 +22,11 @@ class Migration(SchemaMigration):
             ('gender', self.gf('django.db.models.fields.CharField')(max_length=1, null=True, blank=True)),
             ('raw_data', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
             ('facebook_open_graph', self.gf('django.db.models.fields.BooleanField')(default=True)),
-            ('image', self.gf('django.db.models.fields.files.ImageField')(max_length=255, null=True, blank=True)),
-            ('user', self.gf('django.db.models.fields.related.OneToOneField')(to=orm['auth.User'], unique=True)),
+            ('user', self.gf('django.db.models.fields.related.OneToOneField')(related_name='profile', unique=True, to=orm['auth.User'])),
             ('first_name', self.gf('django.db.models.fields.CharField')(max_length=40, blank=True)),
             ('locale', self.gf('django.db.models.fields.CharField')(max_length=10, blank=True)),
             ('significant_other', self.gf('django.db.models.fields.related.ForeignKey')(related_name='+', null=True, to=orm['account.YearbookFacebookUser'])),
+            ('current_page', self.gf('django.db.models.fields.CharField')(default='invite_friends_to_sign', max_length=40)),
         ))
         db.send_create_signal('account', ['UserProfile'])
 
@@ -40,14 +40,24 @@ class Migration(SchemaMigration):
 
         # Adding model 'YearbookFacebookUser'
         db.create_table('account_yearbookfacebookuser', (
-            ('facebookuser_ptr', self.gf('django.db.models.fields.related.OneToOneField')(to=orm['django_facebook.FacebookUser'], unique=True, primary_key=True)),
-            ('picture', self.gf('django.db.models.fields.CharField')(max_length=200, blank=True)),
+            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
+            ('facebook_id', self.gf('django.db.models.fields.BigIntegerField')()),
+            ('name', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
+            ('gender', self.gf('django.db.models.fields.CharField')(max_length=1, null=True, blank=True)),
+            ('pic_small', self.gf('django.db.models.fields.CharField')(max_length=200, blank=True)),
             ('top_friends_order', self.gf('django.db.models.fields.PositiveSmallIntegerField')(default=0, db_index=True)),
         ))
         db.send_create_signal('account', ['YearbookFacebookUser'])
 
+        # Adding unique constraint on 'YearbookFacebookUser', fields ['user', 'facebook_id']
+        db.create_unique('account_yearbookfacebookuser', ['user_id', 'facebook_id'])
+
 
     def backwards(self, orm):
+        # Removing unique constraint on 'YearbookFacebookUser', fields ['user', 'facebook_id']
+        db.delete_unique('account_yearbookfacebookuser', ['user_id', 'facebook_id'])
+
         # Deleting model 'UserProfile'
         db.delete_table('account_userprofile')
 
@@ -64,6 +74,7 @@ class Migration(SchemaMigration):
             'about_me': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'access_token': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'blog_url': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
+            'current_page': ('django.db.models.fields.CharField', [], {'default': "'invite_friends_to_sign'", 'max_length': '40'}),
             'date_of_birth': ('django.db.models.fields.DateField', [], {'null': 'True', 'blank': 'True'}),
             'facebook_id': ('django.db.models.fields.BigIntegerField', [], {'unique': 'True', 'null': 'True', 'blank': 'True'}),
             'facebook_name': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
@@ -73,18 +84,21 @@ class Migration(SchemaMigration):
             'first_name': ('django.db.models.fields.CharField', [], {'max_length': '40', 'blank': 'True'}),
             'gender': ('django.db.models.fields.CharField', [], {'max_length': '1', 'null': 'True', 'blank': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'image': ('django.db.models.fields.files.ImageField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
             'locale': ('django.db.models.fields.CharField', [], {'max_length': '10', 'blank': 'True'}),
             'raw_data': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
             'significant_other': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'+'", 'null': 'True', 'to': "orm['account.YearbookFacebookUser']"}),
-            'user': ('django.db.models.fields.related.OneToOneField', [], {'to': "orm['auth.User']", 'unique': 'True'}),
+            'user': ('django.db.models.fields.related.OneToOneField', [], {'related_name': "'profile'", 'unique': 'True', 'to': "orm['auth.User']"}),
             'website_url': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'})
         },
         'account.yearbookfacebookuser': {
-            'Meta': {'object_name': 'YearbookFacebookUser', '_ormbases': ['django_facebook.FacebookUser']},
-            'facebookuser_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': "orm['django_facebook.FacebookUser']", 'unique': 'True', 'primary_key': 'True'}),
-            'picture': ('django.db.models.fields.CharField', [], {'max_length': '200', 'blank': 'True'}),
-            'top_friends_order': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '0', 'db_index': 'True'})
+            'Meta': {'unique_together': "(['user', 'facebook_id'],)", 'object_name': 'YearbookFacebookUser'},
+            'facebook_id': ('django.db.models.fields.BigIntegerField', [], {}),
+            'gender': ('django.db.models.fields.CharField', [], {'max_length': '1', 'null': 'True', 'blank': 'True'}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'name': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
+            'pic_small': ('django.db.models.fields.CharField', [], {'max_length': '200', 'blank': 'True'}),
+            'top_friends_order': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '0', 'db_index': 'True'}),
+            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']"})
         },
         'auth.group': {
             'Meta': {'object_name': 'Group'},
@@ -121,14 +135,6 @@ class Migration(SchemaMigration):
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'model': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
-        },
-        'django_facebook.facebookuser': {
-            'Meta': {'unique_together': "(['user_id', 'facebook_id'],)", 'object_name': 'FacebookUser'},
-            'facebook_id': ('django.db.models.fields.BigIntegerField', [], {}),
-            'gender': ('django.db.models.fields.CharField', [], {'max_length': '1', 'null': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'user_id': ('django.db.models.fields.IntegerField', [], {})
         }
     }
 

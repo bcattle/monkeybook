@@ -8,25 +8,25 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding model 'TopFriendStats'
-        db.create_table('yearbook_topfriendstats', (
+        # Adding model 'TopFriendStat'
+        db.create_table('yearbook_topfriendstat', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['account.UserProfile'])),
-            ('friend', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['account.YearbookFacebookUser'])),
-            ('tagged_with', self.gf('django.db.models.fields.PositiveSmallIntegerField')()),
-            ('you_posts_to', self.gf('django.db.models.fields.PositiveSmallIntegerField')()),
-            ('you_photos_liked', self.gf('django.db.models.fields.PositiveSmallIntegerField')()),
-            ('you_links_liked', self.gf('django.db.models.fields.PositiveSmallIntegerField')()),
-            ('you_statuses_liked', self.gf('django.db.models.fields.PositiveSmallIntegerField')()),
-            ('them_posts_to', self.gf('django.db.models.fields.PositiveSmallIntegerField')()),
-            ('them_comment_to_photo', self.gf('django.db.models.fields.PositiveSmallIntegerField')()),
-            ('them_comment_to_link', self.gf('django.db.models.fields.PositiveSmallIntegerField')()),
-            ('them_comment_to_status', self.gf('django.db.models.fields.PositiveSmallIntegerField')()),
-            ('them_like_photo', self.gf('django.db.models.fields.PositiveSmallIntegerField')()),
-            ('them_like_link', self.gf('django.db.models.fields.PositiveSmallIntegerField')()),
-            ('them_like_status', self.gf('django.db.models.fields.PositiveSmallIntegerField')()),
+            ('user', self.gf('django.db.models.fields.related.ForeignKey')(related_name='top_friend_stats', to=orm['auth.User'])),
+            ('friend_id', self.gf('django.db.models.fields.BigIntegerField')()),
+            ('tagged_with', self.gf('django.db.models.fields.PositiveSmallIntegerField')(null=True)),
+            ('you_posts_to', self.gf('django.db.models.fields.PositiveSmallIntegerField')(null=True)),
+            ('you_photos_liked', self.gf('django.db.models.fields.PositiveSmallIntegerField')(null=True)),
+            ('you_links_liked', self.gf('django.db.models.fields.PositiveSmallIntegerField')(null=True)),
+            ('you_statuses_liked', self.gf('django.db.models.fields.PositiveSmallIntegerField')(null=True)),
+            ('them_posts_to', self.gf('django.db.models.fields.PositiveSmallIntegerField')(null=True)),
+            ('them_comment_to_photo', self.gf('django.db.models.fields.PositiveSmallIntegerField')(null=True)),
+            ('them_comment_to_link', self.gf('django.db.models.fields.PositiveSmallIntegerField')(null=True)),
+            ('them_comment_to_status', self.gf('django.db.models.fields.PositiveSmallIntegerField')(null=True)),
+            ('them_like_photo', self.gf('django.db.models.fields.PositiveSmallIntegerField')(null=True)),
+            ('them_like_link', self.gf('django.db.models.fields.PositiveSmallIntegerField')(null=True)),
+            ('them_like_status', self.gf('django.db.models.fields.PositiveSmallIntegerField')(null=True)),
         ))
-        db.send_create_signal('yearbook', ['TopFriendStats'])
+        db.send_create_signal('yearbook', ['TopFriendStat'])
 
         # Adding model 'Badge'
         db.create_table('yearbook_badge', (
@@ -58,8 +58,8 @@ class Migration(SchemaMigration):
 
 
     def backwards(self, orm):
-        # Deleting model 'TopFriendStats'
-        db.delete_table('yearbook_topfriendstats')
+        # Deleting model 'TopFriendStat'
+        db.delete_table('yearbook_topfriendstat')
 
         # Deleting model 'Badge'
         db.delete_table('yearbook_badge')
@@ -72,32 +72,15 @@ class Migration(SchemaMigration):
 
 
     models = {
-        'account.userprofile': {
-            'Meta': {'object_name': 'UserProfile'},
-            'about_me': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'access_token': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'blog_url': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'date_of_birth': ('django.db.models.fields.DateField', [], {'null': 'True', 'blank': 'True'}),
-            'facebook_id': ('django.db.models.fields.BigIntegerField', [], {'unique': 'True', 'null': 'True', 'blank': 'True'}),
-            'facebook_name': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
-            'facebook_open_graph': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
-            'facebook_profile_url': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'family': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'related_name': "'+'", 'null': 'True', 'to': "orm['account.YearbookFacebookUser']"}),
-            'first_name': ('django.db.models.fields.CharField', [], {'max_length': '40', 'blank': 'True'}),
+        'account.yearbookfacebookuser': {
+            'Meta': {'unique_together': "(['user', 'facebook_id'],)", 'object_name': 'YearbookFacebookUser'},
+            'facebook_id': ('django.db.models.fields.BigIntegerField', [], {}),
             'gender': ('django.db.models.fields.CharField', [], {'max_length': '1', 'null': 'True', 'blank': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'image': ('django.db.models.fields.files.ImageField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
-            'locale': ('django.db.models.fields.CharField', [], {'max_length': '10', 'blank': 'True'}),
-            'raw_data': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'significant_other': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'+'", 'null': 'True', 'to': "orm['account.YearbookFacebookUser']"}),
-            'user': ('django.db.models.fields.related.OneToOneField', [], {'to': "orm['auth.User']", 'unique': 'True'}),
-            'website_url': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'})
-        },
-        'account.yearbookfacebookuser': {
-            'Meta': {'object_name': 'YearbookFacebookUser', '_ormbases': ['django_facebook.FacebookUser']},
-            'facebookuser_ptr': ('django.db.models.fields.related.OneToOneField', [], {'to': "orm['django_facebook.FacebookUser']", 'unique': 'True', 'primary_key': 'True'}),
-            'picture': ('django.db.models.fields.CharField', [], {'max_length': '200', 'blank': 'True'}),
-            'top_friends_order': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '0', 'db_index': 'True'})
+            'name': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
+            'pic_small': ('django.db.models.fields.CharField', [], {'max_length': '200', 'blank': 'True'}),
+            'top_friends_order': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '0', 'db_index': 'True'}),
+            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']"})
         },
         'auth.group': {
             'Meta': {'object_name': 'Group'},
@@ -135,14 +118,6 @@ class Migration(SchemaMigration):
             'model': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
         },
-        'django_facebook.facebookuser': {
-            'Meta': {'unique_together': "(['user_id', 'facebook_id'],)", 'object_name': 'FacebookUser'},
-            'facebook_id': ('django.db.models.fields.BigIntegerField', [], {}),
-            'gender': ('django.db.models.fields.CharField', [], {'max_length': '1', 'null': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'user_id': ('django.db.models.fields.IntegerField', [], {})
-        },
         'yearbook.badge': {
             'Meta': {'object_name': 'Badge'},
             'icon': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
@@ -158,23 +133,23 @@ class Migration(SchemaMigration):
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'to_facebook_user': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['account.YearbookFacebookUser']"})
         },
-        'yearbook.topfriendstats': {
-            'Meta': {'object_name': 'TopFriendStats'},
-            'friend': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['account.YearbookFacebookUser']"}),
+        'yearbook.topfriendstat': {
+            'Meta': {'object_name': 'TopFriendStat'},
+            'friend_id': ('django.db.models.fields.BigIntegerField', [], {}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'tagged_with': ('django.db.models.fields.PositiveSmallIntegerField', [], {}),
-            'them_comment_to_link': ('django.db.models.fields.PositiveSmallIntegerField', [], {}),
-            'them_comment_to_photo': ('django.db.models.fields.PositiveSmallIntegerField', [], {}),
-            'them_comment_to_status': ('django.db.models.fields.PositiveSmallIntegerField', [], {}),
-            'them_like_link': ('django.db.models.fields.PositiveSmallIntegerField', [], {}),
-            'them_like_photo': ('django.db.models.fields.PositiveSmallIntegerField', [], {}),
-            'them_like_status': ('django.db.models.fields.PositiveSmallIntegerField', [], {}),
-            'them_posts_to': ('django.db.models.fields.PositiveSmallIntegerField', [], {}),
-            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['account.UserProfile']"}),
-            'you_links_liked': ('django.db.models.fields.PositiveSmallIntegerField', [], {}),
-            'you_photos_liked': ('django.db.models.fields.PositiveSmallIntegerField', [], {}),
-            'you_posts_to': ('django.db.models.fields.PositiveSmallIntegerField', [], {}),
-            'you_statuses_liked': ('django.db.models.fields.PositiveSmallIntegerField', [], {})
+            'tagged_with': ('django.db.models.fields.PositiveSmallIntegerField', [], {'null': 'True'}),
+            'them_comment_to_link': ('django.db.models.fields.PositiveSmallIntegerField', [], {'null': 'True'}),
+            'them_comment_to_photo': ('django.db.models.fields.PositiveSmallIntegerField', [], {'null': 'True'}),
+            'them_comment_to_status': ('django.db.models.fields.PositiveSmallIntegerField', [], {'null': 'True'}),
+            'them_like_link': ('django.db.models.fields.PositiveSmallIntegerField', [], {'null': 'True'}),
+            'them_like_photo': ('django.db.models.fields.PositiveSmallIntegerField', [], {'null': 'True'}),
+            'them_like_status': ('django.db.models.fields.PositiveSmallIntegerField', [], {'null': 'True'}),
+            'them_posts_to': ('django.db.models.fields.PositiveSmallIntegerField', [], {'null': 'True'}),
+            'user': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'top_friend_stats'", 'to': "orm['auth.User']"}),
+            'you_links_liked': ('django.db.models.fields.PositiveSmallIntegerField', [], {'null': 'True'}),
+            'you_photos_liked': ('django.db.models.fields.PositiveSmallIntegerField', [], {'null': 'True'}),
+            'you_posts_to': ('django.db.models.fields.PositiveSmallIntegerField', [], {'null': 'True'}),
+            'you_statuses_liked': ('django.db.models.fields.PositiveSmallIntegerField', [], {'null': 'True'})
         },
         'yearbook.yearbooksign': {
             'Meta': {'object_name': 'YearbookSign'},
