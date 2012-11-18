@@ -1,0 +1,28 @@
+.friend_container {
+    width: 300px;
+    margin: 2px;
+    padding: 5px;
+    border: 1px solid;
+    border-radius: 5px;
+    -moz-border-radius: 5px;
+    background: #ffffff;
+}
+
+.all_badges_container {
+    clear:both;
+    height:500px;
+    padding: 20px;
+    overflow-y:scroll;
+}
+
+.badge_container {
+    margin-top: 5px;
+    padding: 15px;
+    border: 2px solid;
+    border-radius: 5px;
+    -moz-border-radius: 5px;
+}
+
+.friend_select {
+    width: 300px;
+}

@@ -43,7 +43,7 @@
         </div>
 {#        hidden #}
         <div class="loaded" style="display:none;">
-            <div style="width:300px;">
+            <div style="">
                 <div class="list_actions">
                     <div style="float:left;">
                         <button id="selectNone">Select none</button>
@@ -106,6 +106,7 @@
                 friends_elements = $('.friend');
                 // Get another page of results
                 currOffset += friends.length;
+//                console.log('Offset now ' + currOffset);
                 Dajaxice.yearbook.get_friends(onGetFriends, {'offset': currOffset});
             } else {
                 emptyCount++;
@@ -150,6 +151,8 @@
             });
 
             // User type to filter
+
+            $('#filter_input').val('');
 
             $('#filter_form').submit(function(e){
                 e.preventDefault();

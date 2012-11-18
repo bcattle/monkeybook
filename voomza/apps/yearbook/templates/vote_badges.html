@@ -1,47 +1,244 @@
 {% extends 'base.html' %}
 {% load staticfiles %}
+{% load url from future %}
+{% load dajaxice_templatetags %}
 
 {# vote_badges.html                                  #}
 {# Bryan Cattle     11/14/2012                                  #}
 {#                                                              #}
-{# This page allows users to send "requests" to their friends,  #}
-{# to sign their yearbook.                                      #}
+{# This page allows users to select their significant other and #}
+{# family, and nominate their friends for badges.               #}
 {#                                                              #}
 {# UI elements:                                                 #}
-{#  - List of friends with checkboxes                           #}
-{#  - "Select all" button/checkbox                              #}
-{#  - Input box, type to filter names                           #}
-{#  - Submit button                                             #}
-{#  - Skip button                                               #}
 {#                                                              #}
 {# Data in:                                                     #}
-{#  - "Top friends", pulled via AJAX request                    #}
-{#  - all other friends, pulled via Ajax request                #}
 {#                                                              #}
 {# Data out:                                                    #}
-{#  - calls facebook js request dialog with list of friends     #}
 {#                                                              #}
 {# Interactions:                                                #}
-{#  - Typing in the search box filters by name                  #}
-{#  - Potentially, once a user is checked they move to a        #}
-{#    separate pane where all checked users stack up            #}
-{#  - If request dialog submitted successfully, redirect        #}
-{#    to "vote badges" page                                     #}
 {#                                                              #}
 
-{% block body %}
-    <div>
 
+{#<div class="list_search" style="clear:both;">#}
+    {#        Type to search friends input #}
+{#    <form action="" method="post" id="filter_form">#}
+{#        <input id="filter_input" style="width:100%" placeholder="Type to search for a friend">#}
+{#    </form>#}
+{#</div>#}
+
+{#    // User type to filter#}
+{#    $('#filter_form').submit(function(e){#}
+{#    e.preventDefault();#}
+{#    return false;#}
+{#    });#}
+{#    #}
+{#    $('#filter_input').keyup(function(e) {#}
+{#    // Selector version#}
+{#    var searchStr = $('#filter_input').val();#}
+{#    friends_elements.hide();#}
+{#    friends_elements.filter(':contains('+searchStr+')').show();#}
+{#    });#}
+
+{% block style %}
+    <link href="{% static 'css/vote_badges.css' %}" rel="stylesheet">
+    <link href="{% static 'css/select2.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block body %}
+    <h1>Nominate your friends for badges</h1>
+    <div>
+        <div class="loading">
+            {#        Loading spinner #}
+            <p>Loading ...</p>
+        </div>
+        {#        hidden #}
+        <div class="loaded" style="display:none;">
+            <div style="width:300px; float:left;">
+                {#        List of friends #}
+                <div class="list" style="clear:both; height:500px; overflow-y:scroll;">
+                    <div class="friends_list"></div>
+                </div>
+            </div>
+            <div style="float:left; margin-left:50px;">
+                <div class="all_badges_container">
+                    <div class="badge_container">
+                        <div><img src="{% static 'img/heart-32.png' %}">Significant other</div>
+                        <div class="friend_select"></div>
+                    </div>
+                    <div class="badge_container">
+                        <div><img src="{% static 'img/family-32.png' %}">Family</div>
+                        <div class="friend_select"></div>
+                    </div>
+                    {% for badge in badges %}
+                        <div class="badge_container" id="badge_{{ badge.id }}">
+                            <div><img src="{% static badge.icon %}" width="32">{{ badge.name }}</div>
+                            <div class="friend_select"></div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div style="float:left; padding:10px;">
+                <div class="list_actions">
+                    <div style="float:left;">
+                        <a href="{% url next_view %}">Skip >></a>
+                    </div>
+                    <div style="float:left;">
+                        <button id="submit">Next >></button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 {% endblock %}
 
 {% block javascript %}
-    <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.7.2.min.js"></script>
-    <script src="https://raw.github.com/jonnyreeves/jquery-Mustache/master/src/jquery-Mustache.js"></script>
-    <script src="https://raw.github.com/janl/mustache.js/master/mustache.js"></script>
+    {% dajaxice_js_import %}
+    <script src="{% static 'js/jquery-1.7.2.min.js' %}"></script>
+    <script src="{% static 'js/mustache.js' %}"></script>
+    <script src="{% static 'js/select2.min.js' %}"></script>
+    <script src="{% static 'js/jquery-ui-1.9.1.custom.min.js' %}"></script>
+    <script type="text/html" id="friend_template">
+        <div class="friend_container" data-id="[[ facebook_id ]]">
+            <img src="[[ pic_square ]]">[[ name ]]
+        </div>
+    </script>
+{#    <script type="text/html" id="friend_choice_template">#}
+{#        <div style="">#}
+{#            <img src="[[ picture ]]">[[ name ]]#}
+{#        </div>#}
+{#    </script>#}
     <script type="text/javascript">
-        $(document).ready(function(){
+        var loaded = false;
+        var currOffset = 0;
+        var friendTemplate = null;
+        var pollTimer;
+        var emptyCount = 0
+        var TURN_OFF_AFTER = 8;
+        var friends_data = [];
+        var dropped = false;
 
+        function formatFriendChoice(object, container) {
+//            return Mustache.to_html(friendChoiceTemplate, object);
+//            container.append(Mustache.to_html(friendChoiceTemplate, object));
+            return object.name;
+        }
+
+        function onGetFriends(data) {
+            friendsLoaded();
+            // We might have gotten a duplicate dataset
+            if (data.offset < currOffset)
+                return;
+            var friends = data.friends;
+            if (friends.length) {
+//                console.log('Got friends, starting id ' + friends[0].facebook_id);
+                // Dump the friends into the list
+                var list = $('.friends_list');
+                for (var idx in friends) {
+                    var friend_html = Mustache.to_html(friendTemplate, friends[idx]);
+                    list.append(friend_html);
+
+                    // Select2 box data
+                    friends_data.push({
+                        id: friends[idx].facebook_id,
+                        name: friends[idx].name,
+                        picture: friends[idx].pic_square
+                    });
+                }
+                // Re-initialize friend select boxes
+                $('.friend_select').select2({
+                    placeholder: "Choose a friend",
+                    allowClear: true,
+                    data: friends_data,
+                    formatResult: formatFriendChoice,
+                    formatSelection: formatFriendChoice
+//                    formatSelection: formatFriendSelection
+                });
+
+                // Make friend_containers draggable
+                $('.friend_container').draggable({
+                    addClasses: false,
+                    helper: 'clone',
+                    appendTo: 'body',
+                    containment: 'document',
+                    opacity: 0.75,
+                    revert: 'invalid',
+                    scroll: false,
+                    zIndex: 100,
+                    start: function(event, ui) {
+                        dropped = false;
+                        $(this).hide();
+                    },
+                    stop: function(event, ui) {
+                        if (dropped==true) {
+                            $(this).remove();
+                        } else {
+                            $(this).show();
+                        }
+                    }
+                });
+
+                // Get another page of results
+                currOffset += friends.length;
+//                console.log('Offset now ' + currOffset);
+                Dajaxice.yearbook.get_friends(onGetFriends, {'offset': currOffset});
+            } else {
+                emptyCount++;
+                if (emptyCount > TURN_OFF_AFTER) {
+                    // Turn off polling for new results
+                    clearInterval(pollTimer);
+                }
+            }
+        }
+
+        function friendsLoaded() {
+            if (!loaded) {
+                var loaded = true;
+                $('.loading').hide();
+                $('.loaded').show();
+            }
+        }
+
+        $(document).ready(function() {
+            Dajaxice.setup({'default_exception_callback': friendsTimeout});
+            // Get the first page of friends
+            // we don't trust this function, so we keep calling it to make sure
+            // new results didn't come into the server
+            var get_friends = function() { Dajaxice.yearbook.get_friends(onGetFriends, {'offset': currOffset}); };
+            get_friends();
+            pollTimer = setInterval(get_friends, 1000);
+            setTimeout(friendsTimeout, 10000);
+
+            // Load templates
+            Mustache.tags = ['[[', ']]'];
+            friendTemplate = $('#friend_template').html();
+
+            // Make badges droppable
+            $('.badge_container').droppable({
+                hoverClass: 'friend_hover',
+                drop: function(event, ui) {
+                    dropped = true;
+                    var dropped_id = $(ui.draggable[0]).attr('data-id');
+                    $(this).children('.friend_select').select2('val', dropped_id);
+                }
+            });
+
+            $('#submit').click(function() {
+
+
+//                Dajaxice.yearbook.invites_sent(submitCallback, {'friend_ids': selected_ids});
+            });
         });
+
+        function friendsTimeout() {
+            if (!loaded) {
+                // Only run if the first call timed out
+{#               TODO: show an error message #}
+            }
+        }
+
+        function submitCallback(next_url) {
+            // If everything worked, redirect to the next page
+        }
+
     </script>
 {% endblock %}
