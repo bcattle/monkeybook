@@ -29,30 +29,20 @@ def get_friends(request, offset=0):
     facebook = YearbookFacebookUserConverter(graph)
 
     if not offset:
-        pull_top_friends = pull_all_friends = None
+        pull_top_friends = None
         # Did we already start to pull?
         async_result = request.session.get('pull_friends_async', None)
         if not async_result:
-            # Do we need to pull *all* friends?
             friends = YearbookFacebookUser.objects.filter(user=request.user)
-            pull_all_friends = not friends.exists()
             # Do we need to pull top friends?
-            pull_top_friends = pull_all_friends or not friends.exclude(top_friends_order=0).exists()
-            # If we need both we start w/ top friends
+            pull_top_friends = not friends.exclude(top_friends_order=0).exists()
             if pull_top_friends:
                 # Pull top friends, then all other friends
                 logger.info('In get_friends(), pulling top friends')
                 async_result = get_and_store_top_friends_fast.delay(request.user, facebook,
-                                                                    pull_all_friends_when_done=pull_all_friends)
-            elif pull_all_friends:
-                # Pull all friends
-                logger.info('In get_friends(), pulling all friends')
-                async_result = get_and_store_friends.delay(request.user, facebook)
-
-            if pull_top_friends or pull_all_friends:
+                                                                    pull_all_friends_when_done=True)
                 request.session['pull_friends_async'] = async_result
-
-        if pull_top_friends or pull_all_friends or async_result:
+        if async_result:
             # Give it 5 seconds to return
             async_result.get(timeout=5)
 

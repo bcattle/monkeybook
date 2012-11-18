@@ -42,25 +42,29 @@
             <p>Loading ...</p>
         </div>
         <div class="loaded" style="display:none;">
-            {#    (hidden): #}
-            <div class="list_actions">
-                <div style="float:left;">
-                    <button id="selectNone">Select none</button>
+            <div style="width:300px;">
+                {#    (hidden): #}
+                <div class="list_actions">
+                    <div style="float:left;">
+                        <button id="selectNone">Select none</button>
+                    </div>
+                    <div style="float:left;">
+                        <button id="submit">Next >></button>
+                    </div>
                 </div>
-                <div style="float:left;">
-                    <button id="submit">Next >></button>
+                <div class="list_search" style="clear:both;">
+                    {#        Type to search friends input #}
+                    <form action="" method="post" id="filter_form">
+                        <input id="filter_friends" style="width:100%" placeholder="Type to search for a friend">
+                    </form>
                 </div>
-            </div>
-            <div class="list_search" style="clear:both;">
-                {#        Type to search friends input #}
-
-            </div>
-            {#        List of friends #}
-            <div class="list" style="clear:both; height:500px; overflow-y:scroll; width:300px;">
-                <form action="" method="POST">
-                    {% csrf_token %}
-                    <ul class="friends_list"></ul>
-                </form>
+                {#        List of friends #}
+                <div class="list" style="clear:both; height:500px; overflow-y:scroll;">
+                    <form action="" method="POST">
+                        {% csrf_token %}
+                        <ul class="friends_list"></ul>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
@@ -82,11 +86,12 @@
         var friendTemplate = null;
         var pollTimer;
         var emptyCount = 0
-        var TURN_OFF_AFTER = 4;
+        var TURN_OFF_AFTER = 8;
 
         function onGetFriends(friends) {
             friendsLoaded();
             if (friends.length) {
+                console.log('Got friends, starting id' + friends[0].facebook_id)
                 // Dump the friends into the list
                 var list = $('.friends_list');
                 for (var idx in friends) {
@@ -106,16 +111,17 @@
 
         $(document).ready(function() {
             Dajaxice.setup({'default_exception_callback': friendsTimeout});
-            Mustache.tags = ['[[', ']]'];
-            friendTemplate = $('#friend_template').html();
-            setTimeout(friendsTimeout, 10000);
-
             // Get the first page of friends
             // we don't trust this function, so we keep calling it to make sure
             // new results didn't come into the server
-            pollTimer = setInterval(function() {
-                Dajaxice.yearbook.get_friends(onGetFriends, {'offset': currOffset})
-            }, 3000);
+            var get_friends = function() { Dajaxice.yearbook.get_friends(onGetFriends, {'offset': currOffset}); };
+            get_friends();
+            pollTimer = setInterval(get_friends, 1000);
+            setTimeout(friendsTimeout, 10000);
+
+            // Load template
+            Mustache.tags = ['[[', ']]'];
+            friendTemplate = $('#friend_template').html();
 
             $('#selectNone').click(function() {
                $('.friends_list input').removeAttr('checked');
@@ -126,6 +132,11 @@
                     return $(this).attr("value");
                 }).get();
                 Dajaxice.yearbook.invites_sent(submitCallback, {'friend_ids': selected_ids});
+            });
+
+            $('#filter_form').submit(function(e){
+                e.preventDefault();
+                return false;
             });
         });
 
