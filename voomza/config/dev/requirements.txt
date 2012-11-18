@@ -8,3 +8,4 @@ django-dajaxice
 ipython
 ipdb
 django-redis-sessions
+factory_boy

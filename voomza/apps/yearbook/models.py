@@ -1,5 +1,10 @@
+import logging
 from django.db import models
 from django.contrib.auth.models import User
+from django.db.models.signals import post_syncdb
+from django.dispatch.dispatcher import receiver
+
+logger = logging.getLogger(__name__)
 
 
 class TopFriendStat(models.Model):
@@ -47,3 +52,11 @@ class YearbookSign(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
 
+# Make sure we create a UserProfile when creating a User
+@receiver(post_syncdb)
+def install_badges(sender, **kwargs):
+    if not Badge.objects.exists():
+        logger.info('Installing badges')
+        from voomza.apps.yearbook import factories
+        for n in range(factories.NUM_BADGES):
+            factories.BadgeFactory.create()
