@@ -23,7 +23,7 @@ class YearbookFacebookUserConverter(FacebookUserConverter):
         friends = getattr(self, '_friends', None)
         if friends is None:
             friends_response = self.open_facebook.fql(
-                "SELECT uid, name, sex, pic_small FROM user WHERE uid IN (SELECT uid2 "
+                "SELECT uid, name, sex, pic_square FROM user WHERE uid IN (SELECT uid2 "
                 "FROM friend WHERE uid1 = me()) LIMIT %s" % limit)
             friends = []
             for response_dict in friends_response:
@@ -52,11 +52,11 @@ class YearbookFacebookUserConverter(FacebookUserConverter):
             default_dict = {}
             for f in friends:
                 name = f.get('name')
-                pic_small = f.get('pic_small')
+                pic_square = f.get('pic_square')
                 gender = None
                 if f.get('sex'):
                     gender = gender_map[f.get('sex')]
-                default_dict[str(f['id'])] = dict(name=name, gender=gender, pic_small=pic_small)
+                default_dict[str(f['id'])] = dict(name=name, gender=gender, pic_square=pic_square)
             id_field = 'facebook_id'
 
             current_friends, inserted_friends = mass_get_or_create(
@@ -90,7 +90,7 @@ class YearbookFacebookUserConverter(FacebookUserConverter):
                              '       (SELECT object_id FROM photo_tag WHERE subject=me()) AND subject!=me() '
                              'LIMIT 100',
 
-            'tagged_users': 'SELECT uid, name, sex, pic_small FROM user WHERE uid IN '
+            'tagged_users': 'SELECT uid, name, sex, pic_square FROM user WHERE uid IN '
                             '   (SELECT subject FROM photo_tag WHERE object_id IN '
                             '       (SELECT object_id FROM photo_tag WHERE subject=me()) AND subject!=me()) '
                             'LIMIT 100'

@@ -45,23 +45,21 @@
             {#    (hidden): #}
             <div class="list_actions">
                 <div style="float:left;">
-                    {#        Select none button#}
+                    <button id="selectNone">Select none</button>
                 </div>
                 <div style="float:left;">
-                    {#        Submit button #}
+                    <button id="submit">Next >></button>
                 </div>
             </div>
-            <div class="list_search">
+            <div class="list_search" style="clear:both;">
                 {#        Type to search friends input #}
 
             </div>
-            <div class="list">
-                {#        List of friends #}
+            {#        List of friends #}
+            <div class="list" style="clear:both; height:500px; overflow-y:scroll; width:300px;">
                 <form action="" method="POST">
                     {% csrf_token %}
-                    <ul class="friends_list">
-
-                    </ul>
+                    <ul class="friends_list"></ul>
                 </form>
             </div>
         </div>
@@ -74,26 +72,35 @@
     <script src="{% static 'js/mustache.js' %}"></script>
     <script type="text/html" id="friend_template">
         <li>
-            <input name="friend_[[ facebook_id ]]" value="[[ facebook_id ]]" type="checkbox">
-            <img src="[[ pic_small ]]">[[ name ]]
+            <input name="friend_[[ facebook_id ]]" value="[[ facebook_id ]]" type="checkbox" checked="checked">
+            <img src="[[ pic_square ]]">[[ name ]]
         </li>
     </script>
     <script type="text/javascript">
         var loaded = false;
         var currOffset = 0;
         var friendTemplate = null;
+        var pollTimer;
+        var emptyCount = 0
+        var TURN_OFF_AFTER = 4;
 
         function onGetFriends(friends) {
             friendsLoaded();
-            // Dump the friends into the list
-            var list = $('.friends_list');
-            for (var idx in friends) {
-                list.append(Mustache.to_html(friendTemplate, friends[idx]));
-            }
-            // If the list wasn't empty, request another page of results
             if (friends.length) {
+                // Dump the friends into the list
+                var list = $('.friends_list');
+                for (var idx in friends) {
+                    list.append(Mustache.to_html(friendTemplate, friends[idx]));
+                }
+                // Get another page of results
                 currOffset += friends.length;
                 Dajaxice.yearbook.get_friends(onGetFriends, {'offset': currOffset});
+            } else {
+                emptyCount++;
+                if (emptyCount > TURN_OFF_AFTER) {
+                    // Turn off polling for new results
+                    clearInterval(pollTimer);
+                }
             }
         }
 
@@ -106,9 +113,20 @@
             // Get the first page of friends
             // we don't trust this function, so we keep calling it to make sure
             // new results didn't come into the server
-            window.setInterval(function() {
+            pollTimer = setInterval(function() {
                 Dajaxice.yearbook.get_friends(onGetFriends, {'offset': currOffset})
             }, 3000);
+
+            $('#selectNone').click(function() {
+               $('.friends_list input').removeAttr('checked');
+            });
+
+            $('#submit').click(function() {
+                var selected_ids = $('.friends_list input:checked').map(function(){
+                    return $(this).attr("value");
+                }).get();
+                Dajaxice.yearbook.invites_sent(submitCallback, {'friend_ids': selected_ids});
+            });
         });
 
         function friendsLoaded() {
@@ -124,6 +142,10 @@
                 // Only run if the first call timed out
 {#                Show an error message #}
             }
+        }
+
+        function submitCallback() {
+
         }
     </script>
 {% endblock %}
