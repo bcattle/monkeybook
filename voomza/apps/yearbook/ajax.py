@@ -29,7 +29,6 @@ def get_friends(request, offset=0):
     facebook = YearbookFacebookUserConverter(graph)
 
     if not offset:
-        pull_top_friends = None
         # Did we already start to pull?
         async_result = request.session.get('pull_friends_async', None)
         if not async_result:
@@ -52,7 +51,11 @@ def get_friends(request, offset=0):
     if not friends and not offset:
         logger.warning('get_friends returned no results with offset=0, means friends didn\'t get pulled')
     # Serialize and return
-    return json.dumps(list(friends))
+    # Return the offset so the caller can reject duplicates
+    return json.dumps({
+        'friends': list(friends),
+        'offset': offset,
+        })
 
 
 @dajaxice_register
