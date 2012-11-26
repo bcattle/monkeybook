@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'two_page.html' %}
 {% load staticfiles %}
 {% load url from future %}
 {% load dajaxice_templatetags %}
@@ -31,152 +31,69 @@
 {#    to "vote badges" page                                     #}
 {#                                                              #}
 
-{% block body %}
-{#        Message #}
-{#        Skip link #}
+{% block message %}
     <h1>Invite friends to sign your yearbook</h1>
-    <a href="{% url next_view %}">Skip >></a>
-    <div>
-        <div class="loading">
-{#        Loading spinner #}
-            <p>Loading ...</p>
+{% endblock %}
+
+{# -- PAGES -- #}
+
+{% block page_1 %}
+    <div class="page_content">
+
+    </div>
+{% endblock %}
+
+{% block page_2 %}
+    {#  ACTIONS  #}
+    <div class="page_content">
+        <div style="float:left;">
+            <button id="selectNone">Unselect</button>
         </div>
-{#        hidden #}
-        <div class="loaded" style="display:none;">
-            <div style="">
-                <div class="list_actions">
-                    <div style="float:left;">
-                        <button id="selectNone">Select none</button>
-                    </div>
-                    <div style="float:left;">
-                        <button id="submit">Next >></button>
-                    </div>
-                </div>
-                <div class="list_search" style="clear:both;">
-                    {#        Type to search friends input #}
-                    <form action="" method="post" id="filter_form">
-                        <input id="filter_input" style="width:100%" placeholder="Type to search for a friend">
-                    </form>
-                </div>
-                {#        List of friends #}
-                <div class="list" style="clear:both; height:500px; overflow-y:scroll;">
-                    <form action="" method="POST">
-                        {% csrf_token %}
-                        <ul class="friends_list"></ul>
-                    </form>
-                </div>
-            </div>
+        <div style="float:left;">
+            <button id="selectAll">Re-select</button>
+        </div>
+        <div style="float:left;">
+            <button id="submit">Next >></button>
+        </div>
+        <div class="list_search" style="clear:both;">
+            {# Type to search friends input #}
+            <form action="" method="post" id="filter_form">
+                <input id="filter_input" style="width:100%" placeholder="Type to search for a friend">
+            </form>
+        </div>
+        {#        List of friends #}
+        <div class="list" style="clear:both; height:500px; overflow-y:scroll;">
+            <form action="" method="POST">
+                {% csrf_token %}
+                <ul class="friends_list"></ul>
+            </form>
         </div>
     </div>
 {% endblock %}
 
-{% block javascript %}
+{% block top_of_body %}
+    {% include 'facebook_js.html' %}
+{% endblock %}
+
+{% block script %}
     {% dajaxice_js_import %}
-    <script src="{% static 'js/jquery-1.7.2.min.js' %}"></script>
-    <script src="{% static 'js/mustache.js' %}"></script>
-    <script type="text/html" id="friend_template">
+    <script type="text/javascript" src="{% static 'js/jquery-1.7.2.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/mustache.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/typeahead.js' %}"></script>
+    <script type="text/html" id="friend_template_checked">
         <li class="friend">
             <input name="friend_[[ facebook_id ]]" value="[[ facebook_id ]]" type="checkbox" checked="checked">
             <img src="[[ pic_square ]]">[[ name ]]
         </li>
     </script>
-    <script type="text/javascript">
-        var loaded = false;
-        var currOffset = 0;
-        var friendTemplate = null;
-        var pollTimer;
-        var emptyCount = 0
-        var TURN_OFF_AFTER = 8;
-        var friends_elements = null;
-
-        function onGetFriends(data) {
-            friendsLoaded();
-            // We might have gotten a duplicate dataset
-            if (data.offset < currOffset)
-                return;
-            var friends = data.friends;
-            if (friends.length) {
-//                console.log('Got friends, starting id ' + friends[0].facebook_id);
-                // Dump the friends into the list
-                var list = $('.friends_list');
-                for (var idx in friends) {
-                    list.append(Mustache.to_html(friendTemplate, friends[idx]));
-                }
-                // Update list of friend elements
-                friends_elements = $('.friend');
-                // Get another page of results
-                currOffset += friends.length;
-//                console.log('Offset now ' + currOffset);
-                Dajaxice.yearbook.get_friends(onGetFriends, {'offset': currOffset});
-            } else {
-                emptyCount++;
-                if (emptyCount > TURN_OFF_AFTER) {
-                    // Turn off polling for new results
-                    clearInterval(pollTimer);
-                }
-            }
-        }
-
-        function friendsLoaded() {
-            if (!loaded) {
-                var loaded = true;
-                $('.loading').hide();
-                $('.loaded').show();
-            }
-        }
-
-        $(document).ready(function() {
-            Dajaxice.setup({'default_exception_callback': friendsTimeout});
-            // Get the first page of friends
-            // we don't trust this function, so we keep calling it to make sure
-            // new results didn't come into the server
-            var get_friends = function() { Dajaxice.yearbook.get_friends(onGetFriends, {'offset': currOffset}); };
-            get_friends();
-            pollTimer = setInterval(get_friends, 1000);
-            setTimeout(friendsTimeout, 10000);
-
-            // Load template
-            Mustache.tags = ['[[', ']]'];
-            friendTemplate = $('#friend_template').html();
-
-            $('#selectNone').click(function() {
-               $('.friends_list input').removeAttr('checked');
-            });
-
-            $('#submit').click(function() {
-                var selected_ids = $('.friends_list input:checked').map(function(){
-                    return $(this).attr("value");
-                }).get();
-                Dajaxice.yearbook.invites_sent(submitCallback, {'friend_ids': selected_ids});
-            });
-
-            // User type to filter
-
-            $('#filter_input').val('');
-
-            $('#filter_form').submit(function(e){
-                e.preventDefault();
-                return false;
-            });
-
-            $('#filter_input').keyup(function(e) {
-                // Selector version
-                var searchStr = $('#filter_input').val();
-                friends_elements.hide();
-                friends_elements.filter(':contains('+searchStr+')').show();
-            });
-        });
-
-        function friendsTimeout() {
-            if (!loaded) {
-                // Only run if the first call timed out
-{#               TODO: show an error message #}
-            }
-        }
-
-        function submitCallback(next_url) {
-            // If everything worked, redirect to the next page
-        }
-
+    <script type="text/html" id="friend_template_unchecked">
+        <li class="friend">
+            <input name="friend_[[ facebook_id ]]" value="[[ facebook_id ]]" type="checkbox">
+            <img src="[[ pic_square ]]">[[ name ]]
+        </li>
     </script>
+    <script type="text/javascript">
+        var nextUrl = "{% url next_view %}";
+    </script>
+    <script type="text/javascript" src="{% static 'js/invite_friends.js' %}"></script>
 {% endblock %}

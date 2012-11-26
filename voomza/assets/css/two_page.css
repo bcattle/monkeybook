@@ -1,0 +1,17 @@
+#pages {
+    clear: both;
+}
+
+.page {
+    /*width: 50%;*/
+    /* DEBUG ONLY */
+    float: left;
+    margin: 5px;
+    /* Doesn't work: */
+    /*height: 500px;*/
+}
+
+.page_content {
+    height: 500px;
+}
+

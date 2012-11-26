@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+
+{% block style_0 %}
+    <link href="{% static 'css/two_page.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block body %}
+{% block top_of_body %}
+{% endblock %}
+<div>
+    <div class="message">
+        {% block message %}
+            <h1>Nominate your friends for badges</h1>
+        {% endblock %}
+    </div>
+    {# Loading spinner #}
+    <div class="loading">
+        <p>Loading ...</p>
+    </div>
+    {# Initally hidden, shows after page loads #}
+    <div class="loaded" style="display:none;">
+        {# Page actions #}
+        <div class="page_actions">
+            {% block actions %}
+
+            {% endblock %}
+        </div>
+        <div id="pages">
+            <div class="page">
+                {% block page_1 %}
+                {% endblock %}
+            </div>
+            <div class="page">
+                {% block page_2 %}
+                {% endblock %}
+            </div>
+        </div>
+        <div style="clear: both;"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block script_0 %}
+    <script type="text/javascript" src="{% static 'js/jquery-1.7.2.min.js' %}"></script>
+{#    <script type="text/javascript" src="{% static 'js/jQuery.equalHeights.js' %}"></script>#}
+    <script type="text/javascript">
+        $(document).ready(function (){
+            {# DEBUG ONLY #}
+//            $('#pages').equalHeights();
+        });
+    </script>
+{% endblock %}

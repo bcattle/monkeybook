@@ -1,5 +1,6 @@
 import logging, timeit
 from collections import OrderedDict
+from django.utils import timezone
 from django_facebook.api import FacebookUserConverter
 from django_facebook.signals import facebook_post_store_friends
 from django_facebook.utils import get_profile_class, mass_get_or_create
@@ -86,28 +87,40 @@ class YearbookFacebookUserConverter(FacebookUserConverter):
 
         # Who are they in the most photos with?
         results = self.open_facebook.batch_fql({
+            'all_friend_ids': 'SELECT uid2 FROM friend WHERE uid1 = me()',
+
             'tagged_photos': 'SELECT subject FROM photo_tag WHERE object_id IN '
                              '       (SELECT object_id FROM photo_tag WHERE subject=me()) AND subject!=me() '
-                             'LIMIT 100',
+                             'LIMIT 300',
 
             'tagged_users': 'SELECT uid, name, sex, pic_square FROM user WHERE uid IN '
                             '   (SELECT subject FROM photo_tag WHERE object_id IN '
                             '       (SELECT object_id FROM photo_tag WHERE subject=me()) AND subject!=me()) '
-                            'LIMIT 100'
+                            'LIMIT 300',
+
         })
-        tagged_photos = results['tagged_photos']
-        tagged_users = results['tagged_users']
+
+        friend_ids = []
+        for friend in results['all_friend_ids']:
+            try:
+                friend_ids.append(int(friend['uid2']))
+            # Skip anything that's not an integer
+            except ValueError: pass
+        friend_ids = set(friend_ids)
 
         # Collapse to a frequencies and user_ids
         all_ids = []
-        for photo in tagged_photos:
+        for photo in results['tagged_photos']:
             try:
-                all_ids.append(int(photo['subject']))
-            # Skip anything that's not an integer
+                int_id = int(photo['subject'])
+                # Only add people you are still friends with
+                if int_id in friend_ids:
+                    all_ids.append(int_id)
+        # Skip anything that's not an integer
             except ValueError: pass
 
         all_users = {}
-        for u in tagged_users:
+        for u in results['tagged_users']:
             try:
                 all_users[int(u['uid'])] = u
             # Skip anything that's not an integer
@@ -152,3 +165,19 @@ class YearbookFacebookUserConverter(FacebookUserConverter):
 
         logger.info('found %s top friends', len(all_users))
 
+
+    def delete_request(self, request):
+        """
+        Deletes an app request, e.g. after a user
+        accepts an invitiation they were sent by another user
+        """
+        # DELETE https://graph.facebook.com/[<REQUEST_OBJECT_ID>_<USER_ID>]?
+        #   access_token=[USER or APP ACCESS TOKEN]
+        delete_id = '%s_%s' % (request.request_id, request.facebook_id)
+        resp = self.open_facebook.delete(delete_id)
+
+#        import ipdb
+#        ipdb.set_trace()
+
+        request.accepted_at = timezone.now()
+        request.save()

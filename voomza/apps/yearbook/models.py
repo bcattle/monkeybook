@@ -3,6 +3,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_syncdb
 from django.dispatch.dispatcher import receiver
+from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 
@@ -28,13 +29,28 @@ class TopFriendStat(models.Model):
     them_like_status = models.PositiveSmallIntegerField(null=True, help_text='How many times they liked your status')
 
 
+class InviteRequestSent(models.Model):
+    """
+    An individual instance of a 'sign my yearbook'
+    request sent to a user's facebook friend
+    """
+    user = models.ForeignKey('auth.User', related_name='invites_sent')
+    facebook_id = models.BigIntegerField()
+    request_id = models.BigIntegerField()
+    sent_at = models.DateTimeField(auto_now_add=True)
+    accepted_at = models.DateTimeField(null=True)
+
+    def accepted(self):
+        return not self.accepted_at is None
+
+
 class Badge(models.Model):
     """
     Yearbook "badges" - best smile, most likely to get arrested, etc.
     """
     name = models.CharField(max_length=100)
-    icon = models.CharField(max_length=200)
-    icon_small = models.CharField(max_length=200)
+    icon = models.CharField(max_length=200, blank=True)
+    icon_small = models.CharField(max_length=200, blank=True)
 
 
 class BadgeVote(models.Model):

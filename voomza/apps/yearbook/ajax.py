@@ -3,10 +3,10 @@ from dajaxice.decorators import dajaxice_register
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseForbidden
 from django_facebook.api import require_persistent_graph
-from django_facebook.tasks import get_and_store_friends
 from voomza.apps.account.models import YearbookFacebookUser
 from voomza.apps.yearbook.api import YearbookFacebookUserConverter
 from yearbook.tasks import get_and_store_top_friends_fast, get_optional_profile_fields
+from voomza.apps.yearbook.models import InviteRequestSent
 
 
 logger = logging.getLogger(name=__name__)
@@ -40,6 +40,8 @@ def get_friends(request, offset=0):
                 logger.info('In get_friends(), pulling top friends')
                 async_result = get_and_store_top_friends_fast.delay(request.user, facebook,
                                                                     pull_all_friends_when_done=True)
+#                get_and_store_top_friends_fast(request.user, facebook, pull_all_friends_when_done=True)
+
                 request.session['pull_friends_async'] = async_result
         if async_result:
             # Give it 5 seconds to return
@@ -55,23 +57,46 @@ def get_friends(request, offset=0):
     return json.dumps({
         'friends': list(friends),
         'offset': offset,
-        })
+    })
+
+
+def send_to_next_page(user, next_view):
+    #  Update the user's current view
+    user.profile.curr_signup_page = next_view
+    user.profile.save()
+    # Return redirect
+    return json.dumps({ 'next_url': reverse(next_view) })
 
 
 @dajaxice_register
-def invites_sent(request, friend_ids, next_view='vote_badges'):
+def invites_sent(request, request_id, friend_ids, next_view='vote_badges'):
     """
     Log that the user sent invites
-    OR actually send them if we do it client side
     """
     if not request.user.is_authenticated():
         return HttpResponseForbidden
 
-    # TODO: log the friend_ids
-    pass
+    try:
+        request_id_int = int(request_id)
+    except ValueError:
+        logger.error('invites_sent called with non-int ID back from facebook, skipping')
+        return send_to_next_page(request.user, next_view)
 
-    #  Update the user's current view
-    request.user.profile.curr_signup_page = next_view
-    request.user.profile.save()
-    # If it worked, return redurect
-    return reverse(next_view)
+    for friend_id in friend_ids:
+        try:
+            friend_id_int = int(friend_id)
+            req = InviteRequestSent(user=request.user, facebook_id=friend_id_int, request_id=request_id_int)
+            req.save()
+        except ValueError:
+            logger.error('invites_sent called with non-int friend ID "%s" back from facebook, skipping' % friend_id)
+
+    return send_to_next_page(request.user, next_view)
+
+
+@dajaxice_register
+def get_yearbooks_to_sign(request):
+    """
+    Returns a list of users that we suggest this
+    user should sign.
+    """
+    pass
