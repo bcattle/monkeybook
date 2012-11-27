@@ -35,47 +35,27 @@
         </div>
         {# MESSAGE #}
         <div class="badge_message"><h3 class="badge_message_text"></h3></div>
-        {# Drag and drop landing site #}
-        <div class="drop_zone"></div>
-
-        <div class="friends_search">
-            {# Type to search friends input #}
-            <form action="" method="post" id="filter_form">
-                <input id="filter_input" style="width:100%"
-                       placeholder="Type to search for a friend">
-            </form>
-        </div>
-        <div class="friends_list"></div>
+        {# FRIENDS LIST #}
+        <select id="friendSelect" multiple="multiple"></select>
     </div>
 {% endblock %}
 
 {# -- SCRIPTS -- #}
 
 {% block style %}
+    <link href="{% static 'css/select2.css' %}" rel="stylesheet">
     <link href="{% static 'css/vote_badges.css' %}" rel="stylesheet">
 {% endblock %}
 
 {% block script %}
     {% dajaxice_js_import %}
     <script src="{% static 'js/jquery-1.7.2.min.js' %}"></script>
-    <script src="{% static 'js/mustache.js' %}"></script>
     <script src="{% static 'js/jquery-ui-1.9.1.custom.min.js' %}"></script>
-    <script src="{% static 'js/hash.min.js' %}"></script>
+{#    <script src="{% static 'js/hash.min.js' %}"></script>#}
     <script src="{% static 'js/underscore-min.js' %}"></script>
-    <script type="text/html" id="friend_template">
-        <div class="friend_container" data-id="[[ facebook_id ]]">
-            <img src="[[ &pic_square ]]">[[ name ]]
-        </div>
-    </script>
-    <script type="text/html" id="selected_friend_template">
-        <div class="friend_container friend_selection" data-id="[[ facebook_id ]]">
-            <img src="[[ &pic_square ]]">[[ name ]]
-            <div style="float:right"><a href="" class="remove_selection">X</a></div>
-        </div>
-    </script>
-    <script type="text/javascript" src="{% static 'js/vote_badges.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/typeahead.js' %}"></script>
+    <script src="{% static 'js/select2.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/vote_badges_select2.js' %}"></script>
     <script type="text/javascript">
-        var lastBadge = 2 + {{ badges|length }} - 1;
+        var lastBadge = {{ badges|length }} - 1;
     </script>
 {% endblock %}

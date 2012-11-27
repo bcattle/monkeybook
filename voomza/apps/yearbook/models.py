@@ -58,9 +58,7 @@ class Badge(models.Model):
 class BadgeVote(models.Model):
     badge = models.ForeignKey(Badge)
     from_user = models.ForeignKey(User)
-    # To a FacebookUser, because the person nominated
-    # may or may not be in the app
-    to_facebook_user = models.ForeignKey('account.YearbookFacebookUser')
+    to_facebook_id = models.BigIntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
 
 

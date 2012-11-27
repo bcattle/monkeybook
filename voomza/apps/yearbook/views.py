@@ -26,25 +26,13 @@ def invite_friends_to_sign(request,
 
 @login_required
 def vote_badges(request,
-#                template_name='turnjs4_simple.html',
-#                template_name='magazine_test.html',
                 template_name='vote_badges.html',
-#                template_name='vote_badges_2.html',
                 next_view='sign_friends'):
     """
     User nominates their friends to be significant other,
     family, and the various badges
     """
     badges = Badge.objects.all()
-
-#    if request.method == 'POST':
-#
-#
-#        # Update the curr step in the flow
-#        request.user.profile.curr_signup_page = next_view
-#        request.user.profile.save()
-#        return redirect(next_view)
-
     context = {
         'badges': badges,
         'next_view': next_view,
@@ -56,15 +44,10 @@ def vote_badges(request,
 def sign_friends(request,
                  template_name='sign_friends.html',
                  next_view='teaser'):
-    if request.method == 'POST':
 
-
-        # Update the curr step in the flow
-        request.user.profile.curr_signup_page = next_view
-        request.user.profile.save()
-        return redirect(next_view)
-
-    context = {}
+    context = {
+        'next_view': next_view,
+    }
     return render_to_response(template_name, context, RequestContext(request))
 
 

@@ -6,7 +6,7 @@ from django_facebook.api import require_persistent_graph
 from voomza.apps.account.models import YearbookFacebookUser
 from voomza.apps.yearbook.api import YearbookFacebookUserConverter
 from yearbook.tasks import get_and_store_top_friends_fast, get_optional_profile_fields
-from voomza.apps.yearbook.models import InviteRequestSent
+from voomza.apps.yearbook.models import InviteRequestSent, Badge, BadgeVote
 
 
 logger = logging.getLogger(name=__name__)
@@ -94,12 +94,22 @@ def invites_sent(request, request_id, friend_ids, next_view='vote_badges'):
 
 
 @dajaxice_register
-def save_badge_votes(request):
+def save_badge_votes(request, selected_friends, next_view='sign_friends'):
     """
     Saves the friends this user has indicated
     are family, friends, etc.
     """
-    pass
+    # If for some reason they have some in the db, clear them
+    old_votes = BadgeVote.objects.filter(from_user=request.user)
+    old_votes.delete()
+
+    badges = Badge.objects.all()
+    for badge, badge_friends in zip(badges, selected_friends):
+        if badge_friends:
+            for friend_id in badge_friends:
+                bv = BadgeVote(badge=badge, from_user=request.user, to_facebook_id=friend_id)
+                bv.save()
+    return send_to_next_page(request.user, next_view)
 
 
 @dajaxice_register
