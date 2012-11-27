@@ -63,7 +63,8 @@ $(document).ready(function(){
 function clearFilter() {
     filter_input.val('');
     // Remove selection
-    friends_elements.removeClass('selected_friend');
+    friends_elements.show();
+    friends_elements.filter('.selection').hide();
     filtered_elements = null;
     filter_on = false;
 }

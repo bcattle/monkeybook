@@ -1,0 +1,17 @@
+/* THIS IS FOR DEV PURPOSESE ONLY */
+/* Take it off before going live on facebook */
+body {
+    /*background-color: LightGray;*/
+    /*overflow:hidden;*/
+    background-color:#fcfcfc;
+    margin:0;
+    padding:0;
+}
+
+.canvas {
+    background-color: #ffffff;
+    width: 760px;
+    margin-left: auto;
+    margin-right: auto;
+    height: 100%;
+}

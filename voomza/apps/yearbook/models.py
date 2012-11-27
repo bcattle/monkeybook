@@ -49,8 +49,10 @@ class Badge(models.Model):
     Yearbook "badges" - best smile, most likely to get arrested, etc.
     """
     name = models.CharField(max_length=100)
+    message = models.CharField(max_length=100)
     icon = models.CharField(max_length=200, blank=True)
     icon_small = models.CharField(max_length=200, blank=True)
+    max_tags = models.PositiveSmallIntegerField(default=1, help_text='How many friends can the user tag with this badge?')
 
 
 class BadgeVote(models.Model):

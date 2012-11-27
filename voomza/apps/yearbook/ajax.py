@@ -94,6 +94,15 @@ def invites_sent(request, request_id, friend_ids, next_view='vote_badges'):
 
 
 @dajaxice_register
+def save_badge_votes(request):
+    """
+    Saves the friends this user has indicated
+    are family, friends, etc.
+    """
+    pass
+
+
+@dajaxice_register
 def get_yearbooks_to_sign(request):
     """
     Returns a list of users that we suggest this

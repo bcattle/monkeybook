@@ -1,6 +1,22 @@
+.all_badges_container {
+    overflow-y:scroll;
+}
+
+.badge_container {
+    margin-top: 2px 10px;
+    padding: 15px;
+    border: 2px solid;
+    border-radius: 5px;
+    -moz-border-radius: 5px;
+}
+
+.badge_message {
+    clear: both;
+}
+
 .friend_container {
     width: 300px;
-    margin: 2px;
+    margin-top: 2px 10px;
     padding: 5px;
     border: 1px solid;
     border-radius: 5px;
@@ -8,21 +24,33 @@
     background: #ffffff;
 }
 
-.all_badges_container {
-    clear:both;
-    height:500px;
-    padding: 20px;
-    overflow-y:scroll;
+.select_container {
+    display: none;
 }
 
-.badge_container {
-    margin-top: 5px;
-    padding: 15px;
-    border: 2px solid;
-    border-radius: 5px;
-    -moz-border-radius: 5px;
+.selected_friend {
+    background-color: blue;
 }
 
 .friend_select {
     width: 300px;
+}
+
+.current {
+    display: visible;
+    background-color: #add8e6;
+}
+
+.drop_zone {
+    min-height: 80px;
+    border: 2px solid;
+}
+
+.drop_zone_hover {
+    border: 2px solid blue;
+}
+
+/* The original div of the selected element */
+.selection {
+    display:none;
 }

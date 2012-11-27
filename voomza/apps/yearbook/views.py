@@ -26,7 +26,10 @@ def invite_friends_to_sign(request,
 
 @login_required
 def vote_badges(request,
+#                template_name='turnjs4_simple.html',
+#                template_name='magazine_test.html',
                 template_name='vote_badges.html',
+#                template_name='vote_badges_2.html',
                 next_view='sign_friends'):
     """
     User nominates their friends to be significant other,
