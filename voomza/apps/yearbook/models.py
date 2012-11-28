@@ -63,7 +63,8 @@ class BadgeVote(models.Model):
 
 
 class YearbookSign(models.Model):
-    from_user = models.ForeignKey(User)
+    from_user = models.ForeignKey(User, related_name='yearbook_signs')
+    to_id = models.BigIntegerField()
     text = models.TextField(max_length=1000)
     created_at = models.DateTimeField(auto_now_add=True)
 

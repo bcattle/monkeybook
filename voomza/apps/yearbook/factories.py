@@ -1,5 +1,7 @@
 import factory
 from models import Badge
+from voomza.apps.account.factories import UserFactory
+from voomza.apps.yearbook.models import YearbookSign
 
 BADGE_NAMES = (
     'The family I love',
@@ -51,3 +53,13 @@ class BadgeFactory(factory.Factory):
     message = factory.Sequence(lambda n: MESSAGES[int(n) % NUM_BADGES])
     icon = 'img/star-64.png'
     icon_small = 'img/star-32.png'
+
+
+
+class YearbookSignFactory(factory.Factory):
+    FACTORY_FOR = YearbookSign
+
+    from_user = factory.SubFactory(UserFactory)
+    to_id = 3000123
+    text = 'Had a great year man, see you in the fall!'
+
