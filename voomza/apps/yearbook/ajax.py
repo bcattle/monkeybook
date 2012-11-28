@@ -5,9 +5,9 @@ from django.http import HttpResponseForbidden, HttpResponseNotFound
 from django_facebook.api import require_persistent_graph
 from voomza.apps.account.models import YearbookFacebookUser
 from voomza.apps.yearbook.api import YearbookFacebookUserConverter
-from yearbook.tasks import get_and_store_top_friends_fast, get_optional_profile_fields
 from voomza.apps.yearbook.models import InviteRequestSent, Badge, BadgeVote, YearbookSign
 from voomza.apps.yearbook.ranking import UserProfileRanking
+from yearbook.tasks import get_and_store_top_friends_fast, get_optional_profile_fields
 
 
 logger = logging.getLogger(name=__name__)
@@ -134,14 +134,17 @@ def get_yearbooks_to_sign(request, offset=0):
         all_yearbooks = profile_ranking.get_yearbooks_to_sign()
         request.session['all_yearbooks'] = all_yearbooks
 
+    # NOTE: all_yearbooks is an iterator
+    page_of_yearbooks = [all_yearbooks[idx] for idx in xrange(offset, offset+YEARBOOKS_PER_PAGE)]
+
     # Stuff in the list is either User or YearbookFacebookUser
     # we need fields name, pic and facebook_id
     return json.dumps([{
-        #   | YearbookFacebookUser ||         User         |
-        'name': getattr(x, 'name') or x.profile.facebook_name,
-        'pic':  getattr(x, 'pic_square') or x.profile.pic_square,
-        'id': getattr(x, 'facebook_id') or x.profile.facebook_id,
-    } for x in all_yearbooks[offset:offset+YEARBOOKS_PER_PAGE]])
+        #               User                                       YearbookFacebookUser
+        'name': x.profile.facebook_name if hasattr(x, 'profile') else x.name,
+        'pic':  x.profile.pic_square if hasattr(x, 'profile') else x.pic_square,
+        'id': x.profile.facebook_id if hasattr(x, 'profile') else x.facebook_id,
+    } for x in page_of_yearbooks])
 
 
 @dajaxice_register

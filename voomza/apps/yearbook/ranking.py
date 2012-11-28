@@ -1,3 +1,4 @@
+import collections
 import itertools
 from django.contrib.auth.models import User
 from voomza.apps.account.models import YearbookFacebookUser
@@ -92,16 +93,14 @@ class UserProfileRanking(object):
         people_who_signed_me = User.objects.filter(
             yearbook_signs__to_id=self.profile.facebook_id
         )
-        # Do this to avoid having to do a manual JOIN on
-        # yearbook_sign.to_id = user_profile.facebook_id
-        people_who_signed_me_ids = [x['to_id'] for x in people_who_signed_me.values('to_id')]
 
-        # First, they see anyone who has signed *them* yearbook
-        # who they haven't signed
+        # First, they see anyone who has signed
+        # *their* yearbook who *they* haven't signed
         # APPROX 10
-        # Get the list of facebook ids who I've signed
-        fb_ids_I_signed = [x['to_id'] for x in
-                           YearbookSign.objects.filter(from_user=self.profile.user).values('to_id')]
+
+        # facebook ids I've signed
+        #                 ( set comprehension )
+        fb_ids_I_signed = {ybs.to_id for ybs in YearbookSign.objects.filter(from_user=self.profile.user)}
         people_who_signed_i_havent = people_who_signed_me.exclude(
             profile__facebook_id__in=fb_ids_I_signed
         )
@@ -114,20 +113,31 @@ class UserProfileRanking(object):
         # APPROX 5
         top_friends_in_app = self.get_top_friends_in_app()
 
-        # Non-top friends who don't use the app
-        # APPROX 800
-        friends_not_in_app = self.get_friends_not_in_app()
-
         # Non-top friends who are
         # APPROX 100
         friends_in_app = self.get_friends_in_app()
 
-        # Pretty small, total ~ 1000
+        # Non-top friends who don't use the app
+        # APPROX 800
+        friends_not_in_app = self.get_friends_not_in_app()
+
+        # Pretty small, grand total ~ 1000
         # will get called for pagination infrequently w/ small page sizes
+
+        # Do this to avoid having to do a manual JOIN on
+        # yearbook_sign.to_id = user_profile.facebook_id
+        people_who_signed_me_ids = {u.profile.facebook_id for u in people_who_signed_me}
+
         # Construct the whole list, excluding everyone who's signed me
         all_who_havent_signed = [x for x in itertools.chain(top_friends_not_in_app, top_friends_in_app,
-            friends_not_in_app, friends_in_app) if x.facebook_id not in people_who_signed_me_ids]
+            friends_in_app, friends_not_in_app)
+                if x.facebook_id not in fb_ids_I_signed
+                and x.facebook_id not in people_who_signed_me_ids]
 
-        # Append the first list
-        all_yearbooks = people_who_signed_i_havent[:].extend(all_who_havent_signed)
+        # Prepend the first list
+        # deque is a little structure that is good at being prepended to
+        # http://docs.python.org/2/library/collections.html#collections.deque
+        all_yearbooks = collections.deque(all_who_havent_signed)
+        # Reversed since it extends 0->n, reversing the order
+        all_yearbooks.extendleft(reversed(people_who_signed_i_havent))
         return all_yearbooks
