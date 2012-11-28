@@ -14,3 +14,11 @@ def flush_transaction():
 
     """
     transaction.commit()
+
+
+def db_table_exists(table_name):
+    """
+    https://gist.github.com/527113/307c2dec09ceeb647b8fa1d6d49591f3352cb034#gistcomment-337110
+    """
+    from django.db import connection
+    return table_name in connection.introspection.table_names()
