@@ -67,7 +67,7 @@ class YearbookFacebookUserUsingApp(models.Model):
     owner = models.ForeignKey('auth.User', related_name='friends_using_app')
     owner_top_friends_order = models.PositiveSmallIntegerField()
     user = models.ForeignKey('auth.User', related_name='yearbook_facebook_user_in_app')
-    facebook_id = models.BigIntegerField()
+    yearbook_facebook_user = models.ForeignKey(YearbookFacebookUser, primary_key=True, related_name='users_in_app')
 
     @classmethod
     def setUp(cls):
@@ -78,25 +78,35 @@ class YearbookFacebookUserUsingApp(models.Model):
         cursor = connection.cursor()
 
         # Drop if table exists
-        if db_table_exists('account_yearbookfacebookusersusingapp'):
-            cursor.execute('DROP VIEW `account_yearbookfacebookusersusingapp`')
-            # Commit
-            transaction.commit_unless_managed()
+        if db_table_exists('account_yearbookfacebookuserusingapp'):
+            cls.tearDown()
 
         # Data modifying operation - commit required
+
+        # It is MUCH FASTER to do a JOIN here rather than NOT IN,
+        # see http://stackoverflow.com/a/1519333/1161906
         cursor.execute('''
-        CREATE ALGORITHM=MERGE VIEW `account_yearbookfacebookusersusingapp` AS
+        CREATE ALGORITHM=MERGE VIEW `account_yearbookfacebookuserusingapp` AS
             SELECT
             `account_yearbookfacebookuser`.`user_id` AS `owner_id`,                               # The "owner"
             `account_yearbookfacebookuser`.`top_friends_order` AS `owner_top_friends_order`,      # Top friends order to owner
             `account_userprofile`.`user_id`,
-            `account_yearbookfacebookuser`.`facebook_id`
+            `account_yearbookfacebookuser`.`id` AS `yearbook_facebook_user_id`
 
             FROM `account_yearbookfacebookuser`
             LEFT JOIN `account_userprofile`
                 ON `account_userprofile`.`facebook_id`=`account_yearbookfacebookuser`.`facebook_id`
             WHERE (`account_userprofile`.`facebook_id` IS NOT NULL)    # They have a UserProfile
         ''')
+        transaction.commit_unless_managed()
+
+    @classmethod
+    def tearDown(cls):
+        from django.db import connection, transaction
+        cursor = connection.cursor()
+        # Drop table
+        cursor.execute('DROP VIEW `account_yearbookfacebookuserusingapp`')
+        # Commit
         transaction.commit_unless_managed()
 
     class Meta:
@@ -110,7 +120,7 @@ class YearbookFacebookUserNotUsingApp(models.Model):
     """
     owner = models.ForeignKey('auth.User', related_name='friends_not_using_app')
     owner_top_friends_order = models.PositiveSmallIntegerField()
-    facebook_id = models.BigIntegerField()
+    yearbook_facebook_user = models.ForeignKey(YearbookFacebookUser,  primary_key=True, related_name='users_not_in_app')
 
     @classmethod
     def setUp(cls):
@@ -121,24 +131,31 @@ class YearbookFacebookUserNotUsingApp(models.Model):
         cursor = connection.cursor()
 
         # Drop if table exists
-        if db_table_exists('account_yearbookfacebookusersnotusingapp'):
-            cursor.execute('DROP VIEW `account_yearbookfacebookusersnotusingapp`')
-            # Commit
-            transaction.commit_unless_managed()
+        if db_table_exists('account_yearbookfacebookusernotusingapp'):
+            cls.tearDown()
 
         # Data modifying operation - commit required
         cursor.execute('''
-        CREATE ALGORITHM=MERGE VIEW `account_yearbookfacebookusersnotusingapp` AS
+        CREATE ALGORITHM=MERGE VIEW `account_yearbookfacebookusernotusingapp` AS
             SELECT
             `account_yearbookfacebookuser`.`user_id` AS `owner_id`,                               # The "owner"
             `account_yearbookfacebookuser`.`top_friends_order` AS `owner_top_friends_order`,      # Top friends order to owner
-            `account_yearbookfacebookuser`.`facebook_id`
+            `account_yearbookfacebookuser`.`id` AS `yearbook_facebook_user_id`
 
             FROM `account_yearbookfacebookuser`
             LEFT JOIN `account_userprofile`
                 ON `account_userprofile`.`facebook_id`=`account_yearbookfacebookuser`.`facebook_id`
             WHERE (`account_userprofile`.`facebook_id` IS NULL)    # They do not have a UserProfile
         ''')
+        transaction.commit_unless_managed()
+
+    @classmethod
+    def tearDown(cls):
+        from django.db import connection, transaction
+        cursor = connection.cursor()
+        # Drop table
+        cursor.execute('DROP VIEW `account_yearbookfacebookusernotusingapp`')
+        # Commit
         transaction.commit_unless_managed()
 
     class Meta:

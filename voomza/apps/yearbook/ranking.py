@@ -1,7 +1,7 @@
-import collections
-import itertools
+import collections, itertools
 from django.contrib.auth.models import User
-from voomza.apps.account.models import YearbookFacebookUser
+from voomza.apps.account.models import YearbookFacebookUser, \
+    YearbookFacebookUserUsingApp, YearbookFacebookUserNotUsingApp
 from voomza.apps.yearbook.models import YearbookSign
 
 class UserProfileRanking(object):
@@ -17,66 +17,54 @@ class UserProfileRanking(object):
         User's fb friends with top_friends_order != 0
         who aren't currently users of the app
         """
-        # It is MUCH FASTER to do a JOIN here rather than NOT IN,
-        # see http://stackoverflow.com/a/1519333/1161906
-        return YearbookFacebookUser.objects.raw('''
-            SELECT `account_yearbookfacebookuser`.* FROM `account_yearbookfacebookuser`
-                LEFT JOIN `account_userprofile`
-                ON `account_userprofile`.`facebook_id`=`account_yearbookfacebookuser`.`facebook_id`
-            WHERE (`account_yearbookfacebookuser`.`user_id` = %d
-                AND `account_userprofile`.`facebook_id` IS NULL
-                AND `account_yearbookfacebookuser`.`top_friends_order` != 0)
-            ORDER BY `account_yearbookfacebookuser`.`top_friends_order` DESC
-        ''' % self.profile.user.id)
-
-        # Would setting primary_key=True on facebook_id get rid of some of this?
+        return YearbookFacebookUserNotUsingApp.objects \
+            .filter(owner=self.profile.user) \
+            .exclude(owner_top_friends_order=0) \
+            .order_by('-owner_top_friends_order')
 
     def get_top_friends_in_app(self):
         """
         User's fb friends with top_friends_order != 0
         who ARE currently users of the app
         """
-        return YearbookFacebookUser.objects.raw('''
-            SELECT `account_yearbookfacebookuser`.* FROM `account_yearbookfacebookuser`
-                LEFT JOIN `account_userprofile`
-                ON `account_userprofile`.`facebook_id`=`account_yearbookfacebookuser`.`facebook_id`
-            WHERE (`account_yearbookfacebookuser`.`user_id` = %d
-                AND `account_userprofile`.`facebook_id` IS NOT NULL
-                AND `account_yearbookfacebookuser`.`top_friends_order` != 0)
-            ORDER BY `account_yearbookfacebookuser`.`top_friends_order` DESC
-        ''' % self.profile.user.id)
+        return YearbookFacebookUserUsingApp.objects\
+            .filter(owner=self.profile.user)\
+            .exclude(owner_top_friends_order=0)\
+            .order_by('-owner_top_friends_order')
 
     def get_friends_not_in_app(self):
         """
         User's fb friends with top_friends_order == 0
         who aren't currently users of the app
         """
-        # It is MUCH FASTER to do a JOIN here rather than NOT IN,
-        # see http://stackoverflow.com/a/1519333/1161906
-        return YearbookFacebookUser.objects.raw('''
-            SELECT `account_yearbookfacebookuser`.* FROM `account_yearbookfacebookuser`
-                LEFT JOIN `account_userprofile`
-                ON `account_userprofile`.`facebook_id`=`account_yearbookfacebookuser`.`facebook_id`
-            WHERE (`account_yearbookfacebookuser`.`user_id` = %d
-                AND `account_userprofile`.`facebook_id` IS NULL
-                AND `account_yearbookfacebookuser`.`top_friends_order` = 0)
-            ORDER BY `account_yearbookfacebookuser`.`top_friends_order` DESC
-        ''' % self.profile.user.id)
+        return YearbookFacebookUserNotUsingApp.objects\
+            .filter(owner=self.profile.user,
+                owner_top_friends_order=0)\
+            .order_by('-owner_top_friends_order')
 
     def get_friends_in_app(self):
         """
         User's fb friends with top_friends_order == 0
         who ARE currently users of the app
         """
-        return YearbookFacebookUser.objects.raw('''
-            SELECT `account_yearbookfacebookuser`.* FROM `account_yearbookfacebookuser`
-                LEFT JOIN `account_userprofile`
-                ON `account_userprofile`.`facebook_id`=`account_yearbookfacebookuser`.`facebook_id`
-            WHERE (`account_yearbookfacebookuser`.`user_id` = %d
-                AND `account_userprofile`.`facebook_id` IS NOT NULL
-                AND `account_yearbookfacebookuser`.`top_friends_order` = 0)
-            ORDER BY `account_yearbookfacebookuser`.`top_friends_order` DESC
-        ''' % self.profile.user.id)
+        return YearbookFacebookUserUsingApp.objects\
+            .filter(owner=self.profile.user,
+                owner_top_friends_order=0)\
+            .order_by('-owner_top_friends_order')
+
+    def get_people_who_signed_me(self):
+        """
+        APPROX 30
+        """
+        return User.objects.filter(
+            yearbook_signs__to_id=self.profile.facebook_id
+        )
+
+    def get_signs_i_did(self):
+        """
+        APPROX 20
+        """
+        return YearbookSign.objects.filter(from_user=self.profile.user)
 
     def get_yearbooks_to_sign(self):
         """
@@ -90,9 +78,7 @@ class UserProfileRanking(object):
 
         # Everyone who has signed this person's yearbook
         # APPROX 10
-        people_who_signed_me = User.objects.filter(
-            yearbook_signs__to_id=self.profile.facebook_id
-        )
+        people_who_signed_me = self.get_people_who_signed_me()
 
         # First, they see anyone who has signed
         # *their* yearbook who *they* haven't signed
@@ -100,7 +86,7 @@ class UserProfileRanking(object):
 
         # facebook ids I've signed
         #                 ( set comprehension )
-        fb_ids_I_signed = {ybs.to_id for ybs in YearbookSign.objects.filter(from_user=self.profile.user)}
+        fb_ids_I_signed = {ybs.to_id for ybs in self.get_signs_i_did()}
         people_who_signed_i_havent = people_who_signed_me.exclude(
             profile__facebook_id__in=fb_ids_I_signed
         )
