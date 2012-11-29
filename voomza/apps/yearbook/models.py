@@ -35,7 +35,7 @@ class InviteRequestSent(models.Model):
     request sent to a user's facebook friend
     """
     user = models.ForeignKey('auth.User', related_name='invites_sent')
-    facebook_id = models.BigIntegerField()
+    facebook_user = models.ForeignKey('account.FacebookUser')
     request_id = models.BigIntegerField()
     sent_at = models.DateTimeField(auto_now_add=True)
     accepted_at = models.DateTimeField(null=True)
@@ -58,13 +58,13 @@ class Badge(models.Model):
 class BadgeVote(models.Model):
     badge = models.ForeignKey(Badge)
     from_user = models.ForeignKey(User)
-    to_facebook_id = models.BigIntegerField()
+    to_facebook_user = models.ForeignKey('account.FacebookUser')
     created_at = models.DateTimeField(auto_now_add=True)
 
 
 class YearbookSign(models.Model):
     from_user = models.ForeignKey(User, related_name='yearbook_signs')
-    to_id = models.BigIntegerField()
+    to_facebook_user = models.ForeignKey('account.FacebookUser')
     text = models.TextField(max_length=1000)
     created_at = models.DateTimeField(auto_now_add=True)
 

@@ -28,12 +28,25 @@ class Migration(SchemaMigration):
         ))
         db.send_create_signal('yearbook', ['TopFriendStat'])
 
+        # Adding model 'InviteRequestSent'
+        db.create_table('yearbook_inviterequestsent', (
+            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('user', self.gf('django.db.models.fields.related.ForeignKey')(related_name='invites_sent', to=orm['auth.User'])),
+            ('facebook_user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['account.FacebookUser'])),
+            ('request_id', self.gf('django.db.models.fields.BigIntegerField')()),
+            ('sent_at', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
+            ('accepted_at', self.gf('django.db.models.fields.DateTimeField')(null=True)),
+        ))
+        db.send_create_signal('yearbook', ['InviteRequestSent'])
+
         # Adding model 'Badge'
         db.create_table('yearbook_badge', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('name', self.gf('django.db.models.fields.CharField')(max_length=100)),
-            ('icon', self.gf('django.db.models.fields.CharField')(max_length=200)),
-            ('icon_small', self.gf('django.db.models.fields.CharField')(max_length=200)),
+            ('message', self.gf('django.db.models.fields.CharField')(max_length=100)),
+            ('icon', self.gf('django.db.models.fields.CharField')(max_length=200, blank=True)),
+            ('icon_small', self.gf('django.db.models.fields.CharField')(max_length=200, blank=True)),
+            ('max_tags', self.gf('django.db.models.fields.PositiveSmallIntegerField')(default=1)),
         ))
         db.send_create_signal('yearbook', ['Badge'])
 
@@ -42,7 +55,7 @@ class Migration(SchemaMigration):
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('badge', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['yearbook.Badge'])),
             ('from_user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
-            ('to_facebook_user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['account.YearbookFacebookUser'])),
+            ('to_facebook_user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['account.FacebookUser'])),
             ('created_at', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
         ))
         db.send_create_signal('yearbook', ['BadgeVote'])
@@ -50,7 +63,8 @@ class Migration(SchemaMigration):
         # Adding model 'YearbookSign'
         db.create_table('yearbook_yearbooksign', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('from_user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
+            ('from_user', self.gf('django.db.models.fields.related.ForeignKey')(related_name='yearbook_signs', to=orm['auth.User'])),
+            ('to_facebook_user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['account.FacebookUser'])),
             ('text', self.gf('django.db.models.fields.TextField')(max_length=1000)),
             ('created_at', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
         ))
@@ -60,6 +74,9 @@ class Migration(SchemaMigration):
     def backwards(self, orm):
         # Deleting model 'TopFriendStat'
         db.delete_table('yearbook_topfriendstat')
+
+        # Deleting model 'InviteRequestSent'
+        db.delete_table('yearbook_inviterequestsent')
 
         # Deleting model 'Badge'
         db.delete_table('yearbook_badge')
@@ -72,15 +89,12 @@ class Migration(SchemaMigration):
 
 
     models = {
-        'account.yearbookfacebookuser': {
-            'Meta': {'unique_together': "(['user', 'facebook_id'],)", 'object_name': 'YearbookFacebookUser'},
-            'facebook_id': ('django.db.models.fields.BigIntegerField', [], {}),
+        'account.facebookuser': {
+            'Meta': {'object_name': 'FacebookUser'},
+            'facebook_id': ('django.db.models.fields.BigIntegerField', [], {'primary_key': 'True', 'db_index': 'True'}),
             'gender': ('django.db.models.fields.CharField', [], {'max_length': '1', 'null': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'pic_small': ('django.db.models.fields.CharField', [], {'max_length': '200', 'blank': 'True'}),
-            'top_friends_order': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '0', 'db_index': 'True'}),
-            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']"})
+            'pic_square': ('django.db.models.fields.CharField', [], {'max_length': '200', 'blank': 'True'})
         },
         'auth.group': {
             'Meta': {'object_name': 'Group'},
@@ -120,9 +134,11 @@ class Migration(SchemaMigration):
         },
         'yearbook.badge': {
             'Meta': {'object_name': 'Badge'},
-            'icon': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
-            'icon_small': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
+            'icon': ('django.db.models.fields.CharField', [], {'max_length': '200', 'blank': 'True'}),
+            'icon_small': ('django.db.models.fields.CharField', [], {'max_length': '200', 'blank': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'max_tags': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '1'}),
+            'message': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
         },
         'yearbook.badgevote': {
@@ -131,7 +147,16 @@ class Migration(SchemaMigration):
             'created_at': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
             'from_user': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']"}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'to_facebook_user': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['account.YearbookFacebookUser']"})
+            'to_facebook_user': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['account.FacebookUser']"})
+        },
+        'yearbook.inviterequestsent': {
+            'Meta': {'object_name': 'InviteRequestSent'},
+            'accepted_at': ('django.db.models.fields.DateTimeField', [], {'null': 'True'}),
+            'facebook_user': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['account.FacebookUser']"}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'request_id': ('django.db.models.fields.BigIntegerField', [], {}),
+            'sent_at': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
+            'user': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'invites_sent'", 'to': "orm['auth.User']"})
         },
         'yearbook.topfriendstat': {
             'Meta': {'object_name': 'TopFriendStat'},
@@ -154,9 +179,10 @@ class Migration(SchemaMigration):
         'yearbook.yearbooksign': {
             'Meta': {'object_name': 'YearbookSign'},
             'created_at': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'from_user': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']"}),
+            'from_user': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'yearbook_signs'", 'to': "orm['auth.User']"}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'text': ('django.db.models.fields.TextField', [], {'max_length': '1000'})
+            'text': ('django.db.models.fields.TextField', [], {'max_length': '1000'}),
+            'to_facebook_user': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['account.FacebookUser']"})
         }
     }
 
