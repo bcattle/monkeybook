@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_syncdb
 from django.dispatch.dispatcher import receiver
 from django.utils import timezone
+from south.signals import post_migrate
 
 logger = logging.getLogger(__name__)
 
@@ -63,17 +64,22 @@ class BadgeVote(models.Model):
 
 
 class YearbookSign(models.Model):
-    from_user = models.ForeignKey(User, related_name='yearbook_signs')
-    to_facebook_user = models.ForeignKey('account.FacebookUser')
+#    from_user = models.ForeignKey(User, related_name='yearbook_signs')
+    from_facebook_user = models.ForeignKey('account.FacebookUser', related_name='yearbook_signs_from')
+    to_facebook_user = models.ForeignKey('account.FacebookUser', related_name='yearbook_signs_to')
     text = models.TextField(max_length=1000)
     created_at = models.DateTimeField(auto_now_add=True)
 
 
 # Make sure we create a UserProfile when creating a User
-@receiver(post_syncdb)
-def install_badges(sender, **kwargs):
-    if not Badge.objects.exists():
+def install_badges(app, **kwargs):
+    # Coming from post_migrate, app is a string!
+    app_name = app.__name__ if hasattr(app, '__name__') else app
+    if app_name == 'yearbook.models' and not Badge.objects.exists():
         logger.info('Installing badges')
         from voomza.apps.yearbook import factories
         for n in range(factories.NUM_BADGES):
             factories.BadgeFactory.create()
+
+post_migrate.connect(install_badges)
+post_syncdb.connect(install_badges)
