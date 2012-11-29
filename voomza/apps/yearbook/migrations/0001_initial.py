@@ -63,8 +63,8 @@ class Migration(SchemaMigration):
         # Adding model 'YearbookSign'
         db.create_table('yearbook_yearbooksign', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('from_user', self.gf('django.db.models.fields.related.ForeignKey')(related_name='yearbook_signs', to=orm['auth.User'])),
-            ('to_facebook_user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['account.FacebookUser'])),
+            ('from_facebook_user', self.gf('django.db.models.fields.related.ForeignKey')(related_name='yearbook_signs_from', to=orm['account.FacebookUser'])),
+            ('to_facebook_user', self.gf('django.db.models.fields.related.ForeignKey')(related_name='yearbook_signs_to', to=orm['account.FacebookUser'])),
             ('text', self.gf('django.db.models.fields.TextField')(max_length=1000)),
             ('created_at', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
         ))
@@ -179,10 +179,10 @@ class Migration(SchemaMigration):
         'yearbook.yearbooksign': {
             'Meta': {'object_name': 'YearbookSign'},
             'created_at': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'from_user': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'yearbook_signs'", 'to': "orm['auth.User']"}),
+            'from_facebook_user': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'yearbook_signs_from'", 'to': "orm['account.FacebookUser']"}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'text': ('django.db.models.fields.TextField', [], {'max_length': '1000'}),
-            'to_facebook_user': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['account.FacebookUser']"})
+            'to_facebook_user': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'yearbook_signs_to'", 'to': "orm['account.FacebookUser']"})
         }
     }
 

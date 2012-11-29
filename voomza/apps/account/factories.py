@@ -19,7 +19,7 @@ class UserFactory(factory.Factory):
 
 class FacebookUserFactory(factory.Factory):
     FACTORY_FOR = FacebookUser
-    facebook_id = factory.Sequence(lambda n: 1000 + n)
+    facebook_id = factory.Sequence(lambda n: 1000 + int(n))
     name = ''
     gender = 'M'
     pic_square = ''
@@ -28,7 +28,7 @@ class FacebookUserFactory(factory.Factory):
 class UserProfileFactory(factory.Factory):
     FACTORY_FOR = UserProfile
     facebook_user = factory.SubFactory(FacebookUserFactory)
-    facebook_id = factory.Sequence(lambda n: 1000 + n)
+    facebook_id = factory.Sequence(lambda n: 1000 + int(n))
     user = factory.SubFactory(UserFactory)
 
 

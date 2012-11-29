@@ -1,6 +1,6 @@
 import factory
 from models import Badge
-from voomza.apps.account.factories import UserFactory
+from voomza.apps.account.factories import FacebookUserFactory
 from voomza.apps.yearbook.models import YearbookSign
 
 BADGE_NAMES = (
@@ -21,28 +21,6 @@ MESSAGES = (
 
 MAX_TAGS = (5, 1, 5)
 
-#BADGE_NAMES = [
-#    'Most likely to be president',
-#    'Most Likely to be famous',
-#    'Most likely to become a millionaire',
-#    'Most likely to win a Nobel Prize',
-#    'Most likely to win an Oscar',
-#    'Most likely to take over the world',
-#    'Most likely to marry for money',
-#    'Most likely to win the lottery but lose the ticket',
-#    'Best smile',
-#    'Best looking girl',
-#    'Best looking guy',
-#    'Best dancer',
-#    'Best singer',
-#    'Worst driver',
-#    'Most sarcastic',
-#    'Most creative',
-#    'Most hardworking',
-#    'Most competitive',
-#    'Biggest flirt',
-#    'Biggest party animal',
-#    ]
 NUM_BADGES = len(BADGE_NAMES)
 
 class BadgeFactory(factory.Factory):
@@ -59,7 +37,6 @@ class BadgeFactory(factory.Factory):
 class YearbookSignFactory(factory.Factory):
     FACTORY_FOR = YearbookSign
 
-    from_user = factory.SubFactory(UserFactory)
-    to_id = 3000123
     text = 'Had a great year man, see you in the fall!'
-
+    from_facebook_user = factory.SubFactory(FacebookUserFactory)
+    to_facebook_user = factory.SubFactory(FacebookUserFactory)
