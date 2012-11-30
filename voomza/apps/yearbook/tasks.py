@@ -31,9 +31,3 @@ def get_and_store_top_friends(user, facebook):
     pass
 
 
-@task.task(ignore_result=True)
-def get_optional_profile_fields(user, facebook):
-    """
-    Pulls the optional fields in the user's profile
-    """
-    pass

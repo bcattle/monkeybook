@@ -15,11 +15,17 @@ class UserProfile(BaseFacebookProfileModel):
     """
     user = models.OneToOneField('auth.User', related_name='profile')
     facebook_user = models.ForeignKey('FacebookUser', null=True, related_name='profile')
-    first_name = models.CharField(max_length=40, blank=True)
     locale = models.CharField(max_length=10, blank=True)
-    pic_square = models.CharField(max_length=200, blank=True)
+    relationship_status = models.CharField(max_length=40, blank=True)
+    significant_other_id = models.BigIntegerField(null=True)
 
     current_page = models.CharField(max_length=40, default='invite_friends_to_sign')
+
+
+class FamilyConnection(models.Model):
+    owner = models.ForeignKey('auth.User', related_name='family')
+    facebook_id = models.BigIntegerField()
+    relationship = models.CharField(max_length=40, blank=True)
 
 
 ### Add an index to the facebook_id field
@@ -64,11 +70,3 @@ class FacebookFriend(models.Model):
 def create_user_profile(sender, instance, created, **kwargs):
     if created and instance.username != 'admin':
         UserProfile.objects.create(user=instance)
-
-#        # Getting called twice due to bogus imports somewhere else
-#        try:
-#            profile = instance.profile
-#        except UserProfile.DoesNotExist:
-#            print 'UserProfile create called()'
-#            UserProfile.objects.create(user=instance)
-

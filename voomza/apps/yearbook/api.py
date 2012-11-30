@@ -1,16 +1,15 @@
 import logging, timeit
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 from django.utils import timezone
 from django_facebook.api import FacebookUserConverter
 from django_facebook.signals import facebook_post_store_friends
 from django_facebook.utils import get_profile_class, mass_get_or_create
-from voomza.apps.account.models import YearbookFacebookUser
 from voomza.apps.yearbook import settings as yearbook_settings
 from voomza.apps.yearbook.models import TopFriendStat
 
 logger = logging.getLogger(__name__)
 
-gender_map = dict(female='F', male='M')
+gender_map = defaultdict(lambda: '', female='F', male='M', )
 
 class YearbookFacebookUserConverter(FacebookUserConverter):
     """
@@ -38,17 +37,8 @@ class YearbookFacebookUserConverter(FacebookUserConverter):
     @classmethod
     def _store_friends(cls, user, friends):
         current_friends = inserted_friends = None
-
-        #store the users for later retrieval
+        # store the users for later retrieval
         if friends:
-            #see which ids this user already stored
-            base_queryset = YearbookFacebookUser.objects.filter(user_id=user.id)
-            #if none if your friend have a gender clean the old data
-            genders = YearbookFacebookUser.objects.filter(
-                user_id=user.id, gender__in=('M', 'F')).count()
-            if not genders:
-                YearbookFacebookUser.objects.filter(user_id=user.id).delete()
-
             global_defaults = dict(user_id=user.id)
             default_dict = {}
             for f in friends:
@@ -60,6 +50,9 @@ class YearbookFacebookUserConverter(FacebookUserConverter):
                 default_dict[str(f['id'])] = dict(name=name, gender=gender, pic_square=pic_square)
             id_field = 'facebook_id'
 
+            # Need to create both FacebookUser and FacebookFriend
+
+            base_queryset = user.friends
             current_friends, inserted_friends = mass_get_or_create(
                 YearbookFacebookUser, base_queryset, id_field, default_dict,
                 global_defaults)
@@ -80,8 +73,11 @@ class YearbookFacebookUserConverter(FacebookUserConverter):
         """
         Gets the users friends using the "quick" algorithm
         """
+        import ipdb
+        ipdb.set_trace()
+
         # If they already have any top friends, skip
-        if YearbookFacebookUser.objects.filter(user=user).exclude(top_friends_order=0).exists():
+        if user.friends.exclude(top_friends_order=0).exists():
             logger.debug('User already has top friends, skipping "fast algorithm"')
             return
 
@@ -143,6 +139,9 @@ class YearbookFacebookUserConverter(FacebookUserConverter):
 
         # Only updates if they don't already exist
         # i.e. this shouldn't overwrite the "non-fast" algorithm
+
+        # Need to create both FacebookUser and FacebookFriend
+
         current, created = mass_get_or_create(
             model_class=YearbookFacebookUser,
             base_queryset=YearbookFacebookUser.objects.filter(user_id=user.id),
@@ -164,6 +163,61 @@ class YearbookFacebookUserConverter(FacebookUserConverter):
             )
 
         logger.info('found %s top friends', len(all_users))
+
+
+    def get_and_store_optional_fields(self, user):
+        """
+        Pulls any additional fields we want for the user's profile
+        right now these are locale, family and significant other
+        """
+        from voomza.apps.account.models import FamilyConnection, FacebookUser
+
+        me_response = self.open_facebook.get('me', fields=['id',
+                                                           'name',
+                                                           'picture',
+                                                           'gender',
+                                                           'locale',
+                                                           'relationship_status',
+                                                           'significant_other'])
+        family_response = self.open_facebook.get('me/family')
+
+        # Store the info in their profile
+        user.profile.locale = me_response.get('locale', '')
+        user.profile.relationship_status = me_response.get('relationship_status', '')
+        if 'significant_other' in me_response:
+            if 'id' in me_response['significant_other']:
+                user.profile.significant_other_id = me_response['significant_other']['id']
+
+        pic_square = ''
+        if 'picture' in me_response:
+            if 'data' in me_response['picture']:
+                if 'url' in me_response['picture']['data']:
+                    pic_square = me_response['picture']['data']['url']
+
+        # Store a FacebookUser
+        if 'id' in me_response:
+            # facebook_id is pk, so this should just update db if it already exists
+            fu = FacebookUser(
+                facebook_id=me_response['id'],
+                name=me_response.get('name', ''),
+                gender=gender_map[me_response.get('gender', '')],
+                pic_square=pic_square
+            )
+            fu.save()
+            user.profile.facebook_user = fu
+
+        user.profile.save()
+
+        # Store the family data, if any
+        for person in family_response.get('data'):
+            if 'id' in person:
+                fc = FamilyConnection(owner=user,
+                                      relationship=person.get('relationship', ''),
+                                      facebook_id=person['id'])
+                fc.save()
+
+        import ipdb
+        ipdb.set_trace()
 
 
     def delete_request(self, request):
