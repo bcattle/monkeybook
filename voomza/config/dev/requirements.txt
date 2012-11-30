@@ -7,5 +7,7 @@ pil
 django-dajaxice
 ipython
 ipdb
-django-redis-sessions
+#django-redis-sessions
+boto
 factory_boy
+git+git://github.com/toastdriven/django-tastypie.git

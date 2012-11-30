@@ -4,7 +4,7 @@ from django.db.models.signals import post_save
 from django.dispatch.dispatcher import receiver
 from django.contrib.auth.models import User
 from django_facebook.models import BaseFacebookProfileModel
-from voomza.apps.account.managers import FacebookFriendManager
+from voomza.apps.account.managers import FacebookUserManager
 
 logger = logging.getLogger(name=__name__)
 
@@ -37,10 +37,17 @@ class FacebookUser(models.Model):
     Central repo of facebook users we know about
     these people may or may not be users of the app
     """
+    # This needs to have a pk on facebook_id so any updates from
+    # new users won't break existing links
     facebook_id = models.BigIntegerField(primary_key=True, db_index=True)
     name = models.TextField(blank=True, null=True)
     gender = models.CharField(choices=(('F', 'female'), ('M', 'male')), blank=True, null=True, max_length=1)
     pic_square = models.CharField(max_length=200, blank=True)
+
+    objects = FacebookUserManager()
+
+    class Meta:
+        ordering = ['-friend_of__top_friends_order']
 
 
 class FacebookFriend(models.Model):
@@ -55,7 +62,6 @@ class FacebookFriend(models.Model):
     top_friends_order = models.PositiveSmallIntegerField(default=0,
                                                          help_text='Higher the better',
                                                          db_index=True)
-    objects = FacebookFriendManager()
 
     class Meta:
         unique_together = ['owner', 'facebook_user']

@@ -4,7 +4,8 @@ from celery import task
 logger = logging.getLogger(__name__)
 
 
-@task.task(ignore_result=True)
+# We use async_result
+@task.task()
 def get_and_store_optional_profile_fields(user, facebook):
     """
     Pulls the optional fields in the user's profile

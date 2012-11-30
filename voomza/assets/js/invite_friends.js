@@ -8,6 +8,44 @@ var TURN_OFF_AFTER = 8;
 var friends_elements = null;
 var selectNoneWasClicked = false;
 
+function getFriends() {
+    // Loads the friends from Tastypie using jQuery
+    $.ajaxSetup({
+        accepts: 'application/json',
+        dataType: 'json',
+        success: onGetFriends,
+        error: onGetFriendsError
+    });
+    $.ajax(friendsUrl);
+}
+
+function onGetFriends(data, textStatus, jqXHR) {
+
+    // Dump the friends into the list
+    var list = $('.friends_list');
+    for (var idx in friends) {
+        if (selectNoneWasClicked) {
+            // Show the users with checkbox empty
+            list.append(Mustache.to_html(friendTemplateUnchecked, friends[idx]));
+        } else {
+            list.append(Mustache.to_html(friendTemplateChecked, friends[idx]));
+        }
+    }
+    // Update list of friend elements
+    friends_elements = $('.friend');
+
+    // Get the next page of results
+    var nextPageUrl = 'something';
+    $.ajax(nextPageUrl);
+
+    friendsLoaded();
+}
+
+function onGetFriendsError(jqXHR, textStatus, errorThrown) {
+    alert('ajax error');
+}
+
+
 function onGetFriends(data) {
     friendsLoaded();
     // We might have gotten a duplicate dataset

@@ -36,36 +36,32 @@ class YearbookFacebookUserConverter(FacebookUserConverter):
 
     @classmethod
     def _store_friends(cls, user, friends):
-        current_friends = inserted_friends = None
         # store the users for later retrieval
         if friends:
-            global_defaults = dict(user_id=user.id)
-            default_dict = {}
+            from voomza.apps.account.models import FacebookUser, FacebookFriend
+            # APPROX 50
+            current_friend_ids = set(FacebookFriend.objects.filter(owner=user).values_list('facebook_user__facebook_id', flat=True))
             for f in friends:
-                name = f.get('name')
-                pic_square = f.get('pic_square')
-                gender = None
-                if f.get('sex'):
-                    gender = gender_map[f.get('sex')]
-                default_dict[str(f['id'])] = dict(name=name, gender=gender, pic_square=pic_square)
-            id_field = 'facebook_id'
+                if f.get('id'):
+                    # Create FacebookUser and FacebookFriend
+                    fb_u = FacebookUser(
+                        facebook_id=f['id'], name=f.get('name', ''),
+                        pic_square=f.get('pic_square', ''), gender=gender_map[f.get('sex', '')]
+                    )
+                    fb_u.save()
+                    # Need to not overwrite existing FacebookFriends, since they came from top friends calc
+                    if f['id'] not in current_friend_ids:
+                        fb_f = FacebookFriend(owner=user, facebook_user=fb_u)
+                        fb_f.save()
 
-            # Need to create both FacebookUser and FacebookFriend
-
-            base_queryset = user.friends
-            current_friends, inserted_friends = mass_get_or_create(
-                YearbookFacebookUser, base_queryset, id_field, default_dict,
-                global_defaults)
-            logger.debug('found %s friends and inserted %s new ones',
-                len(current_friends), len(inserted_friends))
+            logger.debug('Pulled all friends, found %s friends', len(friends))
 
         #fire an event, so u can do things like personalizing suggested users
         #to follow
         facebook_post_store_friends.send(sender=get_profile_class(),
-            user=user, friends=friends, current_friends=current_friends,
-            inserted_friends=inserted_friends,
+            user=user, friends=friends, current_friends=None,
+            inserted_friends=None,
         )
-
         return friends
 
 
@@ -73,9 +69,6 @@ class YearbookFacebookUserConverter(FacebookUserConverter):
         """
         Gets the users friends using the "quick" algorithm
         """
-        import ipdb
-        ipdb.set_trace()
-
         # If they already have any top friends, skip
         if user.friends.exclude(top_friends_order=0).exists():
             logger.debug('User already has top friends, skipping "fast algorithm"')
@@ -93,7 +86,6 @@ class YearbookFacebookUserConverter(FacebookUserConverter):
                             '   (SELECT subject FROM photo_tag WHERE object_id IN '
                             '       (SELECT object_id FROM photo_tag WHERE subject=me()) AND subject!=me()) '
                             'LIMIT 300',
-
         })
 
         friend_ids = []
@@ -134,21 +126,19 @@ class YearbookFacebookUserConverter(FacebookUserConverter):
                 if f.get('sex'):
                     f['gender'] = gender_map[f.get('sex')]
                     f.pop('sex')
-                friends_ranked[str(id)] = f
+                friends_ranked[id] = f
             except KeyError: pass
 
-        # Only updates if they don't already exist
-        # i.e. this shouldn't overwrite the "non-fast" algorithm
+        # First, create FacebookUser for all pulled users
+        # since there is a pk on facebook_id, this will update any existing entries
+        # we save facebook_id, name, and pic_square
+        from voomza.apps.account.models import FacebookUser, FacebookFriend
 
-        # Need to create both FacebookUser and FacebookFriend
-
-        current, created = mass_get_or_create(
-            model_class=YearbookFacebookUser,
-            base_queryset=YearbookFacebookUser.objects.filter(user_id=user.id),
-            id_field='facebook_id',
-            default_dict=friends_ranked,
-            global_defaults=dict(user_id=user.id),
-        )
+        for facebook_id, u in friends_ranked.items():
+            fb_u = FacebookUser(facebook_id=facebook_id, name=u['name'], pic_square=u['pic_square'], gender=u['gender'])
+            fb_u.save()
+            fb_f = FacebookFriend(owner=user, facebook_user=fb_u, top_friends_order=u['top_friends_order'])
+            fb_f.save()
 
         # Save the counts for debugging?
         if yearbook_settings.STORE_TOP_FRIEND_STATS:
@@ -172,13 +162,10 @@ class YearbookFacebookUserConverter(FacebookUserConverter):
         """
         from voomza.apps.account.models import FamilyConnection, FacebookUser
 
-        me_response = self.open_facebook.get('me', fields=['id',
-                                                           'name',
-                                                           'picture',
-                                                           'gender',
-                                                           'locale',
-                                                           'relationship_status',
-                                                           'significant_other'])
+        me_response = self.open_facebook.get('me', fields=[
+            'id', 'name', 'picture', 'gender', 'locale', 'relationship_status',
+            'significant_other'
+        ])
         family_response = self.open_facebook.get('me/family')
 
         # Store the info in their profile
@@ -215,9 +202,6 @@ class YearbookFacebookUserConverter(FacebookUserConverter):
                                       relationship=person.get('relationship', ''),
                                       facebook_id=person['id'])
                 fc.save()
-
-        import ipdb
-        ipdb.set_trace()
 
 
     def delete_request(self, request):

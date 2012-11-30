@@ -9,11 +9,9 @@ class FriendRanking(object):
         self.profile = profile
 
     def get_top_friends(self):
-#        return FacebookFriend.objects.filter(owner=self.profile.user).exclude(top_friends_order=0)
         return self.profile.user.friends.exclude(top_friends_order=0)
 
     def get_non_top_friends(self):
-#        return FacebookFriend.objects.filter(owner=self.profile.user).filter(top_friends_order=0)
         return self.profile.user.friends.filter(owner=self.profile.user).filter(top_friends_order=0)
 
     def not_in_app(self, query):

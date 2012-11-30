@@ -24,17 +24,19 @@ DATABASES = {
 
 ## Sessions
 
-SESSION_ENGINE = 'redis_sessions.session'
-SESSION_REDIS_HOST = 'localhost'
-SESSION_REDIS_PORT = 6379
-SESSION_REDIS_DB = 0
-SESSION_REDIS_PREFIX = 'session'
+#SESSION_ENGINE = 'redis_sessions.session'
+#SESSION_REDIS_HOST = 'localhost'
+#SESSION_REDIS_PORT = 6379
+#SESSION_REDIS_DB = 0
+#SESSION_REDIS_PREFIX = 'session'
 
 ## Celery
 
 #CELERYD_CONCURRENCY = 2            # By default, the number of CPUs is used
 BROKER_URL = 'redis://localhost:6379/0'
-CELERY_RESULT_BACKEND = BROKER_URL
+#BROKER_URL = 'sqs://aws_access_key_id:aws_secret_access_key@'
+
+#CELERY_RESULT_BACKEND = BROKER_URL
 
 
 ## Static files storage

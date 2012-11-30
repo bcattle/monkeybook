@@ -1,7 +1,6 @@
 {% extends 'two_page.html' %}
 {% load staticfiles %}
 {% load url from future %}
-{% load dajaxice_templatetags %}
 
 {# invite_friends_to_sign.html                                  #}
 {# Bryan Cattle     11/14/2012                                  #}
@@ -76,8 +75,8 @@
 {% endblock %}
 
 {% block script %}
-    {% dajaxice_js_import %}
     <script type="text/javascript" src="{% static 'js/jquery-1.7.2.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/jquery.cookie.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/mustache.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/typeahead.js' %}"></script>
     <script type="text/html" id="friend_template_checked">
@@ -93,7 +92,10 @@
         </li>
     </script>
     <script type="text/javascript">
+        var friendsUrl  = "{% url 'api_dispatch_list' api_name='v1' resource_name='friend' %}";
         var nextUrl = "{% url next_view %}";
+        // Need if we're doing POST
+        var csrftoken = $.cookie('csrftoken');
     </script>
     <script type="text/javascript" src="{% static 'js/invite_friends.js' %}"></script>
 {% endblock %}
