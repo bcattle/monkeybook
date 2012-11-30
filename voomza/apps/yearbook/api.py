@@ -151,8 +151,11 @@ class YearbookFacebookUserConverter(FacebookUserConverter):
                 default_dict=counts_for_db,
                 global_defaults=dict(user=user),
             )
-
         logger.info('found %s top friends', len(all_users))
+
+        # Return the queryset of top friends
+        return FacebookUser.objects.filter(friend_of__owner=user)
+
 
 
     def get_and_store_optional_fields(self, user):
