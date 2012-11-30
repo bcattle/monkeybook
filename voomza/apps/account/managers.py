@@ -49,21 +49,20 @@ class FacebookUserManager(fb_FacebookUserManager):
                 facebook = YearbookFacebookUserConverter(graph)
                 async_result = get_and_store_top_friends_fast.delay(request.user, facebook,
                     pull_all_friends_when_done=True)
+#                get_and_store_top_friends_fast(request.user, facebook, pull_all_friends_when_done=True)
 
-                request.session['pull_friends_async'] = async_result
+            request.session['pull_friends_async'] = async_result
 
         if async_result:
             # There was an async in session, or we just created one
+            # Commit the transaction so we can pull new results
+            flush_transaction()
             try:
-                # Commit the transaction so we can pull the new results
-                flush_transaction()
-#                # Pull results
-#                top_friends_qs = async_result.get(timeout=5)
+                # Wait for results
                 async_result.get(timeout=5)
             except TimeoutError:
                 # Let the exception go and handle the error in js
                 raise
             del request.session['pull_friends_async']
-#            return top_friends_qs
 
         return FacebookUser.objects.filter(friend_of__owner=request.user)

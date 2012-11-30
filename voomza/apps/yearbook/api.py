@@ -6,6 +6,7 @@ from django_facebook.signals import facebook_post_store_friends
 from django_facebook.utils import get_profile_class, mass_get_or_create
 from voomza.apps.yearbook import settings as yearbook_settings
 from voomza.apps.yearbook.models import TopFriendStat
+from voomza.apps.core import bulk
 
 logger = logging.getLogger(__name__)
 
@@ -39,25 +40,35 @@ class YearbookFacebookUserConverter(FacebookUserConverter):
         # store the users for later retrieval
         if friends:
             from voomza.apps.account.models import FacebookUser, FacebookFriend
+
+            facebook_friends = []
+            facebook_users = []
             # APPROX 50
             current_friend_ids = set(FacebookFriend.objects.filter(owner=user).values_list('facebook_user__facebook_id', flat=True))
             for f in friends:
-                if f.get('id'):
-                    # Create FacebookUser and FacebookFriend
-                    fb_u = FacebookUser(
-                        facebook_id=f['id'], name=f.get('name', ''),
-                        pic_square=f.get('pic_square', ''), gender=gender_map[f.get('sex', '')]
+                if f.get('id') and f['id'] not in current_friend_ids:
+                    facebook_users.append(
+                        FacebookUser(
+                            facebook_id = f['id'],
+                            name        = f.get('name', ''),
+                            pic_square  = f.get('pic_square', ''),
+                            gender      = gender_map[f.get('sex', '')]
+                        )
                     )
-                    fb_u.save()
-                    # Need to not overwrite existing FacebookFriends, since they came from top friends calc
-                    if f['id'] not in current_friend_ids:
-                        fb_f = FacebookFriend(owner=user, facebook_user=fb_u)
-                        fb_f.save()
+                    facebook_friends.append(
+                        FacebookFriend(
+                            owner            = user,
+                            facebook_user_id = f['id']
+                        )
+                    )
+            # Use the "bulk" library rather than the built-in `bulk_create`
+            # so we can specify ON DUPLICATE KEY UPDATE
+            bulk.insert_many(FacebookUser, facebook_users)
+            bulk.insert_many(FacebookFriend, facebook_friends)
 
             logger.debug('Pulled all friends, found %s friends', len(friends))
 
-        #fire an event, so u can do things like personalizing suggested users
-        #to follow
+        # fire an event, note that it doesn't have `current_friends` or `inserted_friends`
         facebook_post_store_friends.send(sender=get_profile_class(),
             user=user, friends=friends, current_friends=None,
             inserted_friends=None,
@@ -134,11 +145,26 @@ class YearbookFacebookUserConverter(FacebookUserConverter):
         # we save facebook_id, name, and pic_square
         from voomza.apps.account.models import FacebookUser, FacebookFriend
 
+        facebook_users = []
+        facebook_friends = []
         for facebook_id, u in friends_ranked.items():
-            fb_u = FacebookUser(facebook_id=facebook_id, name=u['name'], pic_square=u['pic_square'], gender=u['gender'])
-            fb_u.save()
-            fb_f = FacebookFriend(owner=user, facebook_user=fb_u, top_friends_order=u['top_friends_order'])
-            fb_f.save()
+            facebook_users.append(
+                FacebookUser(
+                    facebook_id = facebook_id,
+                    name        = u['name'],
+                    pic_square  = u['pic_square'],
+                    gender      = u['gender']
+                )
+            )
+            facebook_friends.append(
+                FacebookFriend(
+                    owner             = user,
+                    facebook_user_id  = facebook_id,
+                    top_friends_order = u['top_friends_order']
+                )
+            )
+            bulk.insert_many(FacebookUser, facebook_users)
+            bulk.insert_many(FacebookFriend, facebook_friends)
 
         # Save the counts for debugging?
         if yearbook_settings.STORE_TOP_FRIEND_STATS:
