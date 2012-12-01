@@ -10,7 +10,7 @@ function onGetFriends(data, textStatus, jqXHR) {
     // Get the next page of results, if we need to
     // We pull the lesser of `max_invites` or their number of friends
     var friends_so_far = data.meta.offset + data.objects.length;
-    if (friends_so_far < Math.min(max_invites, data.meta.total_count)) {
+    if (friends_so_far < max_invites && nextFriendsUrl) {
         $.ajax(nextFriendsUrl);
     }
 
@@ -31,7 +31,6 @@ function onGetFriends(data, textStatus, jqXHR) {
         friend_element.imagesLoaded(function(){
             this.addClass('friend');
             if (!filterActive) {
-//                this.show();
                 this.fadeIn(500);
             }
         });
@@ -103,10 +102,12 @@ $(document).ready(function() {
         selectNoneWasClicked = false;
     });
 
-    $('.list').scroll(function() {
-        // TODO: if we're near the bottom, load another page of results
-        // If the typeahead filter isn't active, and we're scrolling down
-        if (false) {
+    $('.list').scroll(function(e) {
+        // If we're near the bottom, the typeahead filter isn't active,
+        // we don't already have a pending request, and there is another page to load
+        if (this.scrollTop > .8 * this.scrollHeight
+                && !filterActive && !$.active && nextFriendsUrl) {
+            // Load the next page of results
             $.ajax(nextFriendsUrl);
         }
     });
