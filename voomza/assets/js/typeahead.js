@@ -37,6 +37,12 @@ $(document).ready(function(){
     });
 });
 
+function getExistingElementById(facebook_id) {
+    // Returns an existing DOM element
+    // for a person, if any
+    return friendsList.find('li:not(.friend_result) input[name=friend_' + facebook_id + ']');
+}
+
 function onGetFilteredResults(data, textStatus, jqXHR) {
     filterActive = true;
     // Hide all .friend entries
@@ -47,27 +53,49 @@ function onGetFilteredResults(data, textStatus, jqXHR) {
     var friends = data.objects;
     var result_element;
     _.each(friends, function(friend) {
-//        result_element = $(Mustache.to_html(resultTemplate, friend))
-        result_element = $(Mustache.to_html(friendTemplateUnchecked, friend))
+        // If this user is already in the DOM,
+        // this checkbox should assume the value they already have
+        var template;
+        var curr_element = getExistingElementById(friend.facebook_id);
+        if (curr_element && curr_element.is(':checked')) {
+            template = friendTemplateChecked;
+        } else {
+            template = friendTemplateUnchecked;
+        }
+
+        result_element = $(Mustache.to_html(template, friend))
             .addClass('friend_result').hide().appendTo(friendsList);
         // Add a callback to show after the image has loaded
         result_element.imagesLoaded(function(){
             this.fadeIn(500);
         });
         // Add a callback if the checkbox value is changed
-        result_element.change(function(){
-            // TODO
-        });
+        result_element.find(':checkbox').change(resultChanged);
         // Add a callback, clicking element changes checkbox
-        result_element.click(function(){
-            // TODO
-//            this.filter('input')
-        });
+        addCheckboxClickCallback(result_element);
     });
 }
 
-function resultChecked() {
-    // TODO
+// Called when a result checkbox
+// is checked or unchecked
+function resultChanged(e) {
+    var el = $(e.target);
+    var curr_element = getExistingElementById(el.attr('value'));
+    if (curr_element.length) {
+        // If there's an existing element in the DOM, update it
+        curr_element.attr('checked', el.is(':checked'));
+    } else {
+        if (el.is(':checked')) {
+            // unchecked -> checked
+            // Get the parent, switch the class
+            var friend_element=el.parents('li').clone();
+            // Switch the class and insert
+            friend_element.removeClass('friend_result')
+                .addClass('friend').hide().prependTo(friendsList);
+            // Add the click handler
+            addCheckboxClickCallback(friend_element);
+        }
+    }
 }
 
 function clearFilter() {

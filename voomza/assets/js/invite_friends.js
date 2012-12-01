@@ -35,10 +35,22 @@ function onGetFriends(data, textStatus, jqXHR) {
                 this.fadeIn(500);
             }
         });
+        // Add a callback, clicking element changes checkbox
+        addCheckboxClickCallback(friend_element);
     });
 
     // Show the loaded page, if needed
     friendsLoaded();
+}
+
+function addCheckboxClickCallback(el) {
+    el.click(function(e){
+        if (!$(e.target).is(':checkbox')) {
+            var checkbox = $(this).find(':checkbox');
+            checkbox.attr('checked', !checkbox.is(':checked'));
+            checkbox.change();
+        }
+    });
 }
 
 function onGetFriendsError(jqXHR, textStatus, errorThrown) {
