@@ -31,16 +31,18 @@ class FriendResource(ModelResource):
         return FacebookUser.objects.get_friends_for_user(request)
 
 
-class InviteRequestSentResource(ModelResource):
+class InviteSentResource(ModelResource):
     class Meta:
         queryset = InviteRequestSent.objects.all()
-        allowed_methods = ['post']
+        list_allowed_methods = ['post', 'patch']
+        detail_allowed_methods = ['put']            # Implied by PATCH
         fields = ['facebook_user', 'request_id']
         authentication = SessionAuthentication()
         authorization = Authorization()
 
-    def hydrate_user(self, bundle):
-        bundle.data['user'] = bundle.request.user
+    def hydrate(self, bundle):
+        bundle.obj.facebook_user_id = bundle.data['facebook_user_id']
+        bundle.obj.user = bundle.request.user
         return bundle
 
 
@@ -82,7 +84,7 @@ class YearbookToSignResource(ModelResource):
 
 v1_api = Api(api_name='v1')
 v1_api.register(FriendResource())
-#v1_api.register(InviteResource())
+v1_api.register(InviteSentResource())
 #v1_api.register(BadgeVoteResource())
 v1_api.register(YearbookSignResource())
 v1_api.register(YearbookToSignResource())

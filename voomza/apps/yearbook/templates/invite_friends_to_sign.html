@@ -75,6 +75,7 @@
 {% endblock %}
 
 {% block script %}
+    <script type="text/javascript" src="{% static 'js/yepnope.1.5.4-min.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/jquery-1.7.2.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/jquery.cookie.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/jquery.imagesloaded.min.js' %}"></script>
@@ -97,8 +98,14 @@
         var friendsUrl  = "{% url 'api_dispatch_list' api_name='v1' resource_name='friend' %}";
         var nextFriendsUrl  = friendsUrl;
         var nextUrl = "{% url next_view %}";
-        // Need if we're doing POST
+        var invitesSentUrl  = "{% url 'api_dispatch_list' api_name='v1' resource_name='invitesent' %}";
         var csrftoken = $.cookie('csrftoken');
+
+        // Load json2.js if we need it
+        yepnope({
+            test: window.JSON,
+            nope: '{% static 'js/json2.js' %}'
+        });
     </script>
     <script type="text/javascript" src="{% static 'js/invite_friends.js' %}"></script>
 {% endblock %}

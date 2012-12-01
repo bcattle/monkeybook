@@ -3,7 +3,11 @@ var friendTemplateChecked = null;
 var friendTemplateUnchecked = null;
 var friendsList = null;
 var selectNoneWasClicked = false;
-//var friends_elements = null;
+
+function csrfSafeMethod(method) {
+    // these HTTP methods do not require CSRF protection
+    return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+}
 
 function onGetFriends(data, textStatus, jqXHR) {
     nextFriendsUrl = data.meta.next;
@@ -81,7 +85,7 @@ $(document).ready(function() {
     // Set up ajax
     $.ajaxSetup({
         success: onGetFriends,
-        error: onGetFriendsError
+        error: onGetFriendsError,
     });
 
     // Get the first page of friends
@@ -134,14 +138,48 @@ function fbSubmitCallback(data) {
     // If this came back from facebook, it contains 'request' (an id)
     // and 'to' an array of user ids. save these to db
 
-    // TODO: do this with POST using tastypie
-
-    Dajaxice.yearbook.invites_sent(dbSubmitCallback, {
-        'request_id': data.request,
-        'friend_ids': data.to
+    var patch_objects = [];
+    _.each(data.to, function(to_id){
+        patch_objects.push({
+            request_id: data.request,
+            facebook_user_id: to_id
+        });
     });
-}
+    var patch_data = {
+        objects: patch_objects,
+        deleted_objects: []
+    };
 
-function dbSubmitCallback(data) {
-    top.location.href = data.next_url;
+    $.ajax({
+        url: invitesSentUrl,
+        type: 'PATCH',
+//        type: 'POST',
+        data: JSON.stringify(patch_data),
+        contentType: 'application/json',
+        dataType: 'json',
+        processData: false,
+        crossDomain: false,
+        beforeSend: function(xhr, settings) {
+            if (!csrfSafeMethod(settings.type)) {
+                xhr.setRequestHeader('X-CSRFToken', csrftoken);
+            }
+            // Even though it says post, we want to do a PATCH
+//            xhr.setRequestHeader('X-HTTP-Method-Override', 'PATCH');
+        },
+        // Fix to allow ie to do PATCH (http://stackoverflow.com/a/12785714/1161906)
+        xhr: function() {
+            return window.XMLHttpRequest == null || new window.XMLHttpRequest().addEventListener == null
+                ? new window.ActiveXObject("Microsoft.XMLHTTP")
+                : $.ajaxSettings.xhr();
+        },
+        success: function() {},
+        error: function() {},
+//        error: function(jqXHR, textStatus, errorThrown) {
+//            console.log('error');
+//        },
+        complete: function(){
+            // Whether or not it worked, go on to next page
+            top.location.href = nextUrl;
+        }
+    });
 }
