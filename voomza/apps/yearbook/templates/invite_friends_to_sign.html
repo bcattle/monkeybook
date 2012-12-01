@@ -77,22 +77,25 @@
 {% block script %}
     <script type="text/javascript" src="{% static 'js/jquery-1.7.2.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/jquery.cookie.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/jquery.imagesloaded.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/mustache.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/underscore-min.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/typeahead.js' %}"></script>
     <script type="text/html" id="friend_template_checked">
-        <li class="friend">
+        <li>    {# NOTE: this gets the class "friend" once its image has loaded #}
             <input name="friend_[[ facebook_id ]]" value="[[ facebook_id ]]" type="checkbox" checked="checked">
             <img src="[[ pic_square ]]">[[ name ]]
         </li>
     </script>
     <script type="text/html" id="friend_template_unchecked">
-        <li class="friend">
+        <li>
             <input name="friend_[[ facebook_id ]]" value="[[ facebook_id ]]" type="checkbox">
             <img src="[[ pic_square ]]">[[ name ]]
         </li>
     </script>
     <script type="text/javascript">
         var friendsUrl  = "{% url 'api_dispatch_list' api_name='v1' resource_name='friend' %}";
+        var nextFriendsUrl  = friendsUrl;
         var nextUrl = "{% url next_view %}";
         // Need if we're doing POST
         var csrftoken = $.cookie('csrftoken');

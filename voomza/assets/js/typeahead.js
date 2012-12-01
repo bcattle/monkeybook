@@ -1,58 +1,35 @@
-var filter_input;
-var selected_element = 0;
-var filtered_elements;
-var filter_on = false;
+var filterActive = false;
+var filterElement = null;
+var lastXhr;
+var resultTemplate;
+var lastSearchStr = '';
 
-// User type to filter
+// Typeahead filter, pulls from AJAX
 $(document).ready(function(){
-    filter_input = $('#filter_input');
-    filter_input.val('');
+    resultTemplate = $('#friend_template_search_result');
+    filterElement = $('#filter_input');
+    filterElement.val('');
 
     $('#filter_form').submit(function(e){
         e.preventDefault();
         return false;
     });
 
-    filter_input.keydown(function(e) {
-        // Was it the up arrow key?
-        if (e.keyCode==38) {
-            // Keep the cursor where it is
-            e.preventDefault();
-            return false;
-        }
-    });
-
-    filter_input.keyup(function(e) {
-        var searchStr = $('#filter_input').val();
+    filterElement.keyup(function(e) {
+        var searchStr = filterElement.val();
         if (searchStr.length) {
-            // Was it an arrow key?
-            if (e.keyCode==38) {    // up arrow
-                // Move selection up
-                if (!selected_element) {
-                    return;
-                } else {
-                    selected_element--;
-                    updateSelection($(filtered_elements[selected_element]));
+            if (searchStr != lastSearchStr) {
+                // If there's an existing request, abort it
+                if (lastXhr) {
+                    lastXhr.abort();
                 }
-            } else if (e.keyCode==40) {     // down arrow
-                // Move selection down
-                if (selected_element == filtered_elements.length - 1) {
-                    return;
-                } else {
-                    selected_element++;
-                    updateSelection($(filtered_elements[selected_element]));
-                }
-            } else if (e.keyCode==13) {     // enter
-                setSelection($(filtered_elements[selected_element]));
-            } else {
-                // Some other key was pressed
-                // Selector version
-                friends_elements.hide();
-                filtered_elements = friends_elements.filter(':contains('+searchStr+'):not(.selection)')
-                    .show();
-                filter_on = true;
-                selected_element = 0;
-                updateSelection($(filtered_elements[selected_element]));
+                // Initiate ajax request for filter
+                lastXhr = $.ajax({
+                    url: friendsUrl + '?name__icontains=' + encodeURI(searchStr),
+                    success: onGetFilteredResults,
+                    error: onGetFilteredResultsError
+                });
+                lastSearchStr = searchStr;
             }
         } else {
             clearFilter();
@@ -60,17 +37,49 @@ $(document).ready(function(){
     });
 });
 
-function clearFilter() {
-    filter_input.val('');
-    // Remove selection
-    friends_elements.show();
-    friends_elements.filter('.selection').hide();
-    filtered_elements = null;
-    filter_on = false;
+function onGetFilteredResults(data, textStatus, jqXHR) {
+    filterActive = true;
+    // Hide all .friend entries
+    friendsList.find('.friend').hide();
+    // Remove any existing search results
+    friendsList.find('.friend_result').remove();
+    // Inject the new results
+    var friends = data.objects;
+    var result_element;
+    _.each(friends, function(friend) {
+//        result_element = $(Mustache.to_html(resultTemplate, friend))
+        result_element = $(Mustache.to_html(friendTemplateUnchecked, friend))
+            .addClass('friend_result').hide().appendTo(friendsList);
+        // Add a callback to show after the image has loaded
+        result_element.imagesLoaded(function(){
+            this.fadeIn(500);
+        });
+        // Add a callback if the checkbox value is changed
+        result_element.change(function(){
+            // TODO
+        });
+        // Add a callback, clicking element changes checkbox
+        result_element.click(function(){
+            // TODO
+//            this.filter('input')
+        });
+    });
 }
 
-function updateSelection(element) {
-    // This will get overridden in a different script
-    // if we actually want to use the selection capability
+function resultChecked() {
+    // TODO
+}
 
+function clearFilter() {
+    filterElement.val('');
+    // Remove any search results
+    friendsList.find('.friend_result').remove();
+    // Show the originally-loaded friends
+    friendsList.find('.friend').show();
+
+    filterActive = false;
+}
+
+function onGetFilteredResultsError(jqXHR, textStatus, errorThrown) {
+    // TODO: handle the error
 }

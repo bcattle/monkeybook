@@ -2,8 +2,6 @@ import logging
 from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_syncdb
-from django.dispatch.dispatcher import receiver
-from django.utils import timezone
 from south.signals import post_migrate
 
 logger = logging.getLogger(__name__)

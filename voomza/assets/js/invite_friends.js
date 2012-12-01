@@ -1,101 +1,80 @@
 var loaded = false;
-var currOffset = 0;
 var friendTemplateChecked = null;
 var friendTemplateUnchecked = null;
-var pollTimer;
-var emptyCount = 0
-var TURN_OFF_AFTER = 8;
-var friends_elements = null;
+var friendsList = null;
 var selectNoneWasClicked = false;
-
-function getFriends() {
-    // Loads the friends from Tastypie using jQuery
-    $.ajaxSetup({
-        accepts: 'application/json',
-        dataType: 'json',
-        success: onGetFriends,
-        error: onGetFriendsError
-    });
-    $.ajax(friendsUrl);
-}
+//var friends_elements = null;
 
 function onGetFriends(data, textStatus, jqXHR) {
+    nextFriendsUrl = data.meta.next;
+    // Get the next page of results, if we need to
+    // We pull the lesser of `max_invites` or their number of friends
+    var friends_so_far = data.meta.offset + data.objects.length;
+    if (friends_so_far < Math.min(max_invites, data.meta.total_count)) {
+        $.ajax(nextFriendsUrl);
+    }
 
     // Dump the friends into the list
-    var list = $('.friends_list');
-    for (var idx in friends) {
+    var friends = data.objects;
+    var friend_element, template;
+    _.each(friends, function(friend) {
         if (selectNoneWasClicked) {
             // Show the users with checkbox empty
-            list.append(Mustache.to_html(friendTemplateUnchecked, friends[idx]));
+            template = friendTemplateUnchecked;
         } else {
-            list.append(Mustache.to_html(friendTemplateChecked, friends[idx]));
+            template = friendTemplateChecked;
         }
-    }
-    // Update list of friend elements
-    friends_elements = $('.friend');
+        // All divs are injected hidden
+        friend_element = $(Mustache.to_html(template, friend))
+            .hide().appendTo(friendsList);
+        // Add a callback to show after the image has loaded
+        friend_element.imagesLoaded(function(){
+            this.addClass('friend');
+            if (!filterActive) {
+//                this.show();
+                this.fadeIn(500);
+            }
+        });
+    });
 
-    // Get the next page of results
-    var nextPageUrl = 'something';
-    $.ajax(nextPageUrl);
-
+    // Show the loaded page, if needed
     friendsLoaded();
 }
 
 function onGetFriendsError(jqXHR, textStatus, errorThrown) {
-    alert('ajax error');
-}
-
-
-function onGetFriends(data) {
-    friendsLoaded();
-    // We might have gotten a duplicate dataset
-    if (data.offset < currOffset)
-    return;
-    var friends = data.friends;
-    if (friends.length) {
-//        console.log('Got friends, starting id ' + friends[0].facebook_id);
-        // Dump the friends into the list
-        var list = $('.friends_list');
-        for (var idx in friends) {
-            if (selectNoneWasClicked) {
-                // Show the users with checkbox empty
-                list.append(Mustache.to_html(friendTemplateUnchecked, friends[idx]));
-            } else {
-                list.append(Mustache.to_html(friendTemplateChecked, friends[idx]));
-            }
-        }
-        // Update list of friend elements
-        friends_elements = $('.friend');
-        // Get another page of results
-        currOffset += friends.length;
-        //                console.log('Offset now ' + currOffset);
-        Dajaxice.yearbook.get_friends(onGetFriends, {'offset': currOffset});
-    } else {
-        emptyCount++;
-        if (emptyCount > TURN_OFF_AFTER) {
-            // Turn off polling for new results
-            clearInterval(pollTimer);
-        }
+    if (!loaded) {
+        // Only run if the first call timed out
+        console.log('ajax error');
+        //TODO: show an error message
     }
 }
 
 function friendsLoaded() {
     if (!loaded) {
-    loaded = true;
-    $('.loading').hide();
-    $('.loaded').show();
+        loaded = true;
+        $('.loading').hide();
+        $('.loaded').show();
     }
 }
 
+var max_invites = 50;
 $(document).ready(function() {
-    Dajaxice.setup({'default_exception_callback': friendsTimeout});
+    friendsList = $('.friends_list');
+
+    // How many invites can we send?
+    // Pull this number of top friends by default
+    if ($.browser.msie) {
+        max_invites = 25;
+    }
+
+    // Set up ajax
+    $.ajaxSetup({
+        success: onGetFriends,
+        error: onGetFriendsError
+    });
+
     // Get the first page of friends
-    // we don't trust this function, so we keep calling it to make sure
-    // new results didn't come into the server
-    var get_friends = function() { Dajaxice.yearbook.get_friends(onGetFriends, {'offset': currOffset}); };
-    get_friends();
-    //            pollTimer = setInterval(get_friends, 1000);
-    //            setTimeout(friendsTimeout, 10000);
+    $.ajax(nextFriendsUrl);
 
     // Load template
     Mustache.tags = ['[[', ']]'];
@@ -112,16 +91,20 @@ $(document).ready(function() {
         selectNoneWasClicked = false;
     });
 
+    $('.list').scroll(function() {
+        // TODO: if we're near the bottom, load another page of results
+        // If the typeahead filter isn't active, and we're scrolling down
+        if (false) {
+            $.ajax(nextFriendsUrl);
+        }
+    });
+
     $('#submit').click(function() {
         var selected_ids = $('.friends_list input:checked').map(function(){
         return $(this).attr("value");
         }).get();
         if (selected_ids.length) {
             // Show the invites dialog
-            var max_invites = 50;
-            if ($.browser.msie) {
-                max_invites = 25;
-            }
             FB.ui({method: 'apprequests',
                 to: selected_ids.slice(0,max_invites).toString(),
                 title: 'My Great Invite',
@@ -134,18 +117,12 @@ $(document).ready(function() {
     });
 });
 
-function friendsTimeout() {
-    if (!loaded) {
-    alert('Dajaxice exception');
-
-    // Only run if the first call timed out
-    //TODO: show an error message
-    }
-}
-
 function fbSubmitCallback(data) {
     // If this came back from facebook, it contains 'request' (an id)
     // and 'to' an array of user ids. save these to db
+
+    // TODO: do this with POST using tastypie
+
     Dajaxice.yearbook.invites_sent(dbSubmitCallback, {
         'request_id': data.request,
         'friend_ids': data.to
