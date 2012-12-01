@@ -1,17 +1,65 @@
-#pages {
-    clear: both;
+html {
+    height: 100%;
+}
+
+body {
+    margin:0;
+    padding:0;
+    background: -moz-linear-gradient(top,  rgba(255,255,255,0.65) 0%, rgba(255,255,255,0.33) 50%, rgba(219,219,219,0) 100%);
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(255,255,255,0.65)), color-stop(50%,rgba(255,255,255,0.33)), color-stop(100%,rgba(219,219,219,0)));
+    background: -webkit-linear-gradient(top,  rgba(255,255,255,0.65) 0%,rgba(255,255,255,0.33) 50%,rgba(219,219,219,0) 100%);
+    background: -o-linear-gradient(top,  rgba(255,255,255,0.65) 0%,rgba(255,255,255,0.33) 50%,rgba(219,219,219,0) 100%);
+    background: -ms-linear-gradient(top,  rgba(255,255,255,0.65) 0%,rgba(255,255,255,0.33) 50%,rgba(219,219,219,0) 100%);
+    background: linear-gradient(to bottom,  rgba(255,255,255,0.65) 0%,rgba(255,255,255,0.33) 50%,rgba(219,219,219,0) 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#a6ffffff', endColorstr='#00dbdbdb',GradientType=0 );
+
+}
+
+.facebook_canvas {
+    width:760px;
+    /*margin-left:100px;*/
+    margin-left: auto;
+    margin-right: auto;
+
+    border:solid 1px black;
+    height:525px;
+}
+
+.book {
+    width: 646px;
+    /*height: 405px;*/
+    margin-left: auto;
+    margin-right: auto;
+    z-index:-1;
 }
 
 .page {
-    /*width: 50%;*/
-    /* DEBUG ONLY */
+    width: 50%;
     float: left;
-    margin: 5px;
-    /* Doesn't work: */
-    /*height: 500px;*/
+    /*margin: 5px;*/
+    z-index:100;
 }
 
-.page_content {
-    height: 500px;
+/* PAGE HEADER */
+
+.book_topsection{
+
+}
+
+.booklogo {
+    padding-top: 10px;
+    width: 140px;
+}
+
+.bookprogress {
+    width:200px;
+    float:right;
+    margin-top:20px;
+    margin-right:20px;
+}
+
+.bookheader {
+    padding-bottom:20px;
+    padding-left:10px;
 }
 

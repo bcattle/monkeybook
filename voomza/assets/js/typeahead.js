@@ -55,15 +55,13 @@ function onGetFilteredResults(data, textStatus, jqXHR) {
     _.each(friends, function(friend) {
         // If this user is already in the DOM,
         // this checkbox should assume the value they already have
-        var template;
         var curr_element = getExistingElementById(friend.facebook_id);
         if (curr_element && curr_element.is(':checked')) {
-            template = friendTemplateChecked;
-        } else {
-            template = friendTemplateUnchecked;
+            // Show template with checkbox checked
+            friend.checked = checkedAttr;
         }
 
-        result_element = $(Mustache.to_html(template, friend))
+        result_element = $(Mustache.to_html(friendTemplate, friend))
             .addClass('friend_result').hide().appendTo(friendsList);
         // Add a callback to show after the image has loaded
         result_element.imagesLoaded(function(){

@@ -1,0 +1,96 @@
+{% extends 'two_page.html' %}
+{% load staticfiles %}
+{% load url from future %}
+
+{% block style %}
+    <link href='http://fonts.googleapis.com/css?family=Bad+Script|Reenie+Beanie|Nothing+You+Could+Do' rel='stylesheet' type='text/css'>
+    <link href="{% static 'css/invite_friends.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block page_header %}
+    <div class="book_topsection">
+        <img class="booklogo" src="{% static 'img/logo2_white.png' %}">
+        <div class="progress progress-striped bookprogress">
+            <div class="bar" style="width: 60%;"></div>
+        </div>
+        <h1 class="regularfont googlefont bookheader">1. Invite your friends to sign your yearbook.</h1>
+    </div>
+{% endblock %}
+
+{# -- PAGES -- #}
+
+{% block page_1 %}
+    <br><br>
+    <p class="friendsign1">Did somebody say mimosa?? <br>-Sandy</p>
+    <br>
+    <p class="friendsign2">I always had a crush on you.<br> -hunk from 3rd period</p>
+    <br><br><br>
+    <p class="friendsign3">I still remember sleepovers in kindergarten!
+        <br> Best friends for life!!<br> Love, Jess</p>
+{% endblock %}
+
+{% block page_2 %}
+    <div class="owl_advice_1">
+        <img src="{% static 'img/yearbook_staff_100.jpg' %}">
+    </div>
+    <div class="friendinvitebox_header">
+        <div class="floatleft">
+            <form action="" method="POST" id="filter_form">
+                <input id="filter_input" class="search_friends_input" type="text" placeholder="type to search">
+            </form>
+        </div>
+        <div class="floatleft">
+            <button class="list_action_button" id="selectNone">unselect</button>
+        </div>
+        <div class="floatleft">
+            <button class="list_action_button" id="selectAll">select all</button>
+        </div>
+    </div>
+
+    <div class="friendinvitebox">
+        <form action="" method="POST">
+            <ul class="friends_list"></ul>
+        </form>
+    </div>
+    <div class="inviteboxfooter">
+        <a class="skiplink">skip</a>
+        <button id="submit" class="btn btn-primary btn_extralarge floatright">Invite Friends!</button>
+    </div>
+{% endblock %}
+
+{% block top_of_body %}
+    {% include 'facebook_js.html' %}
+{% endblock %}
+
+{% block script %}
+    <script type="text/javascript" src="{% static 'js/yepnope.1.5.4-min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/jquery-1.7.2.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/jquery.cookie.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/jquery.imagesloaded.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/mustache.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/underscore-min.js' %}"></script>
+    <script type="text/html" id="friend_template">
+        <li>    {# NOTE: this gets the class "friend" once its image has loaded #}
+            <div class="friend_checkbox">
+                <input name="friend_[[ facebook_id ]]" value="[[ facebook_id ]]" type="checkbox" [[ checked ]]>
+            </div>
+            <img class="friend_image_small" src="[[ pic_square ]]">
+            <div class="friend_name googlefont">[[ name ]]</div>
+        </li>
+    </script>
+    <script type="text/javascript">
+        var friendsUrl  = "{% url 'api_dispatch_list' api_name='v1' resource_name='friend' %}";
+        var nextFriendsUrl  = friendsUrl;
+        var nextUrl = "{% url next_view %}";
+        var invitesSentUrl  = "{% url 'api_dispatch_list' api_name='v1' resource_name='invitesent' %}";
+        var csrftoken = $.cookie('csrftoken');
+
+        // Load json2.js if we need it
+        yepnope({
+            test: window.JSON,
+            nope: '{% static 'js/json2.js' %}'
+        });
+    </script>
+    <script type="text/javascript" src="{% static 'js/invite_friends.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/typeahead.js' %}"></script>
+{% endblock %}

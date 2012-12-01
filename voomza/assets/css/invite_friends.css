@@ -1,0 +1,151 @@
+/* LEFT PAGE */
+
+.friendsign1 {
+    font-family: 'Bad Script', cursive;
+    color:pink;
+    font-size:15pt;
+    z-index:10000;
+    line-height:120%;
+}
+
+.friendsign2 {
+    font-family: 'Nothing You Could Do', cursive;
+    font-family: 'Reenie Beanie', cursive;
+    color:gray;
+    font-size:22pt;
+    transform:rotate(-7deg);
+    -ms-transform:rotate(-7deg); /* IE 9 */
+    -moz-transform:rotate(-7deg); /* Firefox */
+    -webkit-transform:rotate(-7deg); /* Safari and Chrome */
+    -o-transform:rotate(-7deg); /* Opera */
+}
+
+.friendsign3 {
+    font-family: 'Nothing You Could Do', cursive;
+    color:lightblue;
+    font-size:18pt;
+    transform:rotate(2deg);
+    -ms-transform:rotate(2deg); /* IE 9 */
+    -moz-transform:rotate(2deg); /* Firefox */
+    -webkit-transform:rotate(2deg); /* Safari and Chrome */
+    -o-transform:rotate(2deg); /* Opera */
+}
+
+/* RIGHT PAGE */
+
+.owl_advice_1 {
+    float:left;
+    width:251px;
+    height:60px;
+    margin-top:20px;
+}
+
+.friendinvitebox_header {
+    width:251px;
+    height:30px;
+    background-color:#E8E8E8;
+    border-radius: 3px 3px 0px 0px;
+    -webkit-border-radius: 3px 3px 0px 0px;
+    -moz-border-radius: 3px 3px 0px 0px;
+    box-shadow: 1px 1px 1px 1px #C2C4C4;
+    margin-top:20px;
+    float:left;
+    padding-bottom:1px;
+}
+
+.search_friends_input {
+    width:114px;
+    height:12px;
+    margin-top:1px;
+    margin-left:2px;
+    font-size:7pt;
+    margin-bottom:0;
+    padding-bottom:0;
+}
+
+.list_action_button {
+    /*float:right;*/
+    height:20px;
+    margin-top:2px;
+    margin-right:2px;
+    color:#9A9B9C;
+    font-family: 'Open Sans', sans-serif;
+}
+
+.friendinvitebox {
+    width:250px;
+    height:170px;
+    float:left;
+    border-top: solid 1px lightgray;
+    border-right: solid 1px lightgray;
+    border-left: solid 1px lightgray;
+    overflow:scroll;
+    border-radius: 0px 0px 0px 0px;
+    -webkit-border-radius: 0px 0px 0px 0px;
+    -moz-border-radius: 0px 0px 0px 0px;
+    box-shadow: 1px 1px 1px lightgray;
+}
+
+.inviteboxfooter {
+    width:244px;
+    height:40px;
+    float:left;
+    background-color:#E8E8E8;
+    border-radius: 0px 0px 3px 3px;
+    -webkit-border-radius: 0px 0px 3px 3px;
+    -moz-border-radius: 0px 0px 3px 3px;
+    box-shadow: 1px 1px 1px 1px #E8E8E8;
+    border:solid 1px lightgray;
+    padding-top:6px;
+    padding-right:6px;
+    padding-bottom:2px;
+}
+
+.friend, .friend_result {
+    /*width:248px;*/
+    height:34px;
+    float:left;
+    padding-top:3px;
+    padding-bottom:2px;
+    background-color:#FAFAFA;
+    border:solid 1px #F2F5F5;
+}
+
+.friend:hover, .friend_result:hover {
+    background-color:#DFF1F2;
+    border: solid 1px #D3E7E8;
+    border-radius: 2px 2px 2px 2px;
+    -webkit-border-radius: 2px 2px 2px 2px;
+    -moz-border-radius: 2px 2px 2px 2px;
+}
+
+.friend_checkbox {
+    float:left;
+    margin-top:6px;
+    padding-right:6px;
+    padding-left:6px;
+}
+
+.friend_image_small {
+    float:left;
+    padding-bottom:6px;
+    height: 32px;
+    width: 32px;
+}
+
+.friend_name {
+    float:left;
+    margin-top:6px;
+    padding-left:6px;
+    font-size:8pt;
+}
+
+.btn_extralarge {
+    font-size:12pt;
+    font-family: 'Open Sans', sans-serif;
+    padding:8px;
+}
+
+.skiplink {
+    float:right;
+}

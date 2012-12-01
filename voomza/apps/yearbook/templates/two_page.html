@@ -2,41 +2,35 @@
 {% load staticfiles %}
 
 {% block style_0 %}
+    <link href='{% static 'css/bootstrap.css' %}' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300,700' rel='stylesheet' type='text/css'>
     <link href="{% static 'css/two_page.css' %}" rel="stylesheet">
 {% endblock %}
 
 {% block body %}
 {% block top_of_body %}
 {% endblock %}
-<div>
-    <div class="message">
-        {% block message %}
-            <h1>Nominate your friends for badges</h1>
-        {% endblock %}
-    </div>
-    {# Loading spinner #}
-    <div class="loading">
-        <p>Loading ...</p>
-    </div>
-    {# Initally hidden, shows after page loads #}
-    <div class="loaded" style="display:none;">
-        {# Page actions #}
-        <div class="page_actions">
-            {% block actions %}
+<div class="facebook_canvas">
+    {% block page_header %}
+        <div class="page_topsection">
+        </div>
+    {% endblock %}
 
+    {# Loading spinner #}
+{#    <div class="loading">#}
+{#        <p>Loading ...</p>#}
+{#    </div>#}
+    {# Initally hidden, shows after page loads #}
+{#    <div class="loaded" style="display:none;">#}
+    <div class="book" style="background: url({% static 'img/book_background_cropped.png' %});">
+        <div class="page">
+            {% block page_1 %}
             {% endblock %}
         </div>
-        <div id="pages">
-            <div class="page">
-                {% block page_1 %}
-                {% endblock %}
-            </div>
-            <div class="page">
-                {% block page_2 %}
-                {% endblock %}
-            </div>
+        <div class="page">
+            {% block page_2 %}
+            {% endblock %}
         </div>
-        <div style="clear: both;"></div>
     </div>
 </div>
 {% endblock %}

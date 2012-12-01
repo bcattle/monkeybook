@@ -1,6 +1,6 @@
 var loaded = false;
-var friendTemplateChecked = null;
-var friendTemplateUnchecked = null;
+var friendTemplate = null;
+var checkedAttr = 'checked="checked"';
 var friendsList = null;
 var selectNoneWasClicked = false;
 
@@ -20,16 +20,14 @@ function onGetFriends(data, textStatus, jqXHR) {
 
     // Dump the friends into the list
     var friends = data.objects;
-    var friend_element, template;
+    var friend_element;
     _.each(friends, function(friend) {
-        if (selectNoneWasClicked) {
-            // Show the users with checkbox empty
-            template = friendTemplateUnchecked;
-        } else {
-            template = friendTemplateChecked;
+        if (!selectNoneWasClicked) {
+            // Show the users with checkbox checked
+            friend.checked = checkedAttr;
         }
         // All divs are injected hidden
-        friend_element = $(Mustache.to_html(template, friend))
+        friend_element = $(Mustache.to_html(friendTemplate, friend))
             .hide().appendTo(friendsList);
         // Add a callback to show after the image has loaded
         friend_element.imagesLoaded(function(){
@@ -85,16 +83,16 @@ $(document).ready(function() {
     // Set up ajax
     $.ajaxSetup({
         success: onGetFriends,
-        error: onGetFriendsError,
+        error: onGetFriendsError
     });
 
     // Get the first page of friends
-    $.ajax(nextFriendsUrl);
+//    $.ajax(nextFriendsUrl);
 
     // Load template
     Mustache.tags = ['[[', ']]'];
-    friendTemplateChecked = $('#friend_template_checked').html();
-    friendTemplateUnchecked = $('#friend_template_unchecked').html();
+    friendTemplate = $('#friend_template').html();
+
 
     $('#selectNone').click(function() {
         $('.friends_list input').removeAttr('checked');
@@ -153,7 +151,6 @@ function fbSubmitCallback(data) {
     $.ajax({
         url: invitesSentUrl,
         type: 'PATCH',
-//        type: 'POST',
         data: JSON.stringify(patch_data),
         contentType: 'application/json',
         dataType: 'json',
@@ -163,8 +160,6 @@ function fbSubmitCallback(data) {
             if (!csrfSafeMethod(settings.type)) {
                 xhr.setRequestHeader('X-CSRFToken', csrftoken);
             }
-            // Even though it says post, we want to do a PATCH
-//            xhr.setRequestHeader('X-HTTP-Method-Override', 'PATCH');
         },
         // Fix to allow ie to do PATCH (http://stackoverflow.com/a/12785714/1161906)
         xhr: function() {

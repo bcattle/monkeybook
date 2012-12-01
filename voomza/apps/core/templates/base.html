@@ -18,11 +18,9 @@
     {% block style %}{% endblock %}
 </head>
 <body>
-    <div class="canvas">
-        {% block body %}
-            {# Content #}
-        {% endblock %}
-    </div>
+    {% block body %}
+        {# Content #}
+    {% endblock %}
     {% block script_0 %}{% endblock %}
     {% block script %}{% endblock %}
 </body>
