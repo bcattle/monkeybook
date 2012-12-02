@@ -192,7 +192,7 @@ class YearbookFacebookUserConverter(FacebookUserConverter):
         from voomza.apps.account.models import FamilyConnection, FacebookUser
 
         me_response = self.open_facebook.get('me', fields=[
-            'id', 'name', 'picture', 'gender', 'locale', 'relationship_status',
+            'id', 'name', 'picture', 'locale', 'relationship_status',
             'significant_other'
         ])
         family_response = self.open_facebook.get('me/family')
@@ -216,7 +216,6 @@ class YearbookFacebookUserConverter(FacebookUserConverter):
             fu = FacebookUser(
                 facebook_id=me_response['id'],
                 name=me_response.get('name', ''),
-                gender=gender_map[me_response.get('gender', '')],
                 pic_square=pic_square
             )
             fu.save()

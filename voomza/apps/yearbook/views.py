@@ -12,7 +12,7 @@ from account.tasks import get_and_store_optional_profile_fields
 @ensure_csrf_cookie
 def invite_friends_to_sign(request,
                            template_name='invite_friends.html',
-                           next_view='vote_badges'):
+                           next_view='sign_friends'):
     """
     User invites their friends to sign their yb
     This is sent with the request dialog from javascript
