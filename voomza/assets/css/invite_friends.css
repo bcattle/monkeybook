@@ -52,19 +52,6 @@ form {
     margin-top:5px;
 }
 
-.friendinvitebox {
-    width:250px;
-    /*height:240px;*/
-    background-color:#E8E8E8;
-    margin-left: auto;
-    margin-right: auto;
-    border-radius: 3px;
-    -webkit-border-radius: 3px;
-    -moz-border-radius: 3px;
-    box-shadow: 1px #E8E8E8;
-    border: solid 1px lightgray;
-}
-
 .loading {
     height: 100%;
     width: 100%;
@@ -84,10 +71,6 @@ form {
     width: 24px;
     margin-left: auto;
     margin-right: auto;
-}
-
-.friendinvitebox_header {
-    padding:5px;
 }
 
 .friends_list {

@@ -11,14 +11,14 @@
     <div class="book_topsection">
         <div class="book_topsection_upper">
             <img class="booklogo" src="{% static 'img/logo2_white.png' %}">
-            <div class="progress progress-striped bookprogress">
-                <div class="bar" style="width: 60%;"></div>
+            <div class="booktopright">
+                <div class="progress progress-striped bookprogress">
+                    <div class="bar" style="width: 60%;"></div>
+                </div>
             </div>
         </div>
         <div style="clear:both;"></div>
-{#        <div class="">#}
-            <h1 class="regularfont googlefont bookheader">1. Invite your friends to sign your yearbook.</h1>
-{#        </div>#}
+        <h1 class="regularfont googlefont bookheader">1. Invite your friends to sign your yearbook.</h1>
     </div>
 {% endblock %}
 
@@ -51,8 +51,8 @@
         <img src="{% static 'img/yearbook_staff_100.jpg' %}">
     </div>
 
-    <div class="friendinvitebox">
-        <div class="friendinvitebox_header">
+    <div class="page_pane">
+        <div class="page_pane_header">
             <div class="floatright">
                 <button class="btn btn-mini list_action_button" id="selectAll">select all</button>
             </div>
@@ -92,11 +92,8 @@
 {% endblock %}
 
 {% block script %}
-    <script type="text/javascript" src="{% static 'js/yepnope.1.5.4-min.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/jquery-1.7.2.min.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/jquery.cookie.js' %}"></script>
+    {# yepnope, jQuery and Mustache loaded in two_page.html   #}
     <script type="text/javascript" src="{% static 'js/jquery.imagesloaded.min.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/mustache.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/underscore-min.js' %}"></script>
     <script type="text/html" id="friend_template">
         <div data-id="[[ facebook_id ]]">    {# NOTE: this gets the class "friend" once its image has loaded #}
@@ -112,13 +109,6 @@
         var nextFriendsUrl  = friendsUrl;
         var nextUrl = "{% url next_view %}";
         var invitesSentUrl  = "{% url 'api_dispatch_list' api_name='v1' resource_name='invitesent' %}";
-        var csrftoken = $.cookie('csrftoken');
-
-        // Load json2.js if we need it
-        yepnope({
-            test: window.JSON,
-            nope: '{% static 'js/json2.js' %}'
-        });
     </script>
     <script type="text/javascript" src="{% static 'js/invite_friends.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/typeahead.js' %}"></script>

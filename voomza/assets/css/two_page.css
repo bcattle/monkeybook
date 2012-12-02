@@ -18,7 +18,7 @@ body {
     margin-left: auto;
     margin-right: auto;
 
-    /*border:solid 1px black;*/
+    border:solid 1px black;
     height:525px;
 }
 
@@ -32,10 +32,40 @@ body {
 
 .page {
     width: 283px;
+    height: 365px;
     padding: 20px;
     float: left;
     z-index:100;
 }
+
+.page_header {
+    line-height: 27px;
+    font-size: 18px;
+    color: #575656;
+    margin-bottom: 25px;
+}
+
+.page_content {
+    width:250px;
+    height:100%;
+    /*height:240px;*/
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.page_pane {
+    background-color:#E8E8E8;
+    border-radius: 3px;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    box-shadow: 1px #E8E8E8;
+    border: solid 1px lightgray;
+}
+
+.page_pane_header {
+    padding:5px;
+}
+
 
 /* PAGE HEADER */
 
@@ -53,12 +83,15 @@ body {
     float: left;
 }
 
-.bookprogress {
-    width:200px;
+.booktopright {
     float:right;
     margin-top:10px;
     margin-right:20px;
     margin-bottom: 0;
+}
+
+.bookprogress {
+    width:200px;
 }
 
 .bookheader {
@@ -69,3 +102,14 @@ body {
     line-height: 36px;
 }
 
+.bookheader_center {
+    margin-top:10px;
+    margin-bottom:10px;
+    font-size: 30px;
+    line-height: 36px;
+    text-align: center;
+}
+
+.book_subheader {
+    margin-bottom: 10px;
+}

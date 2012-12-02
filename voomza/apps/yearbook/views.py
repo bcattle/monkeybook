@@ -39,36 +39,10 @@ def invite_friends_to_sign(request,
 
 
 @login_required
-def vote_badges(request,
-                template_name='vote_badges.html',
-                next_view='sign_friends'):
-    """
-    User nominates their friends to be significant other,
-    family, and the various badges
-    """
-    badges = Badge.objects.all()
-    context = {
-        'badges': badges,
-        'next_view': next_view,
-    }
-    return render_to_response(template_name, context, RequestContext(request))
-
-
-@login_required
+@ensure_csrf_cookie
 def sign_friends(request,
-                 template_name='sign_friends.html',
-                 next_view='teaser'):
+                 template_name='sign_friends.html'):
 
     context = {
-        'next_view': next_view,
     }
     return render_to_response(template_name, context, RequestContext(request))
-
-
-@login_required
-def teaser(request, template_name='teaser.html'):
-    context = {
-
-    }
-    return render_to_response(template_name, context, RequestContext(request))
-

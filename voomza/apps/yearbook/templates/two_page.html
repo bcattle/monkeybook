@@ -16,12 +16,6 @@
         </div>
     {% endblock %}
 
-    {# Loading spinner #}
-{#    <div class="loading">#}
-{#        <p>Loading ...</p>#}
-{#    </div>#}
-    {# Initally hidden, shows after page loads #}
-{#    <div class="loaded" style="display:none;">#}
     <div class="book" style="background: url({% static 'img/book_background_cropped.png' %});">
         <div class="page">
             {% block page_1 %}
@@ -31,17 +25,24 @@
             {% block page_2 %}
             {% endblock %}
         </div>
+        <div style="clear:both;"></div>
     </div>
 </div>
 {% endblock %}
 
 {% block script_0 %}
-    <script type="text/javascript" src="{% static 'js/jquery-1.7.2.min.js' %}"></script>
-{#    <script type="text/javascript" src="{% static 'js/jQuery.equalHeights.js' %}"></script>#}
+    <script type="text/javascript" src="{% static 'js/yepnope.1.5.4-min.js' %}"></script>
+    <script src="{% static 'js/jquery-1.7.2.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/jquery.cookie.js' %}"></script>
+    <script src="{% static 'js/mustache.js' %}"></script>
     <script type="text/javascript">
         $(document).ready(function (){
-            {# DEBUG ONLY #}
-//            $('#pages').equalHeights();
+            var csrftoken = $.cookie('csrftoken');
+            // Load json2.js if we need it
+            yepnope({
+                test: window.JSON,
+                nope: '{% static 'js/json2.js' %}'
+            });
         });
     </script>
 {% endblock %}
