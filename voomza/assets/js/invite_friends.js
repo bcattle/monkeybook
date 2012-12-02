@@ -28,7 +28,7 @@ function onGetFriends(data, textStatus, jqXHR) {
         }
         // All divs are injected hidden
         friend_element = $(Mustache.to_html(friendTemplate, friend))
-            .hide().appendTo(friendsList);
+            .addClass('friend_unloaded').hide().appendTo(friendsList);
         // Add a callback to show after the image has loaded
         friend_element.imagesLoaded(function(){
             this.addClass('friend');
@@ -87,7 +87,7 @@ $(document).ready(function() {
     });
 
     // Get the first page of friends
-//    $.ajax(nextFriendsUrl);
+    $.ajax(nextFriendsUrl);
 
     // Load template
     Mustache.tags = ['[[', ']]'];
@@ -104,7 +104,7 @@ $(document).ready(function() {
         selectNoneWasClicked = false;
     });
 
-    $('.list').scroll(function(e) {
+    $('.friends_list').scroll(function(e) {
         // If we're near the bottom, the typeahead filter isn't active,
         // we don't already have a pending request, and there is another page to load
         if (this.scrollTop > .8 * this.scrollHeight
@@ -133,48 +133,50 @@ $(document).ready(function() {
 });
 
 function fbSubmitCallback(data) {
-    // If this came back from facebook, it contains 'request' (an id)
-    // and 'to' an array of user ids. save these to db
+    if (data) {
+        // If this came back from facebook, it contains 'request' (an id)
+        // and 'to' an array of user ids. save these to db
 
-    var patch_objects = [];
-    _.each(data.to, function(to_id){
-        patch_objects.push({
-            request_id: data.request,
-            facebook_user_id: to_id
+        var patch_objects = [];
+        _.each(data.to, function(to_id){
+            patch_objects.push({
+                request_id: data.request,
+                facebook_user_id: to_id
+            });
         });
-    });
-    var patch_data = {
-        objects: patch_objects,
-        deleted_objects: []
-    };
+        var patch_data = {
+            objects: patch_objects,
+            deleted_objects: []
+        };
 
-    $.ajax({
-        url: invitesSentUrl,
-        type: 'PATCH',
-        data: JSON.stringify(patch_data),
-        contentType: 'application/json',
-        dataType: 'json',
-        processData: false,
-        crossDomain: false,
-        beforeSend: function(xhr, settings) {
-            if (!csrfSafeMethod(settings.type)) {
-                xhr.setRequestHeader('X-CSRFToken', csrftoken);
+        $.ajax({
+            url: invitesSentUrl,
+            type: 'PATCH',
+            data: JSON.stringify(patch_data),
+            contentType: 'application/json',
+            dataType: 'json',
+            processData: false,
+            crossDomain: false,
+            beforeSend: function(xhr, settings) {
+                if (!csrfSafeMethod(settings.type)) {
+                    xhr.setRequestHeader('X-CSRFToken', csrftoken);
+                }
+            },
+            // Fix to allow ie to do PATCH (http://stackoverflow.com/a/12785714/1161906)
+            xhr: function() {
+                return window.XMLHttpRequest == null || new window.XMLHttpRequest().addEventListener == null
+                    ? new window.ActiveXObject("Microsoft.XMLHTTP")
+                    : $.ajaxSettings.xhr();
+            },
+            success: function() {},
+            error: function() {},
+    //        error: function(jqXHR, textStatus, errorThrown) {
+    //            console.log('error');
+    //        },
+            complete: function(){
+                // Whether or not it worked, go on to next page
+                top.location.href = nextUrl;
             }
-        },
-        // Fix to allow ie to do PATCH (http://stackoverflow.com/a/12785714/1161906)
-        xhr: function() {
-            return window.XMLHttpRequest == null || new window.XMLHttpRequest().addEventListener == null
-                ? new window.ActiveXObject("Microsoft.XMLHTTP")
-                : $.ajaxSettings.xhr();
-        },
-        success: function() {},
-        error: function() {},
-//        error: function(jqXHR, textStatus, errorThrown) {
-//            console.log('error');
-//        },
-        complete: function(){
-            // Whether or not it worked, go on to next page
-            top.location.href = nextUrl;
-        }
-    });
+        });
+    }
 }

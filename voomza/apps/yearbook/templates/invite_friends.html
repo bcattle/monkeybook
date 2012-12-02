@@ -3,58 +3,78 @@
 {% load url from future %}
 
 {% block style %}
-    <link href='http://fonts.googleapis.com/css?family=Bad+Script|Reenie+Beanie|Nothing+You+Could+Do' rel='stylesheet' type='text/css'>
     <link href="{% static 'css/invite_friends.css' %}" rel="stylesheet">
+    {% include 'invite_friends_fonts.html' %}
 {% endblock %}
 
 {% block page_header %}
     <div class="book_topsection">
-        <img class="booklogo" src="{% static 'img/logo2_white.png' %}">
-        <div class="progress progress-striped bookprogress">
-            <div class="bar" style="width: 60%;"></div>
+        <div class="book_topsection_upper">
+            <img class="booklogo" src="{% static 'img/logo2_white.png' %}">
+            <div class="progress progress-striped bookprogress">
+                <div class="bar" style="width: 60%;"></div>
+            </div>
         </div>
-        <h1 class="regularfont googlefont bookheader">1. Invite your friends to sign your yearbook.</h1>
+        <div style="clear:both;"></div>
+{#        <div class="">#}
+            <h1 class="regularfont googlefont bookheader">1. Invite your friends to sign your yearbook.</h1>
+{#        </div>#}
     </div>
 {% endblock %}
 
 {# -- PAGES -- #}
 
 {% block page_1 %}
-    <br><br>
-    <p class="friendsign1">Did somebody say mimosa?? <br>-Sandy</p>
-    <br>
-    <p class="friendsign2">I always had a crush on you.<br> -hunk from 3rd period</p>
-    <br><br><br>
-    <p class="friendsign3">I still remember sleepovers in kindergarten!
-        <br> Best friends for life!!<br> Love, Jess</p>
+    <div class="signatures_container">
+        {% ifequal user.profile.gender 'f' %}
+            <br>
+            <p class="friendsign1">Did somebody say mimosa?? <br>-Sandy</p>
+            <br>
+            <p class="friendsign2">I always had a crush on you.<br> -hunk from 3rd period</p>
+            <br><br><br>
+            <p class="friendsign3">I still remember sleepovers in kindergarten!
+                <br> Best friends for life!!<br> Love, Jess</p>
+        {% else %}
+            <br>
+            <p class="friendsign1">Did somebody say mimosa?? <br>-Sandy</p>
+            <br>
+            <p class="friendsign2">I always had a crush on you.<br> -hunk from 3rd period</p>
+            <br><br><br>
+            <p class="friendsign3">I still remember sleepovers in kindergarten!
+                <br> Best friends for life!!<br> Love, Jess</p>
+        {% endifequal %}
+    </div>
 {% endblock %}
 
 {% block page_2 %}
     <div class="owl_advice_1">
         <img src="{% static 'img/yearbook_staff_100.jpg' %}">
     </div>
-    <div class="friendinvitebox_header">
-        <div class="floatleft">
-            <form action="" method="POST" id="filter_form">
-                <input id="filter_input" class="search_friends_input" type="text" placeholder="type to search">
-            </form>
-        </div>
-        <div class="floatleft">
-            <button class="list_action_button" id="selectNone">unselect</button>
-        </div>
-        <div class="floatleft">
-            <button class="list_action_button" id="selectAll">select all</button>
-        </div>
-    </div>
 
     <div class="friendinvitebox">
-        <form action="" method="POST">
-            <ul class="friends_list"></ul>
-        </form>
-    </div>
-    <div class="inviteboxfooter">
-        <a class="skiplink">skip</a>
-        <button id="submit" class="btn btn-primary btn_extralarge floatright">Invite Friends!</button>
+        <div class="friendinvitebox_header">
+            <div class="floatright">
+                <button class="btn btn-mini list_action_button" id="selectAll">select all</button>
+            </div>
+            <div class="floatright">
+                <button class="btn btn-mini list_action_button" id="selectNone">unselect</button>
+            </div>
+            <div class="floatright">
+                <input id="filter_input" type="text" placeholder="type to search">
+            </div>
+            <div style="clear:both;"></div>
+        </div>
+        <div class="friends_list"></div>
+        <div class="inviteboxfooter">
+            <div class="floatright">
+                <button id="submit" class="btn btn-primary btn_extralarge">Invite Friends!</button>
+            </div>
+            <div class="skiplink_container">
+                <a class="skiplink">skip</a>
+            </div>
+            <div style="clear:both;"></div>
+        </div>
+        <div style="clear:both;"></div>
     </div>
 {% endblock %}
 
@@ -70,13 +90,13 @@
     <script type="text/javascript" src="{% static 'js/mustache.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/underscore-min.js' %}"></script>
     <script type="text/html" id="friend_template">
-        <li>    {# NOTE: this gets the class "friend" once its image has loaded #}
+        <div data-id="[[ facebook_id ]]">    {# NOTE: this gets the class "friend" once its image has loaded #}
             <div class="friend_checkbox">
                 <input name="friend_[[ facebook_id ]]" value="[[ facebook_id ]]" type="checkbox" [[ checked ]]>
             </div>
             <img class="friend_image_small" src="[[ pic_square ]]">
             <div class="friend_name googlefont">[[ name ]]</div>
-        </li>
+        </div>
     </script>
     <script type="text/javascript">
         var friendsUrl  = "{% url 'api_dispatch_list' api_name='v1' resource_name='friend' %}";

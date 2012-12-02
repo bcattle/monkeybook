@@ -38,9 +38,10 @@ $(document).ready(function(){
 });
 
 function getExistingElementById(facebook_id) {
-    // Returns an existing DOM element
-    // for a person, if any
-    return friendsList.find('li:not(.friend_result) input[name=friend_' + facebook_id + ']');
+    // Returns a person's existing DOM element, if any
+    // Look for .friend_unloaded in case one of the pics hasn't loaded yet
+//    return friendsList.find('div:not(.friend_result) input[name=friend_' + facebook_id + ']');
+    return $('.friend_unloaded[data-id="' + facebook_id + '"]');
 }
 
 function onGetFilteredResults(data, textStatus, jqXHR) {
@@ -56,7 +57,7 @@ function onGetFilteredResults(data, textStatus, jqXHR) {
         // If this user is already in the DOM,
         // this checkbox should assume the value they already have
         var curr_element = getExistingElementById(friend.facebook_id);
-        if (curr_element && curr_element.is(':checked')) {
+        if (curr_element && curr_element.find('input').is(':checked')) {
             // Show template with checkbox checked
             friend.checked = checkedAttr;
         }
@@ -78,21 +79,25 @@ function onGetFilteredResults(data, textStatus, jqXHR) {
 // is checked or unchecked
 function resultChanged(e) {
     var el = $(e.target);
-    var curr_element = getExistingElementById(el.attr('value'));
+    var curr_element = getExistingElementById(el.attr('value'));        // el is the <input>
     if (curr_element.length) {
         // If there's an existing element in the DOM, update it
-        curr_element.attr('checked', el.is(':checked'));
+        curr_element.find('input').attr('checked', el.is(':checked'));
     } else {
         if (el.is(':checked')) {
             // unchecked -> checked
             // Get the parent, switch the class
-            var friend_element=el.parents('li').clone();
+            var friend_element=el.parents('.friend_result').clone();
             // Switch the class and insert
-            friend_element.removeClass('friend_result')
+            friend_element.removeClass('friend_result').addClass('friend_unloaded')
                 .addClass('friend').hide().prependTo(friendsList);
             // Add the click handler
             addCheckboxClickCallback(friend_element);
         }
+    }
+    // If we just went unchecked->checked, reset the list
+    if (el.is(':checked')) {
+        clearFilter();
     }
 }
 

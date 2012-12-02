@@ -3,7 +3,7 @@
 
 {% block style_0 %}
     <link href='{% static 'css/bootstrap.css' %}' rel='stylesheet' type='text/css'>
-    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300,700' rel='stylesheet' type='text/css'>
+    {% include 'open_sans_font.html' %}
     <link href="{% static 'css/two_page.css' %}" rel="stylesheet">
 {% endblock %}
 
