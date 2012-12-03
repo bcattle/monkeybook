@@ -65,14 +65,7 @@
             <div style="clear:both;"></div>
         </div>
         <div class="friends_list">
-            <div class="loading">
-                <div class="loading_content">
-                    <div class="loading_image">
-                        <img src="{% static 'img/loading-24.gif' %}">
-                    </div>
-                    <div class="googlefont">loading...</div>
-                </div>
-            </div>
+            {% include 'includes/loading_spinner.html' %}
         </div>
         <div class="inviteboxfooter">
             <div class="floatright">
@@ -105,8 +98,7 @@
         </div>
     </script>
     <script type="text/javascript">
-        var friendsUrl  = "{% url 'api_dispatch_list' api_name='v1' resource_name='friend' %}";
-        var nextFriendsUrl  = friendsUrl;
+        var nextFriendsUrl  = "{% url 'api_dispatch_list' api_name='v1' resource_name='friend' %}";
         var nextUrl = "{% url next_view %}";
         var invitesSentUrl  = "{% url 'api_dispatch_list' api_name='v1' resource_name='invitesent' %}";
     </script>

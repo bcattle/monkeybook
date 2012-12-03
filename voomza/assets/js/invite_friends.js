@@ -4,11 +4,6 @@ var checkedAttr = 'checked="checked"';
 var friendsList = null;
 var selectNoneWasClicked = false;
 
-function csrfSafeMethod(method) {
-    // these HTTP methods do not require CSRF protection
-    return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
-}
-
 function onGetFriends(data, textStatus, jqXHR) {
     nextFriendsUrl = data.meta.next;
     // Get the next page of results, if we need to
@@ -90,9 +85,7 @@ $(document).ready(function() {
     $.ajax(nextFriendsUrl);
 
     // Load template
-    Mustache.tags = ['[[', ']]'];
     friendTemplate = $('#friend_template').html();
-
 
     $('#selectNone').click(function() {
         $('.friends_list input').removeAttr('checked');

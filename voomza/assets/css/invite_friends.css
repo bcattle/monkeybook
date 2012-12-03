@@ -52,27 +52,6 @@ form {
     margin-top:5px;
 }
 
-.loading {
-    height: 100%;
-    width: 100%;
-}
-
-.loading_content {
-    width: 50px;
-    height: 50px;
-    margin-left: auto;
-    margin-right: auto;
-    position:relative;
-    top:50%;
-    margin-top:-25px;
-}
-
-.loading_image {
-    width: 24px;
-    margin-left: auto;
-    margin-right: auto;
-}
-
 .friends_list {
     height:170px;
     width:100%;

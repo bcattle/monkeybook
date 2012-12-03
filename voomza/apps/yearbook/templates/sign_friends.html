@@ -4,6 +4,7 @@
 
 {% block style %}
     <link href="{% static 'css/sign_friends.css' %}" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/jquery.modal.css' %}" type="text/css" media="screen" />
 {% endblock %}
 
 {% block page_header %}
@@ -62,11 +63,64 @@
 
 
 {% block script %}
+    {#  Yearbook message modal  #}
+    <div id="yearbook_message_modal">
+        <div class="yearbook_message_modal_loading">
+            <div class="loading">
+                <div class="loading_content">
+                    <div class="loading_image">
+                        <img src="{% static 'img/loading-24.gif' %}">
+                    </div>
+                    <div class="googlefont">loading message...</div>
+                </div>
+            </div>
+            <div style="clear:both;"></div>
+        </div>
+        <div class="yearbook_message_modal_body"></div>
+        <div style="clear:both;"></div>
+    </div>
+    <script type="text/html" id="yearbook_message_template">
+        <div class="message_photo">
+            <img src="[[ pic_square ]]">
+        </div>
+        <div class="message_content">
+            <div class="message_title googlefont">
+                [[ name ]] says
+            </div>
+            <div class="message_container">
+                <img class="quote_image" src="{% static 'img/quote_open.png' %}">
+                [[ &text ]]
+                <img class="quote_image floatright" src="{% static 'img/quote_close.png' %}">
+            </div>
+            [[#can_sign]]
+            <div class="message_sign_button">
+                <button class="btn googlefont friend_sign_button modalNewSignBtn"
+                        data-id="[[ id ]]">Sign Yearbook</button>
+            </div>
+            <div style="clear:both;"></div>
+            <div class="message_sign_input_container">
+                <div class="modal_yearbook_content">
+                    <textarea class="modal_yearbook_input" placeholder="Sign [[ name ]]'s yearbook"></textarea>
+                    <div style="clear:both;"></div>
+                    {# TODO user's photo? #}
+                    <button class="btn btn-primary signYearbookButtonModal" data-id="[[ id ]]">Sign Yearbook</button>
+                    <div style="clear:both;"></div>
+                </div>
+            </div>
+            [[/can_sign]]
+        </div>
+        <div style="clear:both;"></div>
+    </script>
+
     {# yepnope, jQuery and Mustache loaded in two_page.html   #}
+    <script type="text/javascript" src="{% static 'js/jquery.imagesloaded.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/underscore-min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/jquery.scrollTo.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/jquery.modal.min.js' %}"></script>
     <script type="text/html" id="sign_template">
         <div class="friend_sign_unit">
             <div class="friend_sign_photo">
-                <img src="[[ pic ]]">
+                <img src="[[ pic_square ]]">
             </div>
             <div class="friend_sign_content">
                 <div class="friend_sign_text googlefont">[[ name ]]</div>
@@ -86,11 +140,11 @@
         <div class="yearbook">
             <div class="yearbook_content">
                 <div class="yearbook_photo">
-                    <img src="[[ pic ]]">
+                    <img src="[[ pic_square ]]">
                 </div>
                 <div class="yearbook_input_container">
                     <div class="yearbook_name googlefont">To [[ name ]]:</div>
-                    <textarea class="yearbook_input" placeholder="Sign [[ first_name ]]'s yearbook"></textarea>
+                    <textarea class="yearbook_input" placeholder="Sign [[ name ]]'s yearbook"></textarea>
                 </div>
                 <div style="clear:both;"></div>
             </div>
@@ -102,73 +156,20 @@
         </div>
     </script>
     <script type="text/javascript">
-        $(document).ready(function(){
-            Mustache.tags = ['[[', ']]'];
-            // Inject two dummy signs
-            var s1 = {
-                'name': 'Ethan Montoya',
-                'pic': '{% static 'img/yearbook_stacy.png' %}',
-                'id': 1000424,
-                'can_sign': true
-            };
-            var s2 = {
-                'name': 'Stacy, Yearbook Captain',
-                'pic': '{% static 'img/yearbook_stacy.png' %}',
-                'id': 1000424,
-                'can_sign': false
-            };
-            var signTemplate = $('#sign_template').html();
-            $('.signs_list').append(Mustache.to_html(signTemplate, s1))
-                    .append(Mustache.to_html(signTemplate, s2));
-
-            // Inject two dummy yearbooks
-            var yb1 = {
-                'first_name': 'Ethan',
-                'name': 'Ethan Montoya',
-                'pic': '{% static 'img/yearbook_stacy.png' %}',
-                'id': 1000424
-            };
-            var yb2 = {
-                'first_name': 'Ethan',
-                'first': 'Ethan Montoya',
-                'pic': '{% static 'img/yearbook_stacy.png' %}',
-                'id': 1000424
-            };
-            var yearbookTemplate = $('#yearbook_template').html();
-            $('.yearbooks_list').append(Mustache.to_html(yearbookTemplate, yb1))
-                    .append(Mustache.to_html(yearbookTemplate, yb2));
-
-            $('.yearbook_input').focus(function(e){
-                var input = $(e.target);
-                var yearbook = input.parents('.yearbook');
-                // Show name label
-                yearbook.find('.yearbook_name').slideDown(500);
-                // Slide open textarea
-                input.animate({height: '122px'}, 800);
-                // Slide open footer
-                yearbook.find('.yearbook_footer').slideDown(500);
-            });
-            $('.yearbook_input').blur(function(e) {
-                var input = $(e.target);
-                var yearbook = input.parents('.yearbook');
-                // Hide name label if they haven't typed anything
-                if (!input.val().length) {
-                    yearbook.find('.yearbook_name').slideUp(500);
-                }
-                // Slide back textarea
-                input.animate({height: '40px'}, 500);
-                input.scrollTop(0);
-                // Slide footer closed
-                yearbook.find('.yearbook_footer').slideUp(500);
-            });
-            $('.signYearbookButton').click(function(){
-                // Collapse the yearbook and show the loading spinner
-
-                // Submit the yearbook sign
-
-                // Show the post to wall dialog
-            });
-        });
+        var nextSignsUrl = "{% url 'api_dispatch_list' api_name='v1' resource_name='yearbooksign' %}";
+        var nextYearbooksUrl = "{% url 'api_dispatch_list' api_name='v1' resource_name='yearbooktosign' %}";
+        var STACY_DATA = {
+            'name': 'Stacy, Yearbook Captain',
+            'pic_square': '{% static 'img/yearbook_stacy.png' %}',
+            'id': 0,
+//            'can_sign': false,
+            'can_sign': true,
+            'text': ['Hey! Congratuations on getting your yearbook. ',
+                'You invited your friends to sign, soon this ',
+                'area will start to fill up with their messages. ',
+                'Come back to check on who\'s signed and Happy New Year! ',
+                '- Stacy'].join('')
+        };
     </script>
-{#    <script type="text/javascript" src="{% static 'js/sign_friends.js' %}"></script>#}
+    <script type="text/javascript" src="{% static 'js/sign_friends.js' %}"></script>
 {% endblock %}
