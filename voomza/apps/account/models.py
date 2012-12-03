@@ -4,7 +4,7 @@ from django.db.models.signals import post_save
 from django.dispatch.dispatcher import receiver
 from django.contrib.auth.models import User
 from django_facebook.models import BaseFacebookProfileModel
-from voomza.apps.account.managers import FacebookUserManager, FacebookFriendManager
+from voomza.apps.account.managers import FacebookUserManager
 
 logger = logging.getLogger(name=__name__)
 
@@ -62,8 +62,6 @@ class FacebookFriend(models.Model):
     top_friends_order = models.PositiveSmallIntegerField(default=0,
                                                          help_text='Higher the better',
                                                          db_index=True)
-
-    objects = FacebookFriendManager()
 
     class Meta:
         unique_together = ['owner', 'facebook_user']

@@ -1,6 +1,6 @@
 from django.conf.urls import patterns, include, url
 from views import *
-from ajax2 import v1_api
+from ajax import v1_api
 
 
 urlpatterns = patterns('',
