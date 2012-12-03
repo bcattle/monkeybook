@@ -1,204 +1,87 @@
-import json, logging
-from dajaxice.decorators import dajaxice_register
-from django.core.urlresolvers import reverse
-from django.http import HttpResponseForbidden, HttpResponseNotFound
-from django_facebook.api import require_persistent_graph
-from voomza.apps.account.models import YearbookFacebookUser
-from voomza.apps.yearbook.api import YearbookFacebookUserConverter
-from voomza.apps.yearbook.models import InviteRequestSent, Badge, BadgeVote, YearbookSign
-from voomza.apps.yearbook.ranking import UserProfileRanking
-from yearbook.tasks import get_and_store_top_friends_fast, get_optional_profile_fields
+from tastypie.resources import ModelResource
+from tastypie.authorization import Authorization
+from tastypie.authentication import SessionAuthentication
+from tastypie.api import Api
+from voomza.apps.account.models import FacebookUser, FacebookFriend
+from voomza.apps.yearbook.models import InviteRequestSent, YearbookSign
 
 
-logger = logging.getLogger(name=__name__)
-
-
-FRIENDS_PER_PAGE = 20
-
-@dajaxice_register
-def get_friends(request, offset=0):
+class FriendResource(ModelResource):
     """
     Returns a paginated list of the user's friends,
     in order of "top friends" relevance
-
-    This function should be called repeatedly w/ increasing offset
     """
-    if not request.user.is_authenticated():
-        return HttpResponseForbidden
+    class Meta:
+        queryset = FacebookUser.objects.all()
+        list_allowed_methods = ['get']
+        detail_allowed_methods = []
+        fields = ['facebook_id', 'name', 'pic_square']      # 'top_friends_order'
+        include_resource_uri = False
+        filtering = {
+            'name': ('icontains'),
+        }
+        authentication = SessionAuthentication()
+        authorization = Authorization()
 
-    graph = require_persistent_graph(request)
-    facebook = YearbookFacebookUserConverter(graph)
-
-    if not offset:
-        # Did we already start to pull?
-        async_result = request.session.get('pull_friends_async', None)
-        if not async_result:
-            friends = YearbookFacebookUser.objects.filter(user=request.user)
-            # Do we need to pull top friends?
-            pull_top_friends = not friends.exclude(top_friends_order=0).exists()
-            if pull_top_friends:
-                # Pull top friends, then all other friends
-                logger.info('In get_friends(), pulling top friends')
-                async_result = get_and_store_top_friends_fast.delay(request.user, facebook,
-                                                                    pull_all_friends_when_done=True)
-#                get_and_store_top_friends_fast(request.user, facebook, pull_all_friends_when_done=True)
-
-                request.session['pull_friends_async'] = async_result
-        if async_result:
-            # Give it 5 seconds to return
-            async_result.get(timeout=5)
-
-    top_friends_query = YearbookFacebookUser.objects.filter(user=request.user).order_by('-top_friends_order')
-    # Return a set of results based on `offset`
-    friends = top_friends_query[offset:offset+FRIENDS_PER_PAGE].values('facebook_id', 'name', 'pic_square', 'top_friends_order')
-    if not friends and not offset:
-        logger.warning('get_friends returned no results with offset=0, means friends didn\'t get pulled')
-    # Serialize and return
-    # Return the offset so the caller can reject duplicates
-    return json.dumps({
-        'friends': list(friends),
-        'offset': offset,
-    })
+    def get_object_list(self, request):
+        # This limits results to the current user
+        #  so no need for `apply_authorization_limits`
+        return FacebookUser.objects.get_friends_for_user(request)
 
 
-def send_to_next_page(user, next_view):
-    #  Update the user's current view
-    user.profile.curr_signup_page = next_view
-    user.profile.save()
-    # Return redirect
-    return json.dumps({ 'next_url': reverse(next_view) })
+class InviteSentResource(ModelResource):
+    class Meta:
+        queryset = InviteRequestSent.objects.all()
+        list_allowed_methods = ['post', 'patch']
+        detail_allowed_methods = ['put']            # Implied by PATCH
+        fields = ['facebook_user', 'request_id']
+        authentication = SessionAuthentication()
+        authorization = Authorization()
+
+    def hydrate(self, bundle):
+        # Tag with the currently logged-in user
+        bundle.obj.facebook_user_id = bundle.data['facebook_user_id']
+        bundle.obj.user = bundle.request.user
+        return bundle
 
 
-@dajaxice_register
-def invites_sent(request, request_id, friend_ids, next_view='vote_badges'):
+class YearbookSignResource(ModelResource):
     """
-    Log that the user sent invites
+    Pulls people who have signed my yearbook,
+    handles POST when I sign others' yearbooks
     """
-    if not request.user.is_authenticated():
-        return HttpResponseForbidden
+    class Meta:
+        queryset = YearbookSign.objects.all()
+        allowed_methods = ['get', 'post']
+        authentication = SessionAuthentication()
+        authorization = Authorization()
 
-    try:
-        request_id_int = int(request_id)
-    except ValueError:
-        logger.error('invites_sent called with non-int ID back from facebook, skipping')
-        return send_to_next_page(request.user, next_view)
+        def get_object_list(self, request):
+            return YearbookSign.objects.get_in_sign_order(user=request.user)
 
-    for friend_id in friend_ids:
-        try:
-            friend_id_int = int(friend_id)
-            req = InviteRequestSent(user=request.user, facebook_id=friend_id_int, request_id=request_id_int)
-            req.save()
-        except ValueError:
-            logger.error('invites_sent called with non-int friend ID "%s" back from facebook, skipping' % friend_id)
-
-    return send_to_next_page(request.user, next_view)
+        def hydrate(self, bundle):
+            # Tag with the currently logged-in user
+            bundle.obj.from_facebook_user_id = bundle.request.user.profile.request_id
+            bundle.obj.to_facebook_user_id = bundle.data['to_facebook_user_id']
+            return bundle
 
 
-@dajaxice_register
-def save_badge_votes(request, selected_friends, next_view='sign_friends'):
+class YearbookToSignResource(ModelResource):
     """
-    Saves the friends this user has indicated
-    are family, friends, etc.
+    Pulls recommended yearbooks I should sign
     """
-    if not request.user.is_authenticated():
-        return HttpResponseForbidden
+    class Meta:
+        queryset = FacebookFriend.objects.all()
+        allowed_methods = ['get']
+        authentication = SessionAuthentication()
+        authorization = Authorization()
 
-    # If for some reason they have some in the db, clear them
-    old_votes = BadgeVote.objects.filter(from_user=request.user)
-    old_votes.delete()
-
-    badges = Badge.objects.all()
-    for badge, badge_friends in zip(badges, selected_friends):
-        if badge_friends:
-            for friend_id in badge_friends:
-                bv = BadgeVote(badge=badge, from_user=request.user, to_facebook_id=friend_id)
-                bv.save()
-    return send_to_next_page(request.user, next_view)
+    def get_object_list(self, request):
+        return FacebookFriend.objects.get_yearbooks_to_sign(request.user)
 
 
-YEARBOOKS_PER_PAGE = 6
-
-@dajaxice_register
-def get_yearbooks_to_sign(request, offset=0):
-    """
-    Returns a list of users that we suggest this
-    user should sign.
-    """
-    if not request.user.is_authenticated():
-        return HttpResponseForbidden
-
-    if 'all_yearbooks' in request.session:
-        all_yearbooks = request.session['all_yearbooks']
-    else:
-        profile_ranking = UserProfileRanking(request.user.profile)
-        all_yearbooks = profile_ranking.get_yearbooks_to_sign()
-        request.session['all_yearbooks'] = all_yearbooks
-
-    # NOTE: all_yearbooks is an iterator
-    page_of_yearbooks = [all_yearbooks[idx] for idx in xrange(offset, offset+YEARBOOKS_PER_PAGE)]
-
-    # Stuff in the list is either User or YearbookFacebookUser
-    # we need fields name, pic and facebook_id
-    return json.dumps([{
-        #               User                                       YearbookFacebookUser
-        'name': x.profile.facebook_name if hasattr(x, 'profile') else x.name,
-        'pic':  x.profile.pic_square if hasattr(x, 'profile') else x.pic_square,
-        'id': x.profile.facebook_id if hasattr(x, 'profile') else x.facebook_id,
-    } for x in page_of_yearbooks])
-
-
-@dajaxice_register
-def save_yearbook_sign(request, text, to_id):
-    """
-    Saves a user's message, note that
-    the person being signed may or may not be
-    signed up for the app
-    """
-    if not request.user.is_authenticated():
-        return HttpResponseForbidden
-    sign = YearbookSign(from_user = request.user, to_id=to_id, text=text)
-    sign.save()
-    return json.dumps('ok')
-
-
-SIGNS_PER_PAGE = 10
-
-@dajaxice_register
-def get_yearbook_signs(request, offset=0):
-    """
-    Returns the list of users who have already
-    signed this person's yearbook
-    """
-    if not request.user.is_authenticated():
-        return HttpResponseForbidden
-
-    signs_query = YearbookSign.objects.filter(to_id=request.user.profile.facebook_id)
-    signs = signs_query[offset:offset+SIGNS_PER_PAGE].values(
-        'id', 'from_user__profile__name', 'from_user__profile__pic_square'
-    )
-
-    import ipdb
-    ipdb.set_trace()
-
-    # Serialize and return
-    # Return the offset so the caller can reject duplicates
-    return json.dumps({
-        'signs': list(signs),
-        'offset': offset,
-    })
-
-
-@dajaxice_register
-def get_yearbook_sign_message(request, sign_id):
-    """
-    Returns the list of users who have already
-    signed this yearbook
-    """
-    if not request.user.is_authenticated():
-        return HttpResponseForbidden
-
-    try:
-        sign = YearbookSign.objects.get(id=sign_id).values('text')
-        return json.dumps(sign)
-    except YearbookSign.DoesNotExist:
-        return HttpResponseNotFound
+v1_api = Api(api_name='v1')
+v1_api.register(FriendResource())
+v1_api.register(InviteSentResource())
+v1_api.register(YearbookSignResource())
+v1_api.register(YearbookToSignResource())

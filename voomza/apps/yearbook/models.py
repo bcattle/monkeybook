@@ -1,8 +1,6 @@
 import logging
 from django.db import models
-from django.contrib.auth.models import User
-from django.db.models.signals import post_syncdb
-from south.signals import post_migrate
+from voomza.apps.yearbook.managers import YearbookSignManager
 
 logger = logging.getLogger(__name__)
 
@@ -43,41 +41,16 @@ class InviteRequestSent(models.Model):
         return not self.accepted_at is None
 
 
-class Badge(models.Model):
-    """
-    Yearbook "badges" - best smile, most likely to get arrested, etc.
-    """
-    name = models.CharField(max_length=100)
-    message = models.CharField(max_length=100)
-    icon = models.CharField(max_length=200, blank=True)
-    icon_small = models.CharField(max_length=200, blank=True)
-    max_tags = models.PositiveSmallIntegerField(default=1, help_text='How many friends can the user tag with this badge?')
-
-
-class BadgeVote(models.Model):
-    badge = models.ForeignKey(Badge)
-    from_user = models.ForeignKey(User)
-    to_facebook_user = models.ForeignKey('account.FacebookUser')
-    created_at = models.DateTimeField(auto_now_add=True)
-
-
 class YearbookSign(models.Model):
 #    from_user = models.ForeignKey(User, related_name='yearbook_signs')
     from_facebook_user = models.ForeignKey('account.FacebookUser', related_name='yearbook_signs_from')
     to_facebook_user = models.ForeignKey('account.FacebookUser', related_name='yearbook_signs_to')
     text = models.TextField(max_length=1000)
     created_at = models.DateTimeField(auto_now_add=True)
+    read = models.BooleanField(default=False)
 
+    objects = YearbookSignManager()
 
-# Make sure we create a UserProfile when creating a User
-def install_badges(app, **kwargs):
-    # Coming from post_migrate, app is a string!
-    app_name = app.__name__ if hasattr(app, '__name__') else app
-    if app_name == 'yearbook.models' and not Badge.objects.exists():
-        logger.info('Installing badges')
-        from voomza.apps.yearbook import factories
-        for n in range(factories.NUM_BADGES):
-            factories.BadgeFactory.create()
+    class Meta:
+        ordering = ['-created_at']
 
-post_migrate.connect(install_badges)
-post_syncdb.connect(install_badges)

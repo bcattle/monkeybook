@@ -14,14 +14,7 @@ def invite_friends_to_sign(request,
                            template_name='invite_friends.html',
                            next_view='sign_friends'):
     """
-    User invites their friends to sign their yb
-    This is sent with the request dialog from javascript
-
-    The page pull top friends, then the rest via AJAX
-    UI elements:
-        Skip button -> href to next page
-        Select all
-        Send invites    sent to fb via JS and logged from AJAX
+    User invites people to sgn their yearbook
     """
     # If this is our first time here, pull the optional fields
     # This creates a FacebookUser for the person
@@ -42,7 +35,19 @@ def invite_friends_to_sign(request,
 @ensure_csrf_cookie
 def sign_friends(request,
                  template_name='sign_friends.html'):
+    """
+    User signs friends' yearbooks
+    """
+    context = {}
+    return render_to_response(template_name, context, RequestContext(request))
 
-    context = {
-    }
+
+@login_required
+@ensure_csrf_cookie
+def yearbook_preview(request,
+                     template_name='yearbook_preview.html'):
+    """
+    User sees a preview of their yearbook
+    """
+    context = {}
     return render_to_response(template_name, context, RequestContext(request))

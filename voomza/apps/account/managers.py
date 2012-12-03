@@ -10,20 +10,6 @@ from yearbook.tasks import get_and_store_top_friends_fast
 logger = logging.getLogger(__name__)
 
 
-class FacebookUserManager(models.Manager):
-    def using_app(self):
-        """
-        Returns facebook users we know about who are using the app
-        """
-        pass
-
-    def not_using_app(self):
-        """
-        Returns facebook users we know about who are using the app
-        """
-        pass
-
-
 class FacebookUserManager(fb_FacebookUserManager):
     """
     This is a manager that also acts as a factory
@@ -66,3 +52,59 @@ class FacebookUserManager(fb_FacebookUserManager):
             del request.session['pull_friends_async']
 
         return FacebookUser.objects.filter(friend_of__owner=request.user)
+
+
+class FacebookFriendManager(models.Manager):
+    def get_top_friends(self, user):
+        return user.friends.exclude(top_friends_order=0)
+
+    def get_non_top_friends(self, user):
+        return user.friends.filter(owner=user).filter(top_friends_order=0)
+
+    def not_in_app(self, query):
+        return query.filter(facebook_user__profile__isnull=True)
+
+    def in_app(self, query):
+        return query.filter(facebook_user__profile__isnull=False)
+
+    def i_havent_signed(self, query, user):
+        return query.exclude(
+            facebook_user__yearbook_signs_to__from_facebook_user=user.profile.facebook_user
+        )
+
+    def havent_signed_me(self, query, user):
+        return query.exclude(
+            facebook_user__yearbook_signs_from__to_facebook_user=user.profile.facebook_user
+        )
+
+    def get_yearbooks_to_sign(self, user):
+        """
+        Gets yearbooks in the order we think people will want them.
+          Starts with people who haven't signed yours,
+          starting with top friends *NOT* in the app,
+          top friends in the app, regular friends not in the app, regular
+          friends in the app.
+        """
+        ## -- For all of these, exclude anyone who I have already signed
+
+        # Then, top friends who aren't currently using the app
+        # APPROX 45
+        top_friends_not_in_app = self.i_havent_signed(self.not_in_app(self.get_top_friends(user)), user)
+
+        # Then top friends who are
+        # APPROX 5
+        # exclude ppl who signed me
+        top_friends_in_app = self.havent_signed_me(self.i_havent_signed(self.in_app(self.get_top_friends(user)), user), user)
+
+        # Non-top friends who are
+        # APPROX 100
+        # exclude people who signed me
+        friends_in_app = self.havent_signed_me(self.i_havent_signed(self.in_app(self.get_non_top_friends(user)), user), user)
+
+        # Non-top friends who don't use the app
+        # APPROX 800
+        friends_not_in_app = self.i_havent_signed(self.not_in_app(self.get_non_top_friends(user)), user)
+
+        # Pretty small, grand total ~ 1000
+        # will get called for pagination infrequently w/ small page sizes
+        return top_friends_not_in_app | top_friends_in_app | friends_in_app | friends_not_in_app
