@@ -69,7 +69,7 @@ class YearbookSignResource(ModelResource):
 
     def hydrate(self, bundle):
         # Tag with the currently logged-in user
-        bundle.obj.from_facebook_user_id = bundle.request.user.profile.request_id
+        bundle.obj.from_facebook_user_id = bundle.request.user.profile.facebook_id
         bundle.obj.to_facebook_user_id = bundle.data['to_facebook_user_id']
         return bundle
 
@@ -87,7 +87,7 @@ class YearbookToSignResource(ModelResource):
         limit = 6
         filtering = {
             'name': ('icontains'),
-            }
+        }
         authentication = SessionAuthentication()
         authorization = Authorization()
 
@@ -95,8 +95,31 @@ class YearbookToSignResource(ModelResource):
         return FacebookUser.objects.get_yearbooks_to_sign(request.user)
 
 
+class SignedYearbookResource(ModelResource):
+    """
+    Pulls users whose yearbooks I have already signed.
+    Used in
+    """
+    class Meta:
+        queryset = FacebookUser.objects.all()
+        list_allowed_methods = ['get']
+        detail_allowed_methods = []
+        fields = ['facebook_id', 'name', 'pic_square']      # 'top_friends_order'
+        include_resource_uri = False
+        limit = 6
+        filtering = {
+            'name': ('icontains'),
+        }
+        authentication = SessionAuthentication()
+        authorization = Authorization()
+
+    def get_object_list(self, request):
+        return FacebookUser.objects.get_yearbooks_i_signed(request.user)
+
+
 v1_api = Api(api_name='v1')
 v1_api.register(FriendResource())
 v1_api.register(InviteSentResource())
 v1_api.register(YearbookSignResource())
 v1_api.register(YearbookToSignResource())
+v1_api.register(SignedYearbookResource())

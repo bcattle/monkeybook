@@ -1,6 +1,5 @@
 import logging
 from celery.exceptions import TimeoutError
-from django.db import models
 from django_facebook.model_managers import FacebookUserManager as fb_FacebookUserManager
 from django_facebook.api import require_persistent_graph
 from voomza.apps.core.utils import flush_transaction
@@ -76,11 +75,17 @@ class FacebookUserManager(fb_FacebookUserManager):
 #            facebook_user__yearbook_signs_to__from_facebook_user=user.profile.facebook_user
         )
 
+    def i_have_signed(self, query, user):
+        return query.filter(
+            yearbook_signs_to__from_facebook_user=user.profile.facebook_user
+        )
+
     def havent_signed_me(self, query, user):
         return query.exclude(
             yearbook_signs_from__to_facebook_user=user.profile.facebook_user
 #            facebook_user__yearbook_signs_from__to_facebook_user=user.profile.facebook_user
         )
+
 
     def get_yearbooks_to_sign(self, user):
         """
@@ -113,3 +118,7 @@ class FacebookUserManager(fb_FacebookUserManager):
         # Pretty small, grand total ~ 1000
         # will get called for pagination infrequently w/ small page sizes
         return top_friends_not_in_app | top_friends_in_app | friends_in_app | friends_not_in_app
+
+
+    def get_yearbooks_i_signed(self, user):
+        return self.i_have_signed(self, user)

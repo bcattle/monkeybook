@@ -1,19 +1,17 @@
 var filterActive = false;
 var filterElement = null;
 var lastXhr;
-var resultTemplate;
 var lastSearchStr = '';
 
 // Typeahead filter, pulls from AJAX
 $(document).ready(function(){
-    resultTemplate = $('#friend_template_search_result');
     filterElement = $('#filter_input');
     filterElement.val('');
 
-    $('#filter_form').submit(function(e){
-        e.preventDefault();
-        return false;
-    });
+//    $('#filter_form').submit(function(e){
+//        e.preventDefault();
+//        return false;
+//    });
 
     filterElement.keyup(function(e) {
         var searchStr = filterElement.val();
@@ -40,7 +38,6 @@ $(document).ready(function(){
 function getExistingElementById(facebook_id) {
     // Returns a person's existing DOM element, if any
     // Look for .friend_unloaded in case one of the pics hasn't loaded yet
-//    return friendsList.find('div:not(.friend_result) input[name=friend_' + facebook_id + ']');
     return $('.friend_unloaded[data-id="' + facebook_id + '"]');
 }
 
@@ -52,11 +49,11 @@ function onGetFilteredResults(data, textStatus, jqXHR) {
     friendsList.find('.friend_result').remove();
     // Inject the new results
     var friends = data.objects;
-    var result_element;
+    var result_element, curr_element;
     _.each(friends, function(friend) {
         // If this user is already in the DOM,
         // this checkbox should assume the value they already have
-        var curr_element = getExistingElementById(friend.facebook_id);
+        curr_element = getExistingElementById(friend.facebook_id);
         if (curr_element && curr_element.find('input').is(':checked')) {
             // Show template with checkbox checked
             friend.checked = checkedAttr;
@@ -107,7 +104,6 @@ function clearFilter() {
     friendsList.find('.friend_result').remove();
     // Show the originally-loaded friends
     friendsList.find('.friend').show();
-
     filterActive = false;
 }
 

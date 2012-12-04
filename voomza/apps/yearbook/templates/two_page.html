@@ -36,11 +36,11 @@
     <script type="text/javascript" src="{% static 'js/jquery.cookie.js' %}"></script>
     <script src="{% static 'js/mustache.js' %}"></script>
     <script type="text/javascript">
+        var csrftoken = $.cookie('csrftoken');
         $(document).ready(function (){
             Mustache.tags = ['[[', ']]'];
 
             // CSRF stuff
-            var csrftoken = $.cookie('csrftoken');
             function csrfSafeMethod(method) {
                 // these HTTP methods do not require CSRF protection
                 return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));

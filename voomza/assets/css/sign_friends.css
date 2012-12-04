@@ -111,6 +111,26 @@
     -moz-border-radius: 2px;
 }
 
+.yearbook_status_message {
+    font-family: 'Open Sans', sans-serif;
+    font-style: italic;
+    background-color: #FAFAFA;
+    padding-left: 5px;
+}
+
+.yearbook_sending_message {
+    display:none;
+}
+
+.yearbook_sent_message {
+    display:none;
+}
+
+.sent_image {
+    width: 14px;
+    padding-bottom: 4px;
+}
+
 .yearbook_content {
     padding: 4px;
     background-color: #FAFAFA;
@@ -138,6 +158,10 @@
     font-size: 13px;
 }
 
+.submitted {
+    overflow-y: hidden;
+}
+
 .yearbook_footer {
     padding: 5px;
     background-color: #E8E8E8;
@@ -146,6 +170,10 @@
 
 .signYearbookButton {
     float:right;
+}
+
+.signed_yearbook_result {
+    font-size: 12px;
 }
 
 /* YEARBOOK MESSAGE MODAL */

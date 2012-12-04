@@ -13,6 +13,17 @@ $(document).ready(function(){
     // Pull their signs and yearbooks
     getSigns();
     getYearbooks();
+
+    yearbooksList.scroll(function() {
+        // If we're near the bottom, the typeahead filter isn't active,
+        // we don't already have a pending request, and there is another page to load
+        var el = $(this);
+        if ((el.scrollTop() + el.outerHeight()) > .8 * this.scrollHeight
+            && !filterActive && !$.active && nextYearbooksUrl) {
+            // Load the next page of results
+            getYearbooks();
+        }
+    });
 });
 
 function getSigns() {
@@ -59,7 +70,7 @@ function registerYearbookSignHandlers() {
         $('#yearbook_message_modal').modal();
     });
     $('.newSignBtn').click(function() {
-
+        // TODO
     });
 }
 
@@ -124,39 +135,135 @@ function onGetYearbooksError(jqXHR, textStatus, errorThrown) {
     // TODO
 }
 
+var currInput = null;
 function registerYearbookInputHandlers() {
     // Sets the sign yearbook focus / blur and submit button handlers
     $('.yearbook_input').focus(function(e){
-        var input = $(e.target);
-        var yearbook = input.parents('.yearbook');
-        // Show name label
-        yearbook.find('.yearbook_name').slideDown(500);
-        // Slide open textarea
-        input.animate({height: '122px'}, 500, 'swing', function(){
-            // Scroll to this yearbook
-            yearbooksList.scrollTo(yearbook, 500, {axis:'y'});
-        });
-        // Slide open footer
-        yearbook.find('.yearbook_footer').slideDown(500);
-    });
-    $('.yearbook_input').blur(function(e) {
-        var input = $(e.target);
-        var yearbook = input.parents('.yearbook');
-        // Hide name label if they haven't typed anything
-        if (!input.val().length) {
-            yearbook.find('.yearbook_name').slideUp(500);
+        // If an input is open, close it
+        var newInput = $(e.target);
+        if (!currInput || currInput[0] != newInput[0]) {
+            if (currInput) {
+                closeInput(currInput);
+            }
+            currInput = newInput;
+            var yearbook = currInput.parents('.yearbook');
+            // Show name label
+            yearbook.find('.yearbook_name').slideDown(500);
+            // Slide open textarea
+            currInput.animate({height: '122px'}, 500, 'swing', function(){
+                // Scroll to this yearbook
+                yearbooksList.scrollTo(yearbook, 500, {axis:'y'});
+            });
+            // Slide open footer
+            yearbook.find('.yearbook_footer').slideDown(500);
         }
-        // Slide back textarea
-        input.animate({height: '40px'}, 500);
-        input.scrollTop(0);
-        // Slide footer closed
-        yearbook.find('.yearbook_footer').slideUp(500);
     });
-    $('.signYearbookButton').click(function(){
-        // Collapse the yearbook and show the loading spinner
+    $('.signYearbookButton').click(onSubmitButtonClicked);
+}
+
+function closeInput(input) {
+    // Slides the input element shut
+    var yearbook = input.parents('.yearbook');
+    // Hide name label if they haven't typed anything
+    if (!input.val().length) {
+        yearbook.find('.yearbook_name').slideUp(500);
+    }
+    // Slide back textarea
+    input.animate({height: '40px'}, 500);
+    input.scrollTop(0);
+    // Slide footer closed
+    yearbook.find('.yearbook_footer').slideUp(500);
+}
+
+function onSubmitButtonClicked(e) {
+    var el = $(e.target);
+    el.attr('disabled', 'disabled');
+    var yearbook = el.parents('.yearbook');
+    var text = yearbook.find('.yearbook_input').val();
+    if (text.length) {
+        // Hide everything else
+        yearbook.find('.yearbook_content').slideUp(500);
+        yearbook.find('.yearbook_footer').slideUp(500);
+        // Show the sending message
+        yearbook.find('.yearbook_sending_message').slideDown(500);
 
         // Submit the yearbook sign
+        sendYearbookSign(
+            yearbook.data('id'),
+            text
+        );
+        // If there's a filter, clear it
+        if (filterActive) {
+            clearFilter();
+        }
+    }
+}
 
-        // Show the post to wall dialog
+var sendYearbookXHR;
+function sendYearbookSign(id, text) {
+    // Submit the yearbook sign
+    var data = {
+        'to_facebook_user_id': id,
+        'text': text
+    };
+    // Reject duplicates
+    if (sendYearbookXHR && data == sendYearbookXHR.data) {
+        return;
+    }
+    sendYearbookXHR = $.ajax({
+        url: signsUrl,
+        type: 'POST',
+        data: JSON.stringify(data),
+        contentType: 'application/json',
+        dataType: 'json',
+        processData: false,
+        crossDomain: false,
+        beforeSend: function(xhr, settings) {
+            xhr.setRequestHeader('X-CSRFToken', csrftoken);
+        },
+        success: onYearbookSignSent,
+        error: onYearbookSignError
     });
+    sendYearbookXHR.facebook_id = id;
+}
+
+function onYearbookSignSent(data, textStatus, jqXHR) {
+    var to_id = jqXHR.facebook_id;
+    var yearbook = $('.yearbook[data-id="' + jqXHR.facebook_id + '"]');
+    // Show the success indicator
+    yearbook.find('.yearbook_sending_message').hide();
+    var sent = yearbook.find('.yearbook_sent_message');
+    sent.show();
+    setTimeout(function(){
+        sent.fadeOut(500);
+    }, 2000);
+
+    // Set class that it worked
+    yearbook.removeClass('yearbook').addClass('yearbook_sent');
+
+    // Show the post to wall dialog
+    FB.ui({
+        method: 'feed',
+        display: 'iframe',
+        redirect_uri: document.location.href,
+        to: to_id,
+        link: 'https://developers.facebook.com/docs/reference/dialogs/',
+        picture: 'http://fbrell.com/f8.jpg',
+        name: 'Facebook Dialogs',
+        caption: 'Reference Documentation',
+        description: 'Using Dialogs to interact with users.',
+        actions: '',    // links in the post
+        ref: ''     // for analytics
+    }, function(response) {
+        // Should return response['post_id']
+        // but this never gets called due to x-domain error
+        // in redirect coming back from fb dialog
+        console.log('Back from facebook dialog');
+    });
+}
+
+function onYearbookSignError(jqXHR, textStatus, errorThrown) {
+    // TODO
+    console.log('error');
+
 }

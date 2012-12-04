@@ -78,7 +78,12 @@ $(document).ready(function() {
     // Set up ajax
     $.ajaxSetup({
         success: onGetFriends,
-        error: onGetFriendsError
+        error: onGetFriendsError,
+        beforeSend: function(xhr, settings) {
+            if (!csrfSafeMethod(settings.type)) {
+                xhr.setRequestHeader('X-CSRFToken', csrftoken);
+            }
+        }
     });
 
     // Get the first page of friends
@@ -97,7 +102,7 @@ $(document).ready(function() {
         selectNoneWasClicked = false;
     });
 
-    $('.friends_list').scroll(function(e) {
+    friendsList.scroll(function(e) {
         // If we're near the bottom, the typeahead filter isn't active,
         // we don't already have a pending request, and there is another page to load
         if (this.scrollTop > .8 * this.scrollHeight
@@ -150,11 +155,6 @@ function fbSubmitCallback(data) {
             dataType: 'json',
             processData: false,
             crossDomain: false,
-            beforeSend: function(xhr, settings) {
-                if (!csrfSafeMethod(settings.type)) {
-                    xhr.setRequestHeader('X-CSRFToken', csrftoken);
-                }
-            },
             // Fix to allow ie to do PATCH (http://stackoverflow.com/a/12785714/1161906)
             xhr: function() {
                 return window.XMLHttpRequest == null || new window.XMLHttpRequest().addEventListener == null

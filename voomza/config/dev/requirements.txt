@@ -10,3 +10,4 @@ ipdb
 django-redis-sessions
 factory_boy
 git+git://github.com/toastdriven/django-tastypie.git
+gevent
