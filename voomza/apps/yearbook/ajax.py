@@ -15,8 +15,7 @@ class FriendResource(ModelResource):
         queryset = FacebookUser.objects.all()
         list_allowed_methods = ['get']
         detail_allowed_methods = ['get']
-        fields = ['facebook_id', 'name', 'pic_square']      # 'top_friends_order'
-#        include_resource_uri = False
+        fields = ['facebook_id', 'name', 'pic_square']
         filtering = {
             'name': ('icontains'),
         }
@@ -29,19 +28,24 @@ class FriendResource(ModelResource):
         return FacebookUser.objects.get_friends_for_user(request)
 
 
+class FriendWhoHasntSignedResource(FriendResource):
+    def get_object_list(self, request):
+        return FacebookUser.objects.get_friends_who_havent_signed(request)
+
+
 class InviteSentResource(ModelResource):
     class Meta:
         queryset = InviteRequestSent.objects.all()
         list_allowed_methods = ['post', 'patch']
         detail_allowed_methods = ['put']            # Implied by PATCH
-        fields = ['facebook_user', 'request_id']
+        fields = ['to_facebook_user', 'request_id']
         authentication = SessionAuthentication()
         authorization = Authorization()
 
     def hydrate(self, bundle):
         # Tag with the currently logged-in user
-        bundle.obj.facebook_user_id = bundle.data['facebook_user_id']
-        bundle.obj.user = bundle.request.user
+        bundle.obj.to_facebook_user_id = bundle.data['facebook_user_id']
+        bundle.obj.from_user = bundle.request.user
         return bundle
 
 
@@ -67,8 +71,6 @@ class YearbookSignResource(ModelResource):
         # TODO: see if there is a pending "sign my yearbook" request, if there is - delete it
 
         # TODO: make sure the user is actually friends with the person they're signing
-
-        # Delete any existing yearbook sign?
 
         return super(YearbookSignResource, self).obj_create(bundle, request, user=request.user)
 
@@ -129,6 +131,7 @@ class SignedYearbookResource(YearbookToSignResource):
 
 v1_api = Api(api_name='v1')
 v1_api.register(FriendResource())
+v1_api.register(FriendWhoHasntSignedResource())
 v1_api.register(InviteSentResource())
 v1_api.register(YearbookSignResource())
 v1_api.register(YearbookToSignResource())

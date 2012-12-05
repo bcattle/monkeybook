@@ -222,6 +222,7 @@ function registerYearbookInputHandlers() {
             yearbook.find('.yearbook_footer').slideDown(500);
         }
     });
+//    $('.signYearbookButton').one('click', onSubmitButtonClicked);
     $('.signYearbookButton').click(onSubmitButtonClicked);
 }
 
@@ -241,42 +242,48 @@ function closeInput(input) {
 
 function onSubmitButtonClicked(e) {
     var el = $(e.target);
-    el.attr('disabled', 'disabled');
     var yearbook = el.parents('.yearbook');
     var text = yearbook.find('.yearbook_input').val();
     if (text.length) {
+        // Disable the button
+        el.attr('disabled', 'disabled');
         // Hide everything else
         yearbook.find('.yearbook_content').slideUp(500);
         yearbook.find('.yearbook_footer').slideUp(500);
-        // Show the sending message
-        yearbook.find('.yearbook_sending_message').slideDown(500);
-
         // Submit the yearbook sign
         sendYearbookSign(
-            yearbook.data('id'),
+            yearbook,
             text,
             onYearbookSignSent,
             onYearbookSignError
         );
         // If there's a filter, clear it
-        if (filterActive) {
+        if (filterActive)
             clearFilter();
-        }
     }
+//    } else {
+//        // If there was no value, re-attach the event handler
+//        el.one('click', onSubmitButtonClicked);
+//    }
 }
 
-var sendYearbookXHR;
-function sendYearbookSign(id, text, success, error) {
+var lastSendYearbookData;
+function sendYearbookSign(yearbook, text, success, error) {
+//    console.log('sendYearbookSign called');
+    var id = yearbook.data('id');
     // Submit the yearbook sign
     var data = {
         'to_facebook_user_id': id,
         'text': text
     };
     // Reject duplicates
-    if (sendYearbookXHR && data == sendYearbookXHR.data) {
+    if (lastSendYearbookData != null && _.isEqual(data, lastSendYearbookData)) {
+//        console.log('rejecting duplicate');
         return;
     }
-    sendYearbookXHR = $.ajax({
+    // Show the sending message
+    yearbook.find('.yearbook_sending_message').slideDown(500);
+    var sendYearbookXHR = $.ajax({
         url: signsUrl,
         type: 'POST',
         data: JSON.stringify(data),
@@ -291,9 +298,12 @@ function sendYearbookSign(id, text, success, error) {
         error: error
     });
     sendYearbookXHR.facebook_id = id;
+    lastSendYearbookData = data;
 }
 
 function onYearbookSignSent(data, textStatus, jqXHR) {
+//    console.log('onYearbookSignSent called');
+
     var to_id = jqXHR.facebook_id;
     var yearbook = $('.yearbook[data-id="' + jqXHR.facebook_id + '"]');
     // Show the success indicator

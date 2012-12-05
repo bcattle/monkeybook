@@ -98,9 +98,10 @@
         </div>
     </script>
     <script type="text/javascript">
-        var nextFriendsUrl  = "{% url 'api_dispatch_list' api_name='v1' resource_name='friend' %}";
+        var friendsUrl = "{% url 'api_dispatch_list' api_name='v1' resource_name='friendwhohasntsigned' %}";
+        var nextFriendsUrl = friendsUrl;
         var nextUrl = "{% url next_view %}";
-        var invitesSentUrl  = "{% url 'api_dispatch_list' api_name='v1' resource_name='invitesent' %}";
+        var invitesSentUrl = "{% url 'api_dispatch_list' api_name='v1' resource_name='invitesent' %}";
     </script>
     <script type="text/javascript" src="{% static 'js/invite_friends.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/typeahead.js' %}"></script>

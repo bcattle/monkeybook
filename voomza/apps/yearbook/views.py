@@ -4,14 +4,15 @@ from django.shortcuts import render_to_response
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django_facebook.api import require_persistent_graph
+from django_facebook.decorators import facebook_required_lazy
 from voomza.apps.yearbook.api import YearbookFacebookUserConverter
 from account.tasks import get_and_store_optional_profile_fields
-from voomza.apps.yearbook.models import InviteRequestSent
 
 logger = logging.getLogger(__name__)
 
 
-@login_required
+#@login_required
+@facebook_required_lazy(canvas=True)
 @ensure_csrf_cookie
 def invite_friends_to_sign(request,
                            template_name='invite_friends.html',
@@ -29,22 +30,6 @@ def invite_friends_to_sign(request,
         facebook = YearbookFacebookUserConverter(graph)
         async_result = get_and_store_optional_profile_fields.delay(request.user, facebook)
         request.session['optional_fields_async'] = async_result
-
-    # If they came in from a facebook request, delete it
-    if 'inbound_request_ids' in request.session:
-        if not facebook:
-            graph = require_persistent_graph(request)
-            facebook = YearbookFacebookUserConverter(graph)
-        request_ids = request.session['inbound_request_ids'].split(',')
-        for request_id in request_ids:
-            try:
-                fb_request = InviteRequestSent.objects.get(request_id=request_id,
-                    facebook_id=request.user.profile.facebook_id)
-                # Delete the request
-                facebook.delete_request(fb_request)
-
-            except InviteRequestSent.DoesNotExist:
-                logger.warning('Looked in db for a request #%d, user id #%d. Did not exist.' % (request_id, request.user.profile.facebook_id))
 
     context = {
         'next_view': next_view

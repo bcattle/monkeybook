@@ -53,6 +53,10 @@ class FacebookUserManager(fb_FacebookUserManager):
         return self.filter(friend_of__owner=request.user)
 
 
+    def get_friends_who_havent_signed(self, request):
+        return self.havent_signed_me(self.get_friends_for_user(request), request.user)
+
+
     def get_top_friends(self, user):
         # `self` is `FacebookUser.objects`
         return self.filter(friend_of__owner=user).exclude(friend_of__top_friends_order=0)

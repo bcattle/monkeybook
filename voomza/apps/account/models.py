@@ -14,7 +14,7 @@ class UserProfile(BaseFacebookProfileModel):
     Created by a hook into the post_save signal on User
     """
     user = models.OneToOneField('auth.User', related_name='profile')
-    facebook_user = models.ForeignKey('FacebookUser', null=True, related_name='profile')
+    facebook_user = models.OneToOneField('FacebookUser', null=True, related_name='profile')
     locale = models.CharField(max_length=10, blank=True)
     relationship_status = models.CharField(max_length=40, blank=True)
     significant_other_id = models.BigIntegerField(null=True)
