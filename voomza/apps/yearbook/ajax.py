@@ -14,9 +14,9 @@ class FriendResource(ModelResource):
     class Meta:
         queryset = FacebookUser.objects.all()
         list_allowed_methods = ['get']
-        detail_allowed_methods = []
+        detail_allowed_methods = ['get']
         fields = ['facebook_id', 'name', 'pic_square']      # 'top_friends_order'
-        include_resource_uri = False
+#        include_resource_uri = False
         filtering = {
             'name': ('icontains'),
         }
@@ -47,10 +47,10 @@ class InviteSentResource(ModelResource):
 
 class YearbookSignResource(ModelResource):
     """
-    Pulls people who have signed my yearbook,
+    Pulls signs from people who have signed my yearbook,
     handles POST when I sign others' yearbooks
     """
-    from_facebook_user = fields.ForeignKey(FriendResource, 'facebook_user', full=True)
+    from_facebook_user = fields.ForeignKey(FriendResource, 'from_facebook_user', full=True)
 
     class Meta:
         queryset = YearbookSign.objects.all()
@@ -63,9 +63,14 @@ class YearbookSignResource(ModelResource):
     def get_object_list(self, request):
         return YearbookSign.objects.get_in_sign_order(user=request.user)
 
-    # TODO: make sure the user is actually friends with the person they're signing
-#    def obj_create(self, bundle, request=None, **kwargs):
-#        return super(YearbookSignResource, self).obj_create(bundle, request, user=request.user)
+    def obj_create(self, bundle, request=None, **kwargs):
+        # TODO: see if there is a pending "sign my yearbook" request, if there is - delete it
+
+        # TODO: make sure the user is actually friends with the person they're signing
+
+        # Delete any existing yearbook sign?
+
+        return super(YearbookSignResource, self).obj_create(bundle, request, user=request.user)
 
     def hydrate(self, bundle):
         # Tag with the currently logged-in user
@@ -73,10 +78,17 @@ class YearbookSignResource(ModelResource):
         bundle.obj.to_facebook_user_id = bundle.data['to_facebook_user_id']
         return bundle
 
+    def dehydrate(self, bundle):
+        # Add the `can_sign` field
+        bundle.data['can_sign'] = bundle.obj.can_sign and True
+        return bundle
+
 
 class YearbookToSignResource(ModelResource):
     """
-    Pulls users whose yearbooks I should sign
+    Users whose yearbooks I should sign,
+    these are rendered in right column of page
+    --> These *do not include* anyone who's signed me
     """
     class Meta:
         queryset = FacebookUser.objects.all()
@@ -95,24 +107,22 @@ class YearbookToSignResource(ModelResource):
         return FacebookUser.objects.get_yearbooks_to_sign(request.user)
 
 
-class SignedYearbookResource(ModelResource):
+class UnsignedYearbookResource(YearbookToSignResource):
     """
-    Pulls users whose yearbooks I have already signed.
-    Used in
+    Pulls users whose yearbooks I have not signed
+    Used in typeahead search
+    --> ** includes people who signed me **
     """
-    class Meta:
-        queryset = FacebookUser.objects.all()
-        list_allowed_methods = ['get']
-        detail_allowed_methods = []
-        fields = ['facebook_id', 'name', 'pic_square']      # 'top_friends_order'
-        include_resource_uri = False
-        limit = 6
-        filtering = {
-            'name': ('icontains'),
-        }
-        authentication = SessionAuthentication()
-        authorization = Authorization()
+    def get_object_list(self, request):
+        return FacebookUser.objects.get_yearbooks_i_didnt_sign(request.user)
 
+
+class SignedYearbookResource(YearbookToSignResource):
+    """
+    Pulls users whose yearbooks I have already signed
+    Used in typeahead to remind user
+    if they're looking for a friend they already signed
+    """
     def get_object_list(self, request):
         return FacebookUser.objects.get_yearbooks_i_signed(request.user)
 
@@ -122,4 +132,5 @@ v1_api.register(FriendResource())
 v1_api.register(InviteSentResource())
 v1_api.register(YearbookSignResource())
 v1_api.register(YearbookToSignResource())
+v1_api.register(UnsignedYearbookResource())
 v1_api.register(SignedYearbookResource())

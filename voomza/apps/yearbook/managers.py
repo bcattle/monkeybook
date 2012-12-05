@@ -1,4 +1,5 @@
 from django.db import models
+from voomza.apps.core.models import QuerySetSequence
 
 
 class YearbookSignManager(models.Manager):
@@ -9,18 +10,22 @@ class YearbookSignManager(models.Manager):
         (1) people who signed me, I haven't signed
         (2) people who signed me, I have signed
         """
-        return self.get_people_who_signed_me_i_havent(user) | \
-            self.get_people_who_signed_me_i_have(user)
-
+#        return self.get_people_who_signed_me_i_havent(user) | \
+#            self.get_people_who_signed_me_i_have(user)
+#        return self.get_people_who_signed_me_i_havent(user)
+        return QuerySetSequence(
+            self.get_people_who_signed_me_i_havent(user).extra(select={'can_sign': 'SELECT 1'}),
+            self.get_people_who_signed_me_i_have(user).extra(select={'can_sign': 'SELECT 0'})
+        )
 
     def get_people_who_signed_me_i_havent(self, user):
         from voomza.apps.yearbook.models import YearbookSign
-        return YearbookSign.objects.filter(from_facebook_user=user.profile.facebook_user)\
-            .exclude(to_facebook_user__yearbook_signs_from__to_facebook_user=user.profile.facebook_user)
+        return YearbookSign.objects.filter(to_facebook_user=user.profile.facebook_user) \
+            .exclude(from_facebook_user__yearbook_signs_to__from_facebook_user=user.profile.facebook_user)
 
 
     def get_people_who_signed_me_i_have(self, user):
         from voomza.apps.yearbook.models import YearbookSign
-        return YearbookSign.objects.filter(from_facebook_user=user.profile.facebook_user,
-            to_facebook_user__yearbook_signs_from__to_facebook_user=user.profile.facebook_user)
+        return YearbookSign.objects.filter(to_facebook_user=user.profile.facebook_user,
+            from_facebook_user__yearbook_signs_to__from_facebook_user=user.profile.facebook_user)
 

@@ -58,19 +58,43 @@ function onGetSigns(data, textStatus, jqXHR) {
 
 function onGetSignsError(jqXHR, textStatus, errorThrown) {
     // TODO
+    console.log('error');
 }
 
 function registerYearbookSignHandlers() {
     $('.viewSignBtn').click(function() {
         // Unhide the loading message
         $('.yearbook_message_modal_loading').show();
-        // Request message from server
-        onViewSignRecieved();
+
+        var data_uri = $(this).data('uri');
+        if (data_uri != 'stacy') {
+            // Request message from server
+            $.ajax({
+                url: data_uri,
+                success: onViewSignRecieved,
+                error: onViewSignError
+            });
+        } else {
+            onViewSignRecieved(STACY_DATA);
+        }
         // Show modal with loading spinner
         $('#yearbook_message_modal').modal();
     });
     $('.newSignBtn').click(function() {
-        // TODO
+        // Does user already have an entry in rt-hand column?
+        var curr_yearbook = getExistingElementById($(this).data('id'));
+        if (curr_yearbook.length) {
+            // Focus it
+            curr_yearbook.find('.yearbook_input').focus();
+        } else {
+            // Otherwise call the server for this user's profile
+            var jqXHR = $.ajax({
+                url: $(this).data('uri'),
+                success: onGetYearbooks
+            });
+            // Go to the front of the class
+            jqXHR.prepend = true;
+        }
     });
 }
 
@@ -81,8 +105,8 @@ function onViewSignRecieved(data, textStatus, jqXHR) {
     // Ditch any old message
     var modal_body = $('.yearbook_message_modal_body');
     modal_body.empty();
-    // Render with STACY_DATA for now
-    modal_body.append(Mustache.to_html(yearbookMessageTemplate, STACY_DATA));
+    // Render with recvd data
+    modal_body.append(Mustache.to_html(yearbookMessageTemplate, data));
     registerModalHandlers();
 }
 
@@ -98,11 +122,36 @@ function registerModalHandlers() {
         $(this).animate({height: '80px'}, 500);
     });
     $('.signYearbookButtonModal').click(function (){
+        var container = $(this).parents('.message_sign_input_container');
+        // Collapse the input and show the sending message
+        container.find('.modal_yearbook_content').slideUp(500);
+        container.find('.yearbook_sending_message').show();
         // Send the yearbook sign
+        sendYearbookSign(
+            $(this).data('id'),
+            container.find('.modal_yearbook_input').val(),
+            onModalYearbookSignSent,
+            onModalYearbookSignError
+        );
     });
 }
 
 function onViewSignError(jqXHR, textStatus, errorThrown) {
+    // TODO
+}
+
+function onModalYearbookSignSent(data, textStatus, jqXHR) {
+    // Close the modal
+    $.modal.close();
+    // Remove the 'sign yearbook' button from the left pane
+    $('.newSignBtn[data-id="' + jqXHR.facebook_id + '"]').hide();
+    // Remove the user's div from the right column, if any
+    getExistingElementById(jqXHR.facebook_id).remove();
+    // Show the post to wall dialog
+    showPostToWallDialog(jqXHR.facebook_id);
+}
+
+function onModalYearbookSignError(jqXHR, textStatus, errorThrown) {
     // TODO
 }
 
@@ -116,19 +165,34 @@ function getYearbooks() {
 }
 
 function onGetYearbooks(data, textStatus, jqXHR) {
-    nextYearbooksUrl = data.meta.next;
-    var yearbooks = data.objects;
+    var yearbooks;
+    if (data.meta) {
+        // If there is a `meta` attr, we got a list
+        nextYearbooksUrl = data.meta.next;
+        yearbooks = data.objects;
+    } else {
+        // Otherwise we got a single entry
+        yearbooks = [data];
+    }
     // Dump the yearbooks into the list
     var yearbooks_element;
-    _.each(yearbooks, function(sign) {
-        yearbooks_element = $(Mustache.to_html(yearbookTemplate, sign))
-            .hide().appendTo(yearbooksList);
+    _.each(yearbooks, function(yb_data) {
+        yearbooks_element = $(Mustache.to_html(yearbookTemplate, yb_data)).hide();
+        if (jqXHR.prepend) {
+            yearbooks_element.prependTo(yearbooksList);
+        } else {
+            yearbooks_element.appendTo(yearbooksList);
+        }
         yearbooks_element.imagesLoaded(function(){
             this.fadeIn(500);
         });
     });
     // Register the focus, blur and click handlers
     registerYearbookInputHandlers();
+    // If we prepended the elements, focus the first one
+    if (jqXHR.prepend) {
+        $('.yearbook_input').first().focus();
+    }
 }
 
 function onGetYearbooksError(jqXHR, textStatus, errorThrown) {
@@ -190,7 +254,9 @@ function onSubmitButtonClicked(e) {
         // Submit the yearbook sign
         sendYearbookSign(
             yearbook.data('id'),
-            text
+            text,
+            onYearbookSignSent,
+            onYearbookSignError
         );
         // If there's a filter, clear it
         if (filterActive) {
@@ -200,7 +266,7 @@ function onSubmitButtonClicked(e) {
 }
 
 var sendYearbookXHR;
-function sendYearbookSign(id, text) {
+function sendYearbookSign(id, text, success, error) {
     // Submit the yearbook sign
     var data = {
         'to_facebook_user_id': id,
@@ -221,8 +287,8 @@ function sendYearbookSign(id, text) {
         beforeSend: function(xhr, settings) {
             xhr.setRequestHeader('X-CSRFToken', csrftoken);
         },
-        success: onYearbookSignSent,
-        error: onYearbookSignError
+        success: success,
+        error: error
     });
     sendYearbookXHR.facebook_id = id;
 }
@@ -237,11 +303,13 @@ function onYearbookSignSent(data, textStatus, jqXHR) {
     setTimeout(function(){
         sent.fadeOut(500);
     }, 2000);
-
     // Set class that it worked
     yearbook.removeClass('yearbook').addClass('yearbook_sent');
-
     // Show the post to wall dialog
+    showPostToWallDialog(to_id);
+}
+
+function showPostToWallDialog(to_id) {
     FB.ui({
         method: 'feed',
         display: 'iframe',
@@ -265,5 +333,4 @@ function onYearbookSignSent(data, textStatus, jqXHR) {
 function onYearbookSignError(jqXHR, textStatus, errorThrown) {
     // TODO
     console.log('error');
-
 }

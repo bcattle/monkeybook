@@ -84,11 +84,11 @@
     </div>
     <script type="text/html" id="yearbook_message_template">
         <div class="message_photo">
-            <img src="[[ pic_square ]]">
+            <img src="[[ from_facebook_user.pic_square ]]">
         </div>
         <div class="message_content">
             <div class="message_title googlefont">
-                [[ name ]] says
+                [[ from_facebook_user.name ]] says
             </div>
             <div class="message_container">
                 <img class="quote_image" src="{% static 'img/quote_open.png' %}">
@@ -98,17 +98,18 @@
             [[#can_sign]]
             <div class="message_sign_button">
                 <button class="btn googlefont friend_sign_button modalNewSignBtn"
-                        data-id="[[ facebook_id ]]">Sign Yearbook</button>
+                        data-id="[[ from_facebook_user.facebook_id ]]">Sign Yearbook</button>
             </div>
             <div style="clear:both;"></div>
             <div class="message_sign_input_container">
                 <div class="modal_yearbook_content">
-                    <textarea class="modal_yearbook_input" placeholder="Sign [[ name ]]'s yearbook"></textarea>
+                    <textarea class="modal_yearbook_input" placeholder="Sign [[ from_facebook_user.name ]]'s yearbook"></textarea>
                     <div style="clear:both;"></div>
                     {# TODO user's photo? #}
-                    <button class="btn btn-primary signYearbookButtonModal" data-id="[[ facebook_id ]]">Sign Yearbook</button>
+                    <button class="btn btn-primary signYearbookButtonModal" data-id="[[ from_facebook_user.facebook_id ]]">Sign Yearbook</button>
                     <div style="clear:both;"></div>
                 </div>
+                <div class="yearbook_status_message yearbook_sending_message">sending</div>
             </div>
             [[/can_sign]]
         </div>
@@ -123,16 +124,17 @@
     <script type="text/html" id="sign_template">
         <div class="friend_sign_unit">
             <div class="friend_sign_photo">
-                <img src="[[ pic_square ]]">
+                <img src="[[ from_facebook_user.pic_square ]]">
             </div>
             <div class="friend_sign_content">
-                <div class="friend_sign_text googlefont">[[ name ]]</div>
+                <div class="friend_sign_text googlefont">[[ from_facebook_user.name ]]</div>
                 <div class="sign_buttons_tray">
                     <button class="btn btn-mini btn-info googlefont friend_sign_button viewSignBtn"
-                            data-id="[[ facebook_id ]]">View Message</button>
+                            data-uri="[[ resource_uri ]]">View Message</button>
                     [[#can_sign]]
                         <button class="btn btn-mini googlefont friend_sign_button newSignBtn"
-                                data-id="[[ facebook_id ]]">Sign Yearbook</button>
+                                data-id="[[ from_facebook_user.facebook_id ]]"
+                                data-uri="[[ from_facebook_user.resource_uri ]]">Sign Yearbook</button>
                     [[/can_sign]]
                 </div>
             </div>
@@ -175,13 +177,15 @@
         var nextSignsUrl = signsUrl;
         var yearbooksUrl = "{% url 'api_dispatch_list' api_name='v1' resource_name='yearbooktosign' %}";
         var signedYearbooksUrl = "{% url 'api_dispatch_list' api_name='v1' resource_name='signedyearbook' %}";
+        var unSignedYearbooksUrl = "{% url 'api_dispatch_list' api_name='v1' resource_name='unsignedyearbook' %}";
         var nextYearbooksUrl = yearbooksUrl;
         var STACY_DATA = {
-            'name': 'Stacy, Yearbook Captain',
-            'pic_square': '{% static 'img/yearbook_stacy.png' %}',
-            'id': 0,
+            'from_facebook_user': {
+                'name': 'Stacy, Yearbook Captain',
+                'pic_square': '{% static 'img/yearbook_stacy.png' %}'
+            },
             'can_sign': false,
-//            'can_sign': true,
+            'resource_uri': 'stacy',
             'text': ['Hey! Congratuations on getting your yearbook. ',
                 'You invited your friends to sign, soon this ',
                 'area will start to fill up with their messages. ',

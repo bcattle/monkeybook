@@ -37,15 +37,13 @@
     <script src="{% static 'js/mustache.js' %}"></script>
     <script type="text/javascript">
         var csrftoken = $.cookie('csrftoken');
+        function csrfSafeMethod(method) {
+            // these HTTP methods do not require CSRF protection
+            return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+        }
+
         $(document).ready(function (){
             Mustache.tags = ['[[', ']]'];
-
-            // CSRF stuff
-            function csrfSafeMethod(method) {
-                // these HTTP methods do not require CSRF protection
-                return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
-            }
-
             // Load json2.js if we need it
             yepnope({
                 test: window.JSON,

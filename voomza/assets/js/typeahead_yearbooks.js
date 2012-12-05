@@ -26,13 +26,14 @@ $(document).ready(function(){
                 // one for yearbooks they *have* signed that match
                 // and one for yearbooks they haven't signed
 
+                // People I haven't signed
                 // Unsigned yearbooks
                 lastXhr = $.ajax({
-                    url: yearbooksUrl + '?name__icontains=' + encodeURI(searchStr),
+                    url: unSignedYearbooksUrl + '?name__icontains=' + encodeURI(searchStr),
                     success: onGetFilteredResults,
                     error: onGetFilteredResultsError
                 });
-                // Signed yearbooks
+                // People I have signed
                 lastSignedXhr = $.ajax({
                     url: signedYearbooksUrl + '?name__icontains=' + encodeURI(searchStr),
                     success: onGetSignedResults
