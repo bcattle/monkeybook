@@ -1,11 +1,11 @@
-import logging, timeit
+import logging
 from collections import OrderedDict, defaultdict
 from django.utils import timezone
 from django_facebook.api import FacebookUserConverter
 from django_facebook.signals import facebook_post_store_friends
 from django_facebook.utils import get_profile_class, mass_get_or_create
 from voomza.apps.yearbook import settings as yearbook_settings
-from voomza.apps.yearbook.models import TopFriendStat
+from voomza.apps.backend.models import TopFriendStat
 from voomza.apps.core import bulk
 
 logger = logging.getLogger(__name__)

@@ -7,6 +7,7 @@ OUR_APPS = (
     'account',
     'core',
     'yearbook',
+    'backend',
 )
 
 INSTALLED_APPS = (
