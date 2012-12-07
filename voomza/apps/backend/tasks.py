@@ -195,8 +195,7 @@ def photos_i_like_and_run_group(bundle):
 
 ## MISSION CONTROL
 
-@task.task()
-def run_yearbook(user):
+def get_bundle_for_user(user):
     graph = user.profile.get_offline_graph()
     facebook = BackendFacebookUserConverter(graph)
 
@@ -205,6 +204,12 @@ def run_yearbook(user):
         'graph': graph,
         'facebook': facebook,
     }
+    return bundle
+
+
+@task.task()
+def run_yearbook(user):
+    bundle = get_bundle_for_user(user)
 
     # These have no dependencies
     yearbook_job = group([

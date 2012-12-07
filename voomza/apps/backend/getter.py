@@ -1,9 +1,7 @@
 import logging
 from datetime import datetime
 from django.utils.timezone import make_aware
-from django_facebook.api import FacebookUserConverter
 from pytz import utc
-from voomza.apps.core.utils import merge_spaces
 
 logger = logging.getLogger(__name__)
 
@@ -94,7 +92,7 @@ class ResultGetter(object):
                     continue
                 else:
                     raise
-            # add to _fields_by_id
+                # add to _fields_by_id
             self._fields_by_id[curr_id] = processed_fields
 
 
@@ -126,109 +124,50 @@ class FreqDistResultGetter(ResultGetter):
         self._ids = set(self._fields_by_id.keys())
 
 
-class BackendFacebookUserConverter(FacebookUserConverter):
+
+PHOTO_FIELDS = 'object_id, images, created, comment_info, like_info'
+
+def process_photo_results(self, results, scoring_fxn=None):
     """
-    API operations that pull data from facebook that we need
-    for the yearbook (preview)
-
-    This class pulls data and returns it in a format
-    that other processes can deal with
-    (i.e. it does no processing)
+    Resolves the fields we know about for photos
     """
-    PHOTO_FIELDS = 'object_id, images, created, comment_info, like_info'
+    fb_results = len(results)
+    self._set_largest_images(results)
+    extra_fields = {}
+    if scoring_fxn:
+        extra_fields['score'] = scoring_fxn
+    getter = ResultGetter(
+        results,
+        fields = ['created', 'height', 'width', 'fb_url',
+                  'comment_info.comment_count', 'like_info.like_count'],
+        timestamps = ['created'],
+        extra_fields = extra_fields,
+        fail_silently=False
+    )
+    getter_results = len(getter)
+    if fb_results != getter_results:
+        logger.warning('Facebook returned %d results, our getter only produced %d' % (fb_results, getter_results))
+    else:
+        logger.info('Pulled %d photos' % getter_results)
+    return getter
 
-    def _process_photo_results(self, results, scoring_fxn=None):
-        """
-        Resolves the fields we know about for photos
-        """
-        self._set_largest_images(results)
-        extra_fields = {}
-        if scoring_fxn:
-            extra_fields['score'] = scoring_fxn
-        getter = ResultGetter(
-            results,
-            fields = ['created', 'height', 'width', 'fb_url',
-                      'comment_info.comment_count', 'like_info.like_count'],
-            timestamps = ['created'],
-            extra_fields = extra_fields,
-            fail_silently=False
-        )
-        return getter
-
-    def _set_largest_images(self, results):
-        """
-        Handle the fact that the `images` struct
-        has a few values. We want the largest
-        """
-        for photo in results:
-            largest_width = 0
-            largest = None
-            try:
-                for image in photo['images']:
-                    if image['width'] > largest_width:
-                        largest_width = image['width']
-                        largest = image
-                if largest:
-                    photo['height'] = largest['height']
-                    photo['width'] = largest['width']
-                    photo['fb_url'] = largest['source']
-                    del photo['images']
-            except KeyError:
-                continue
-
-    def get_all_photos_i_am_in(self, scoring_fxn=None):
-        """
-        Returns all of the photos the current user is tagged in
-        This is a field we need to do fast joins on again and again,
-        so save it in memory
-        """
-        # TODO: add pagination to this call?
-        # Are we worried about how many results it'll return at a time?
-        fb_resp = self.open_facebook.fql(merge_spaces('''
-            SELECT %s FROM photo
-                WHERE object_id IN
-                    (SELECT object_id FROM photo_tag WHERE subject=me())
-        ''' % self.PHOTO_FIELDS))
-        fb_results = len(fb_resp)
-        # Get the getter
-        getter = self._process_photo_results(fb_resp, scoring_fxn)
-        getter_results = len(getter)
-        if fb_results != getter_results:
-            logger.warning('Facebook returned %d results, our getter only produced %d' % (fb_results, getter_results))
-        else:
-            logger.info('Pulled %d photos' % getter_results)
-        return getter
-
-
-    def get_all_photos_i_like(self):
-        fb_resp = self.open_facebook.fql(merge_spaces('''
-            SELECT object_id FROM photo WHERE object_id IN
-                (SELECT object_id FROM like WHERE user_id=me())
-        '''))
-        return ResultGetter(fb_resp)
-
-
-    def get_other_tags_of_photos_im_in(self):
-        """
-        Gets all other people tagged in photos I'm in
-        """
-        fb_resp = self.open_facebook.fql(merge_spaces('''
-            SELECT object_id FROM photo_tag WHERE object_id IN
-               (SELECT object_id FROM photo_tag WHERE subject=me())
-            AND subject!=me()
-        '''))
-        return FreqDistResultGetter(fb_resp)
-
-
-    def get_photos_by_user_id(self, facebook_id, scoring_fxn=None):
-        """
-        Returns all of the photos a specified user is tagged in,
-        along with the number of comments and likes they have
-        """
-        fb_resp = self.open_facebook.fql(merge_spaces('''
-            SELECT %s FROM photo
-                WHERE object_id IN
-                (SELECT object_id FROM photo_tag WHERE subject=$%d)
-        ''' % (self.PHOTO_FIELDS, facebook_id)))
-        getter = self._process_photo_results(fb_resp, scoring_fxn)
-        return getter
+def _set_largest_images(self, results):
+    """
+    Handle the fact that the `images` struct
+    has a few values. We want the largest
+    """
+    for photo in results:
+        largest_width = 0
+        largest = None
+        try:
+            for image in photo['images']:
+                if image['width'] > largest_width:
+                    largest_width = image['width']
+                    largest = image
+            if largest:
+                photo['height'] = largest['height']
+                photo['width'] = largest['width']
+                photo['fb_url'] = largest['source']
+                del photo['images']
+        except KeyError:
+            continue
