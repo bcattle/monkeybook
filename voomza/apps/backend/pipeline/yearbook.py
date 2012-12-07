@@ -1,4 +1,4 @@
-from voomza.apps.backend.pipeline import FQLTask, TaskPipeline
+from voomza.apps.backend.pipeline import FQLTask, TaskPipeline, PhotoResultsTask
 from voomza.apps.backend import getter
 from voomza.apps.backend.settings import *
 
@@ -14,7 +14,7 @@ def _photo_score(photo, photos_i_like_ids):
     return score
 
 
-class PhotoResultsTask(FQLTask):
+class BasePhotoResultsTask(FQLTask):
     """
     A task that pulls our standard PHOTO_FIELDS
     """
@@ -36,7 +36,7 @@ class PhotosILikeTask(FQLTask):
     '''
 
 
-class PhotosWithMeTask(PhotoResultsTask):
+class PhotosWithMeTask(BasePhotoResultsTask):
     """
     Returns all of the photos the current user is tagged in
     This is a field we need to do fast joins on again and again,
@@ -53,7 +53,7 @@ class PhotosWithMeTask(PhotoResultsTask):
     # Are we worried about how many results it'll return at a time?
 
 
-class OtherTagsPhotosWithMeTask(FQLTask):
+class GroupShotsTask(FQLTask):
     """
     Gets all other people tagged in photos I'm in
     """
@@ -64,29 +64,72 @@ class OtherTagsPhotosWithMeTask(FQLTask):
     '''
 
     def on_results(self, results):
-        return getter.FreqDistResultGetter(fb_resp)
+        photo_tag_counts = getter.FreqDistResultGetter(results)
+        group_photos = filter(
+            lambda x: x['count'] >= 4,
+            photo_tag_counts.fields_ordered_by('count')
+        )
+        return group_photos
 
 
-class PhotosWithUserTask(PhotoResultsTask):
+class PhotosWithUserTask(BasePhotoResultsTask):
     def __init__(self, user_id):
         super(PhotosWithUserTask, self).__init__()
         self.fql = '''
             SELECT %s FROM photo
                 WHERE object_id IN
-                    (SELECT object_id FROM photo_tag WHERE subject=$%d)
+                    (SELECT object_id FROM photo_tag WHERE subject=%d)
         ''' % (getter.PHOTO_FIELDS, user_id)
 
+    depends_on = ['photos_with_me']
 
+    def on_results(self, results, photos_with_me):
+        photos_of_user = super(BasePhotoResultsTask, self).on_results(results)
+        both_of_us = photos_of_user | photos_with_me.ids
+        just_them = photos_of_user - photos_with_me.ids
+        return both_of_us, just_them
+
+
+
+class TopAlbumsTask(FQLTask):
+    """
+    Sorts the photos in the albums I'm most tagged in
+    """
+    fql = '''
+
+    '''
+
+    def on_results(self, results):
+        pass
+
+
+class TopFriendsTask(FQLTask):
+    fql = '''
+
+    '''
+
+    def on_results(self, results):
+        pass
+
+
+## PIPELINE RUNS ALL OF THE ABOVE
 
 class YearbookTaskPipeline(TaskPipeline):
     class Meta:
         tasks = [
             PhotosILikeTask(),
             PhotosWithMeTask(),
-            OtherTagsPhotosWithMeTask(),
+            GroupShotsTask(),
+            TopAlbumsTask(),
+            TopFriendsTask(),
         ]
 
     def __init__(self, user):
         # Add significant_other and family ids to `tasks`
+        for fam_member in user.family:
+            self.Meta.tasks.append(PhotosWithUserTask(user_id=fam_member))
+        if user.profile.significant_other_id:
+            self.Meta.tasks.append(PhotosWithUserTask(user_id=user.profile.significant_other_id))
+
         super(YearbookTaskPipeline, self).__init__(user)
 

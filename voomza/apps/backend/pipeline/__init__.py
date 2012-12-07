@@ -67,3 +67,5 @@ class FQLTask(Task):
     # Default, just returns a getter
     def on_results(self, results):
         return ResultGetter(results)
+
+
