@@ -1,12 +1,14 @@
 import logging
 from django.db import models
 from jsonfield.fields import JSONField
+from voomza.apps.backend.managers import FacebookPhotoManager
 
 logger = logging.getLogger(__name__)
 
 
 class FacebookPhoto(models.Model):
     facebook_id = models.BigIntegerField(primary_key=True)
+    created = models.DateTimeField(null=True)
     height = models.PositiveIntegerField(default=0)
     width = models.PositiveIntegerField(default=0)
     fb_url = models.CharField(max_length=200)
@@ -14,6 +16,8 @@ class FacebookPhoto(models.Model):
 
     def url(self):
         return self.local_url or self.fb_url
+
+    objects = FacebookPhotoManager()
 
 
 class PhotoRankings(models.Model):
@@ -84,6 +88,7 @@ class Yearbook(models.Model):
     second_half_photo_2 = models.PositiveSmallIntegerField(default=0)
     second_half_photo_3 = models.PositiveSmallIntegerField(default=0)
 
+    # Could correspond to more than one table
     back_in_time_photo_1 = models.PositiveSmallIntegerField(default=0)
     back_in_time_photo_2 = models.PositiveSmallIntegerField(default=0)
     back_in_time_photo_3 = models.PositiveSmallIntegerField(default=0)
@@ -130,6 +135,7 @@ class Yearbook(models.Model):
 class Minibook(models.Model):
     owner = models.ForeignKey('auth.User', related_name='minibooks_from')
     target = models.ForeignKey('account.FacebookUser', related_name='minibooks_to')
+    # Could correspond to more than one table
     photo_1 = models.PositiveSmallIntegerField(default=0)
     photo_2 = models.PositiveSmallIntegerField(default=0)
     photo_3 = models.PositiveSmallIntegerField(default=0)
@@ -138,8 +144,10 @@ class Minibook(models.Model):
 
 class MinibookRankings(models.Model):
     minibook = models.OneToOneField(Minibook, related_name='photo_rankings')
-    target_with = JSONField(default=[], max_length=100000)
-    target_alone = JSONField(default=[], max_length=100000)
+    with_target = JSONField(default=[], max_length=100000)
+    # These could be photos of just you, you with your friends, or group shots
+    your_photos = JSONField(default=[], max_length=100000)
+    # Should both of these be in the same table?
 
 
 

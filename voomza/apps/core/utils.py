@@ -36,3 +36,24 @@ def profileit(name):
             return retval
         return wrapper
     return inner
+
+
+import time
+from functools import wraps
+
+def timeit(func):
+    @wraps(func)
+    def wrapper(*args, **kwds):
+        start = time.time()
+        value = func(*args, **kwds)
+        end = time.time()
+        return (end-start), value
+    return wrapper
+
+
+def merge_spaces(s):
+    """
+    Combines consecutive spaces into one,
+    useful for cleaning up multiline strings
+    """
+    return " ".join(s.split())
