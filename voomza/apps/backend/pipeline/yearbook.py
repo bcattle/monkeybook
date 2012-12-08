@@ -1,4 +1,4 @@
-from voomza.apps.backend.pipeline import FQLTask, TaskPipeline, PhotoResultsTask
+from voomza.apps.backend.pipeline import FQLTask, FqlTaskPipeline
 from voomza.apps.backend import getter
 from voomza.apps.backend.settings import *
 
@@ -47,7 +47,7 @@ class PhotosWithMeTask(BasePhotoResultsTask):
             WHERE object_id IN
                 (SELECT object_id FROM photo_tag WHERE subject=me())
             LIMIT 3000
-    ''' % getter.PHOTO_FIELDS
+    ''' % PHOTO_FIELDS
 
     # TODO: add pagination to this call?
     # Are we worried about how many results it'll return at a time?
@@ -73,34 +73,36 @@ class GroupShotsTask(FQLTask):
 
 
 class PhotosWithUserTask(BasePhotoResultsTask):
-    def __init__(self, user_id):
-        super(PhotosWithUserTask, self).__init__()
+    def __init__(self, user_id, name=None):
+        super(PhotosWithUserTask, self).__init__(name)
         self.fql = '''
             SELECT %s FROM photo
                 WHERE object_id IN
                     (SELECT object_id FROM photo_tag WHERE subject=%d)
-        ''' % (getter.PHOTO_FIELDS, user_id)
+        ''' % (PHOTO_FIELDS, user_id)
 
     depends_on = ['photos_with_me']
 
-    def on_results(self, results, photos_with_me):
-        photos_of_user = super(BasePhotoResultsTask, self).on_results(results)
+    def on_results(self, results, photos_i_like, photos_with_me):
+        photos_of_user = super(PhotosWithUserTask, self).on_results(results, photos_i_like)
         both_of_us = photos_of_user | photos_with_me.ids
         just_them = photos_of_user - photos_with_me.ids
         return both_of_us, just_them
 
 
-
 class TopAlbumsTask(FQLTask):
     """
-    Sorts the photos in the albums I'm most tagged in
+    Returns the albums I'm most tagged in
     """
+    # For every photo I'm in, pull its album id
+    # return a frequency distribution
     fql = '''
-
+        SELECT album_object_id FROM photo WHERE object_id IN
+           (SELECT object_id FROM photo_tag WHERE subject=me())
     '''
 
     def on_results(self, results):
-        pass
+        return getter.FreqDistResultGetter(results)
 
 
 class TopFriendsTask(FQLTask):
@@ -114,22 +116,50 @@ class TopFriendsTask(FQLTask):
 
 ## PIPELINE RUNS ALL OF THE ABOVE
 
-class YearbookTaskPipeline(TaskPipeline):
+class YearbookTaskPipeline(FqlTaskPipeline):
     class Meta:
         tasks = [
             PhotosILikeTask(),
-            PhotosWithMeTask(),
+#            PhotosWithMeTask(),
             GroupShotsTask(),
-            TopAlbumsTask(),
-            TopFriendsTask(),
+#            TopAlbumsTask(),
+#            TopFriendsTask(),
         ]
 
     def __init__(self, user):
         # Add significant_other and family ids to `tasks`
-        for fam_member in user.family:
-            self.Meta.tasks.append(PhotosWithUserTask(user_id=fam_member))
-        if user.profile.significant_other_id:
-            self.Meta.tasks.append(PhotosWithUserTask(user_id=user.profile.significant_other_id))
+#        for index, fam_member in enumerate(user.family):
+#            self.Meta.tasks.append(PhotosWithUserTask(user_id=fam_member, name='photos_with_family_%d' % index))
+#        if user.profile.significant_other_id:
+#            self.Meta.tasks.append(PhotosWithUserTask(user_id=user.profile.significant_other_id, name='photos_with_gfbf'))
 
         super(YearbookTaskPipeline, self).__init__(user)
+
+
+## SECOND MINI PIPELINE
+
+class AlbumPhotosTask(FQLTask):
+    """
+    Pulls photos from the top `n` albums I'm most tagged in
+    """
+    def __init__(self, top_albums, photos_i_like):
+        self.photos_i_like = photos_i_like
+        # Build the queries
+        self.fql = [
+            'SELECT %s FROM photo WHERE album_object_id=%d'
+                % (PHOTO_FIELDS, top_albums.order_by_field('count')[n])
+            for n in range(NUM_TOP_ALBUMS)
+        ]
+        super(AlbumPhotosTask, self).__init__()
+
+    def on_results(self, results):
+        # Results is an array of query results
+        album_photos = [
+            getter.process_photo_results(
+                album_results,
+                scoring_fxn=lambda photo: _photo_score(photo, self.photos_i_like)
+            )
+            for album_results in results
+        ]
+        return album_photos
 

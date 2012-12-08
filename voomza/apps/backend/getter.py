@@ -60,8 +60,8 @@ class ResultGetter(object):
         if not timestamps:
             timestamps = []
 
-        self.results = results
-        for curr_result in self.results:
+#        self.results = results
+        for curr_result in results:
             processed_fields = {}
             try:
                 # If we encounter any ValueError or KeyError,
@@ -92,7 +92,7 @@ class ResultGetter(object):
                     continue
                 else:
                     raise
-                # add to _fields_by_id
+            # add to _fields_by_id
             self._fields_by_id[curr_id] = processed_fields
 
 
@@ -124,15 +124,12 @@ class FreqDistResultGetter(ResultGetter):
         self._ids = set(self._fields_by_id.keys())
 
 
-
-PHOTO_FIELDS = 'object_id, images, created, comment_info, like_info'
-
-def process_photo_results(self, results, scoring_fxn=None):
+def process_photo_results(results, scoring_fxn=None):
     """
     Resolves the fields we know about for photos
     """
     fb_results = len(results)
-    self._set_largest_images(results)
+    _set_largest_images(results)
     extra_fields = {}
     if scoring_fxn:
         extra_fields['score'] = scoring_fxn
@@ -151,7 +148,8 @@ def process_photo_results(self, results, scoring_fxn=None):
         logger.info('Pulled %d photos' % getter_results)
     return getter
 
-def _set_largest_images(self, results):
+
+def _set_largest_images(results):
     """
     Handle the fact that the `images` struct
     has a few values. We want the largest
