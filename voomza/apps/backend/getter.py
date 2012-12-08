@@ -1,6 +1,5 @@
 import logging
 from datetime import datetime
-from django.utils.timezone import make_aware
 from pytz import utc
 
 logger = logging.getLogger(__name__)
@@ -14,6 +13,27 @@ class ResultGetter(object):
     _ids = None
     _fields_by_id = None
     _ordered = None
+
+    def filter(self, function):
+        """
+        Filters the elements in this Getter by `function`,
+        returning a new getter with the new results set
+        """
+        pass_filter = filter(function, self.fields)
+        return self.from_fields(pass_filter)
+
+    @classmethod
+    def from_fields(cls, fields):
+        """
+        Creates a new getter by setting the fields
+        directly, i.e. not parsing them from facebook data
+        """
+        new_getter = cls([])
+        new_fields_by_id = {}
+        for element in fields:
+            new_fields_by_id[element['id']] = element
+        new_getter._fields_by_id = new_fields_by_id
+        return new_getter
 
     @property
     def ids(self):
@@ -29,7 +49,7 @@ class ResultGetter(object):
     def fields(self):
         return self._fields_by_id.values()
 
-    def fields_ordered_by(self, name='id', descending=True):
+    def order_by(self, name='id', descending=True):
         """
         Returns a sorted list of the values,
         ordered by the column indicated. Cached.
@@ -38,8 +58,29 @@ class ResultGetter(object):
             self._ordered[name] = sorted(self.fields, key=lambda x: x.get(name), reverse=descending)
         return self._ordered[name]
 
+    def bucket_by_year(self, date_field='created'):
+        """
+        Returns a tuple (latest_year, results)
+        results[year] is a getter for just that year
+        """
+        fields_by_year = {}
+        for item in self.fields:
+            item_year = item[date_field].year
+            if item_year in fields_by_year:
+                fields_by_year[item_year].append(item)
+            else:
+                fields_by_year[item_year] = [item]
+        getters_by_year = {}
+        for year, bucket in fields_by_year.items():
+            getters_by_year[year] = self.from_fields(bucket)
+        max_year = max(getters_by_year.keys())
+        return max_year, getters_by_year
+
     def __len__(self):
         return len(self.ids)
+
+#    def __iter__(self):
+#        return self.fields.__iter__()
 
     def __init__(self, results, id_field='object_id',
                  fields=None, timestamps=None, extra_fields=None, fail_silently=True):
@@ -72,7 +113,7 @@ class ResultGetter(object):
                     field1_val = curr_result[f[0]]        # fail loudly!
                     if len(f) == 1:
                         if f[0] in timestamps:
-                            val = datetime.fromtimestamp(field1_val)
+                            val = datetime.utcfromtimestamp(field1_val).replace(tzinfo=utc)
                         else:
                             val = field1_val
                         processed_fields[f[0]] = val
@@ -80,7 +121,7 @@ class ResultGetter(object):
                         # f[1] is the actual field name
                         if f[1] in timestamps:
                             # Assuming fb timestamps come in as UTC
-                            val = make_aware(datetime.fromtimestamp(field1_val[f[1]]), timezone=utc)    # fail loudly!
+                            val = datetime.fromtimestamp(field1_val[f[1]]).replace(tzinfo=utc)    # fail loudly!
                         else:
                             val = field1_val[f[1]]        # fail loudly!
                         processed_fields[f[1]] = val
@@ -101,33 +142,44 @@ class FreqDistResultGetter(ResultGetter):
     A result getter that returns the data
     in the form of a list of frequencies in descending order
     """
-    def __init__(self, results, id_field='object_id', fail_silently=True):
+    def __init__(self, results, id_field='object_id', cutoff=0, fail_silently=True):
+        """
+        Elements that occur less-frequently than `cutoff` are discarded
+        """
         self._ids = None
-        self._fields_by_id = {}
         self._ordered = {}
 
-        self.results = results
-        for curr_result in self.results:
+#        self.results = results
+        fields_by_id = {}
+        for curr_result in results:
             try:
                 # If we encounter any ValueError or KeyError,
                 # scrub the whole entry (poor man's transaction)
                 curr_id = int(curr_result[id_field])      # fail loudly!
-                if curr_id in self._fields_by_id:
-                    self._fields_by_id[curr_id]['count'] += 1
+                if curr_id in fields_by_id:
+                    fields_by_id[curr_id]['count'] += 1
                 else:
-                    self._fields_by_id[curr_id] = {'id': curr_id, 'count': 1}
+                    fields_by_id[curr_id] = {'id': curr_id, 'count': 1}
             except (ValueError, KeyError):
                 if fail_silently:
                     continue
                 else:
                     raise
+
+        filtered = filter(lambda x: x['count'] > cutoff, fields_by_id.values())
+        self._fields_by_id = {item['id']: item for item in filtered}
         self._ids = set(self._fields_by_id.keys())
 
 
-def process_photo_results(results, scoring_fxn=None):
+def process_photo_results(results, scoring_fxn=None, add_to_fields=None):
     """
     Resolves the fields we know about for photos
     """
+    fields = ['created', 'height', 'width', 'fb_url',
+              'comment_info.comment_count', 'like_info.like_count']
+    if add_to_fields:
+        fields.extend(add_to_fields)
+
     fb_results = len(results)
     _set_largest_images(results)
     extra_fields = {}
@@ -135,8 +187,7 @@ def process_photo_results(results, scoring_fxn=None):
         extra_fields['score'] = scoring_fxn
     getter = ResultGetter(
         results,
-        fields = ['created', 'height', 'width', 'fb_url',
-                  'comment_info.comment_count', 'like_info.like_count'],
+        fields = fields,
         timestamps = ['created'],
         extra_fields = extra_fields,
         fail_silently=False

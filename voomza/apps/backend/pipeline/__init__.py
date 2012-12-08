@@ -34,11 +34,16 @@ class FqlTaskPipeline(TaskPipeline):
         back one task at a time
         """
         tasks = self.Meta.tasks[:]
+        task_names = {task.name for task in tasks}
         # Assemble queries
         # A query can also be a list of related queries, whose results
         # will all be returned as a list to the calling Task
         queries = {}
         for task in tasks:
+            # Double-check
+            if hasattr(task, 'depends_on') and set(task.depends_on) - task_names:
+                raise Exception('Task %s depends on %s but not all of those tasks are in the pipeline' % (task.name, str(task.depends_on)))
+
             if isinstance(task.fql, types.StringTypes):
                 queries[task.name] = merge_spaces(task.fql)
             else:
@@ -49,8 +54,8 @@ class FqlTaskPipeline(TaskPipeline):
         # The idea is that all the queries can run together
         # but the `on_results` functions need to go in a particular order
         tasks_that_ran = set()
-        while True:
-            task = tasks[0]
+        while tasks:
+            task = tasks.pop(0)
             # Does the task have dependencies that still need to run?
             if hasattr(task, 'depends_on') and set(task.depends_on) - tasks_that_ran:
                 # Naive, just send to the back of the line
@@ -70,10 +75,7 @@ class FqlTaskPipeline(TaskPipeline):
                 if hasattr(task, 'depends_on'):
                     task_args = {dependency: self._results[dependency] for dependency in task.depends_on}
                 self._results[task.name] = task.on_results(task_results, **task_args)
-                tasks_that_ran.add(task)
-                tasks.remove(task)
-                if not tasks:
-                    break
+                tasks_that_ran.add(task.name)
         return self._results
 
 
