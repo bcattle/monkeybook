@@ -12,3 +12,6 @@ NUM_TOP_ALBUMS          = 3
 ALBUMS_TO_PULL_AT_ONCE  = 10
 BANNED_ALBUM_NAMES      = {'mobile uploads', 'timeline photos', 'ios photos',
                            'profile pictures', 'cover photos'}
+
+POST_COMMENT_POINTS     = 1
+POST_LIKE_POINTS        = 1

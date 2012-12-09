@@ -84,8 +84,8 @@ class ResultGetter(object):
 #        return self.fields.__iter__()
 
     def __init__(self, results, id_field='object_id', auto_id_field=False, id_is_int=True,
-                 fields=None, defaults=None, timestamps=None, integer_fields=None,
-                 extra_fields=None, fail_silently=True):
+                 fields=None, field_names=None, defaults=None, optional_fields=None, timestamps=None,
+                 integer_fields=None, extra_fields=None, fail_silently=True):
         """
         extra_fields    a dict of field names to add, and a function to call
                         on the existing entry, for instance to calculate a composite value
@@ -98,8 +98,12 @@ class ResultGetter(object):
 
         if not fields:
             fields = []
+        if not field_names:
+            field_names = {}
         if not defaults:
             defaults = {}
+        if not optional_fields:
+            optional_fields = {}
         if not extra_fields:
             extra_fields = {}
         if not timestamps:
@@ -112,9 +116,7 @@ class ResultGetter(object):
         if auto_id_field:
             fields.append(id_field)
 
-#        self.results = results
         for index, curr_result in enumerate(results):
-#            print 'result'
             processed_fields = {}
             try:
                 # If we encounter any ValueError or KeyError,
@@ -131,18 +133,35 @@ class ResultGetter(object):
                     try:
                         field1_val = curr_result[f[0]]        # fail loudly!
                     except KeyError:
+                        # Either substitute a default or
+                        # skip if field is optional
                         if field in defaults:
                             field1_val = defaults[field]
+                        elif field in optional_fields:
+                            continue
                         else:
                             raise
                     if len(f) == 1:
                         if f[0] in timestamps:
                             val = datetime.utcfromtimestamp(field1_val).replace(tzinfo=utc)
                         elif f[0] in integer_fields:
-                            val = int(field1_val)
+                            try:
+                                val = int(field1_val)
+                            except ValueError:
+                                # Either substitute a default or
+                                # skip if field is optional
+                                if field in defaults:
+                                    val = defaults[field]
+                                elif field in optional_fields:
+                                    continue
+                                else:
+                                    raise
                         else:
                             val = field1_val
-                        processed_fields[f[0]] = val
+                        if field in field_names:
+                            processed_fields[field_names[field]] = val
+                        else:
+                            processed_fields[f[0]] = val
                     else :
                         # f[1] is the actual field name
                         try:
@@ -153,18 +172,25 @@ class ResultGetter(object):
                                 val = int(field1_val[f[1]])
                             else:
                                 val = field1_val[f[1]]        # fail loudly!
-                        except KeyError:
+                        except (KeyError, ValueError):
+                            # Either substitute a default or
+                            # skip if field is optional
                             if field in defaults:
                                 val = defaults[field]
+                            elif field in optional_fields:
+                                continue
                             else:
                                 raise
-                        processed_fields[f[1]] = val
+                        if field in field_names:
+                            processed_fields[field_names[field]] = val
+                        else:
+                            processed_fields[f[1]] = val
                 processed_fields['id'] = curr_id
                 for extra_name, callable in extra_fields.items():
                     processed_fields[extra_name] = callable(processed_fields)
                 # add to _fields_by_id
                 self._fields_by_id[curr_id] = processed_fields
-#                print 'fields by id has %d' % len(self.fields_by_id)
+
             except (ValueError, KeyError), e:
                 if fail_silently:
                     continue

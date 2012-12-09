@@ -3,7 +3,7 @@ from pytz import utc
 from celery import task
 from voomza.apps.backend.getter import FreqDistResultGetter
 from voomza.apps.backend.pipeline.yearbook import YearbookTaskPipeline, \
-    AlbumInfoTask, AlbumPhotosTask, TopPostOfYearTask
+    AlbumInfoTask, AlbumPhotosTask, TopPostTask, BirthdayPostsTask, TopPostersFromYearTask
 from voomza.apps.backend.settings import *
 
 logger = logging.getLogger(__name__)
@@ -11,8 +11,8 @@ logger = logging.getLogger(__name__)
 
 @task.task()
 def get_top_post_of_year(user):
-    task = TopPostOfYearTask()
-    results = task.run(user)
+#    task = TopPostOfYearTask()
+#    results = task.run(user)
 
 
 
@@ -98,7 +98,6 @@ def get_top_albums_photos(top_albums_response, user, photos_i_like):
 @task.task()
 def run_yearbook(user):
     pipeline = YearbookTaskPipeline(user)
-    # Dispatch the top comments task, since its slow
 
     # Perform all the I/O intensive operations
     results = pipeline.run()
@@ -138,18 +137,27 @@ def run_yearbook(user):
                 if photo['subject'] == user.profile.significant_other_id
         ]
 
-    import ipdb
-    ipdb.set_trace()
-
     # Top photos back in time
     # photos_of_me_by_year[year].order_by('score')
 
-
     ## Later: Look for same groups back in time
 
-    # Top friends
-    # Top comment
+    # Top post of the year
+    # results['posts_from_year'].order_by('score')[0
+
+    # Pull the top post
+    top_post_task = TopPostTask(post_id=results['posts_from_year'].order_by('score')[0]['id'])
+    top_post_json = top_post_task.run(user)
+
     # Birthday comments
+    birthday_posts_task = BirthdayPostsTask(user.profile.date_of_birth)
+    birthday_posts_json = birthday_posts_task.run(user)
+
+    # Top friends
+
+    import ipdb
+    ipdb.set_trace()
+
 
     # Grab any derivative tasks
     if top_albums_async.ready():

@@ -18,6 +18,13 @@ def _photo_score(photo, photos_i_like_ids):
     return score
 
 
+def _post_score(post):
+    score = \
+        POST_COMMENT_POINTS * post['comment_count'] +\
+        POST_LIKE_POINTS * post['like_count']
+    return score
+
+
 class BasePhotoResultsTask(FQLTask):
     """
     A task that pulls our standard PHOTO_FIELDS
@@ -145,17 +152,7 @@ class PhotosWithUserTask(BasePhotoResultsTask):
         return both_of_us, just_them
 
 
-class TopFriendsTask(FQLTask):
-    # Most-tagged NOT in group shots?
-    fql = '''
-
-    '''
-
-    def on_results(self, results):
-        pass
-
-
-class TopPostOfYearTask(FQLTask):
+class PostsFromYearTask(FQLTask):
     def __init__(self, name=None):
         # http://stackoverflow.com/a/11409065/1161906
         nyd = datetime.datetime(datetime.datetime.now().year - 1, 1, 1, tzinfo=utc)
@@ -164,7 +161,7 @@ class TopPostOfYearTask(FQLTask):
             SELECT post_id, comments, likes FROM stream
                 WHERE source_id = me() AND created_time < %s LIMIT 500
         ''' % unix_time
-        super(TopPostOfYearTask, self).__init__(name)
+        super(PostsFromYearTask, self).__init__(name)
 
     def on_results(self, results):
         getter = ResultGetter(
@@ -172,13 +169,85 @@ class TopPostOfYearTask(FQLTask):
             id_field='post_id',
             id_is_int=False,
             fields=['comments.count', 'likes.count'],
+            field_names={'comments.count': 'comment_count', 'likes.count': 'like_count'},
             defaults={'comments.count': 0, 'likes.count':0 },
+            extra_fields={'score': _post_score},
         )
         logger.info('Got %d wall posts' % len(getter))
         return getter
 
 
-## PIPELINE RUNS ALL OF THE ABOVE
+class TopPostTask(FQLTask):
+    def __init__(self, post_id, name=None):
+        self.fql = '''
+            SELECT message, comments, likes, created_time, place, attachment
+                FROM stream WHERE post_id = '%s'
+        ''' % post_id
+        super(TopPostTask, self).__init__(name)
+
+    def on_results(self, results):
+        # This one requires looping through to get the comments (and likes for that matter)
+        # Just return the JSON
+        return results
+
+
+class BirthdayPostsTask(FQLTask):
+    def __init__(self, birthday, name=None):
+        birthday_this_year = datetime.datetime(datetime.date.today().year, birthday.month, birthday.day, 0, 0, 0)
+        start_time = birthday_this_year - datetime.timedelta(days=1)
+        end_time = birthday_this_year + datetime.timedelta(days=3)
+        start_unix_time = calendar.timegm(start_time.utctimetuple())
+        end_unix_time = calendar.timegm(end_time.utctimetuple())
+
+        self.fql = '''
+            SELECT post_id, actor_id, message, comments FROM stream
+                WHERE filter_key = 'others' AND source_id = me() AND target_id = me()
+                AND created_time > %s AND created_time < %s LIMIT 200
+        ''' % (start_unix_time, end_unix_time)
+        super(BirthdayPostsTask, self).__init__(name)
+
+    def on_results(self, results):
+        return results
+
+
+class TopPostersFromYearTask(FQLTask):
+    def __init__(self, name=None):
+        nyd = datetime.datetime(datetime.datetime.now().year - 1, 1, 1, tzinfo=utc)
+        unix_time = calendar.timegm(nyd.utctimetuple())
+        self.fql = '''
+            SELECT actor_id FROM stream WHERE filter_key = 'others' AND source_id = me()
+                AND target_id = me() AND created_time < %s LIMIT 500
+        ''' % unix_time
+        super(TopPostersFromYearTask, self).__init__(name)
+
+    def on_results(self, results):
+        getter = FreqDistResultGetter(
+            results,
+            id_field='actor_id',
+        )
+        return getter
+
+
+class TaggedWithThisYearTask(FQLTask):
+    def __init__(self, name=None):
+        nyd = datetime.datetime(datetime.datetime.now().year - 1, 1, 1, tzinfo=utc)
+        unix_time = calendar.timegm(nyd.utctimetuple())
+        self.fql = '''
+            SELECT subject FROM photo_tag WHERE object_id IN
+                (SELECT object_id FROM photo_tag WHERE subject = me())
+            AND created < %s LIMIT 500
+        ''' % unix_time
+        super(TaggedWithThisYearTask, self).__init__(name)
+
+    def on_results(self, results):
+        getter = FreqDistResultGetter(
+            results,
+            id_field='subject',
+        )
+        return getter
+
+
+## PIPELINE
 
 class YearbookTaskPipeline(FqlTaskPipeline):
     class Meta:
@@ -187,8 +256,9 @@ class YearbookTaskPipeline(FqlTaskPipeline):
             PhotosOfMeTask(),
             TaggedWithMeTask(),
             GroupShotsTask(),
-            TopPostOfYearTask(),
-#            TopFriendsTask(),
+            PostsFromYearTask(),
+            TopPostersFromYearTask(),
+            TaggedWithThisYearTask(),
         ]
 
     def __init__(self, user):
