@@ -83,8 +83,9 @@ class ResultGetter(object):
 #    def __iter__(self):
 #        return self.fields.__iter__()
 
-    def __init__(self, results, id_field='object_id',
-                 fields=None, timestamps=None, extra_fields=None, fail_silently=True):
+    def __init__(self, results, id_field='object_id', auto_id_field=False, id_is_int=True,
+                 fields=None, defaults=None, timestamps=None, integer_fields=None,
+                 extra_fields=None, fail_silently=True):
         """
         extra_fields    a dict of field names to add, and a function to call
                         on the existing entry, for instance to calculate a composite value
@@ -97,45 +98,78 @@ class ResultGetter(object):
 
         if not fields:
             fields = []
+        if not defaults:
+            defaults = {}
         if not extra_fields:
             extra_fields = {}
         if not timestamps:
             timestamps = []
+        if not integer_fields:
+            integer_fields = []
+
+        # If we are generating an auto_id,
+        # still want `id_field` in results
+        if auto_id_field:
+            fields.append(id_field)
 
 #        self.results = results
-        for curr_result in results:
+        for index, curr_result in enumerate(results):
+#            print 'result'
             processed_fields = {}
             try:
                 # If we encounter any ValueError or KeyError,
                 # scrub the whole entry (poor man's transaction)
-                curr_id = int(curr_result[id_field])      # fail loudly!
+                if auto_id_field:
+                    curr_id = index
+                else:
+                    if id_is_int:
+                        curr_id = int(curr_result[id_field])      # fail loudly!
+                    else:
+                        curr_id = curr_result[id_field]
                 for field in fields:
                     f = field.split('.')
-                    field1_val = curr_result[f[0]]        # fail loudly!
+                    try:
+                        field1_val = curr_result[f[0]]        # fail loudly!
+                    except KeyError:
+                        if field in defaults:
+                            field1_val = defaults[field]
+                        else:
+                            raise
                     if len(f) == 1:
                         if f[0] in timestamps:
                             val = datetime.utcfromtimestamp(field1_val).replace(tzinfo=utc)
+                        elif f[0] in integer_fields:
+                            val = int(field1_val)
                         else:
                             val = field1_val
                         processed_fields[f[0]] = val
                     else :
                         # f[1] is the actual field name
-                        if f[1] in timestamps:
-                            # Assuming fb timestamps come in as UTC
-                            val = datetime.fromtimestamp(field1_val[f[1]]).replace(tzinfo=utc)    # fail loudly!
-                        else:
-                            val = field1_val[f[1]]        # fail loudly!
+                        try:
+                            if f[1] in timestamps:
+                                # Assuming fb timestamps come in as UTC
+                                val = datetime.fromtimestamp(field1_val[f[1]]).replace(tzinfo=utc)    # fail loudly!
+                            elif f[0] in integer_fields:
+                                val = int(field1_val[f[1]])
+                            else:
+                                val = field1_val[f[1]]        # fail loudly!
+                        except KeyError:
+                            if field in defaults:
+                                val = defaults[field]
+                            else:
+                                raise
                         processed_fields[f[1]] = val
                 processed_fields['id'] = curr_id
                 for extra_name, callable in extra_fields.items():
                     processed_fields[extra_name] = callable(processed_fields)
-            except (ValueError, KeyError):
+                # add to _fields_by_id
+                self._fields_by_id[curr_id] = processed_fields
+#                print 'fields by id has %d' % len(self.fields_by_id)
+            except (ValueError, KeyError), e:
                 if fail_silently:
                     continue
                 else:
                     raise
-            # add to _fields_by_id
-            self._fields_by_id[curr_id] = processed_fields
 
 
 class FreqDistResultGetter(ResultGetter):

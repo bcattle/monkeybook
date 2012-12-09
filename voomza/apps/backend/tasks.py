@@ -3,10 +3,20 @@ from pytz import utc
 from celery import task
 from voomza.apps.backend.getter import FreqDistResultGetter
 from voomza.apps.backend.pipeline.yearbook import YearbookTaskPipeline, \
-    AlbumInfoTask, AlbumPhotosTask
+    AlbumInfoTask, AlbumPhotosTask, TopPostOfYearTask
 from voomza.apps.backend.settings import *
 
 logger = logging.getLogger(__name__)
+
+
+@task.task()
+def get_top_post_of_year(user):
+    task = TopPostOfYearTask()
+    results = task.run(user)
+
+
+
+    pass
 
 
 @task.task()
@@ -88,6 +98,8 @@ def get_top_albums_photos(top_albums_response, user, photos_i_like):
 @task.task()
 def run_yearbook(user):
     pipeline = YearbookTaskPipeline(user)
+    # Dispatch the top comments task, since its slow
+
     # Perform all the I/O intensive operations
     results = pipeline.run()
 
@@ -111,22 +123,27 @@ def run_yearbook(user):
     top_photos_of_me_second_half = photos_of_me_this_year.filter(lambda x: x['created'] >= half_way).order_by('score')
 
 
+    # Pull family photos out of 'tagged_with_me'
+    family_ids = {family_member['facebook_id'] for family_member in user.family.values('facebook_id')}
+    if family_ids:
+        family_photos = [
+            photo['object_id'] for photo in results['tagged_with_me'].fields
+                if photo['subject'] in family_ids
+        ]
+
+    # Pull gf/bf photos out of 'tagged_with_me'
+    if user.profile.significant_other_id:
+        gf_bf_photos = [
+            photo['object_id'] for photo in results['tagged_with_me'].fields
+                if photo['subject'] == user.profile.significant_other_id
+        ]
 
     import ipdb
     ipdb.set_trace()
 
+    # Top photos back in time
+    # photos_of_me_by_year[year].order_by('score')
 
-    # Pull family photos out of 'tagged_with_me'
-    family_ids = user.family.all().values('facebook_id')
-#    if family_ids:
-#        family_photos =
-    # Pull gf/bf photos out of 'tagged_with_me'
-    if user.profile.significant_other_id:
-#    gf_bf_photos =
-        pass
-
-    # Sort for top photos back in time
-    # Find one photo per bucket
 
     ## Later: Look for same groups back in time
 

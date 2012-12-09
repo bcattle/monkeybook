@@ -1,6 +1,10 @@
+import logging, datetime, calendar
+from pytz import utc
 from voomza.apps.backend.pipeline import FQLTask, FqlTaskPipeline
 from voomza.apps.backend.getter import process_photo_results, FreqDistResultGetter, ResultGetter
 from voomza.apps.backend.settings import *
+
+logger = logging.getLogger(__name__)
 
 
 def _photo_score(photo, photos_i_like_ids):
@@ -33,15 +37,6 @@ class PhotosILikeTask(FQLTask):
         SELECT object_id FROM photo WHERE object_id IN
             (SELECT object_id FROM like WHERE user_id=me())
     '''
-
-# We need this so we can index into the friends array
-#class AllFriendsTask(FQLTask):
-#    fql = '''
-#        SELECT uid2 FROM friend WHERE uid1=me()
-#    '''
-#
-#    def on_results(self, results):
-#        return ResultGetter(results, id_field='uid2')
 
 
 class PhotosOfMeTask(FQLTask):
@@ -76,14 +71,23 @@ class TaggedWithMeTask(FQLTask):
     fql = '''
         SELECT subject, object_id FROM photo_tag WHERE object_id IN
             (SELECT object_id FROM photo_tag WHERE subject=me())
+        AND subject!=me() ORDER BY created DESC
     '''
+    # TODO: future improvement? - pull date of photo instead of tag
     def on_results(self, results):
         """
         Build a list of user ids that are tagged with
         the current user
         """
-        return ResultGetter(results, fields=['subject'])
-
+        # We *don't* want to collapse on the object_id field here
+        getter = ResultGetter(
+            results,
+            auto_id_field=True,
+            fields=['subject'],
+            integer_fields=['object_id', 'subject']
+        )
+        logger.info('Got %d tags with user' % len(getter))
+        return getter
 
 
 class GroupShotsTask(FQLTask):
@@ -101,6 +105,18 @@ class GroupShotsTask(FQLTask):
         return group_photos
 
 
+# NOT NEEDED
+# We need this so we can index into the friends array
+class AllFriendsTask(FQLTask):
+    fql = '''
+        SELECT uid2 FROM friend WHERE uid1=me()
+    '''
+
+    def on_results(self, results):
+        return ResultGetter(results, id_field='uid2')
+
+
+# DOESN'T WORK
 class PhotosWithUserTask(BasePhotoResultsTask):
     depends_on = ['photos_i_like', 'all_friends']
 
@@ -139,6 +155,29 @@ class TopFriendsTask(FQLTask):
         pass
 
 
+class TopPostOfYearTask(FQLTask):
+    def __init__(self, name=None):
+        # http://stackoverflow.com/a/11409065/1161906
+        nyd = datetime.datetime(datetime.datetime.now().year - 1, 1, 1, tzinfo=utc)
+        unix_time = calendar.timegm(nyd.utctimetuple())
+        self.fql = '''
+            SELECT post_id, comments, likes FROM stream
+                WHERE source_id = me() AND created_time < %s LIMIT 500
+        ''' % unix_time
+        super(TopPostOfYearTask, self).__init__(name)
+
+    def on_results(self, results):
+        getter = ResultGetter(
+            results,
+            id_field='post_id',
+            id_is_int=False,
+            fields=['comments.count', 'likes.count'],
+            defaults={'comments.count': 0, 'likes.count':0 },
+        )
+        logger.info('Got %d wall posts' % len(getter))
+        return getter
+
+
 ## PIPELINE RUNS ALL OF THE ABOVE
 
 class YearbookTaskPipeline(FqlTaskPipeline):
@@ -146,22 +185,17 @@ class YearbookTaskPipeline(FqlTaskPipeline):
         tasks = [
             PhotosILikeTask(),
             PhotosOfMeTask(),
-#            TaggedWithMeTask(),
-#            GroupShotsTask(),
+            TaggedWithMeTask(),
+            GroupShotsTask(),
+            TopPostOfYearTask(),
 #            TopFriendsTask(),
         ]
 
     def __init__(self, user):
-        # Add significant_other and family ids to `tasks`
-#        for index, fam_member in enumerate(user.family.all()):
-#            self.Meta.tasks.append(PhotosWithUserTask(user_id=fam_member, name='photos_with_family_%d' % index))
-#        if user.profile.significant_other_id:
-#            self.Meta.tasks.append(PhotosWithUserTask(user_id=user.profile.significant_other_id, name='photos_with_gfbf'))
-
         super(YearbookTaskPipeline, self).__init__(user)
 
 
-## SECOND MINI PIPELINE
+## ALBUM TASKS
 
 class AlbumInfoTask(FQLTask):
     """
