@@ -8,8 +8,6 @@ class TaskPipeline(object):
     """
     Runs a series of FQLTasks
     """
-    _results = {}
-
     @property
     def results(self):
         return self._results
@@ -23,6 +21,7 @@ class TaskPipeline(object):
         self.user = user
         self.graph = user.profile.get_offline_graph()
         self.facebook = FacebookUserConverter(self.graph)
+        self._results = {}
 
 
 class FqlTaskPipeline(TaskPipeline):

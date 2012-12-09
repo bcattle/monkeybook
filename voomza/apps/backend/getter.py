@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime
 from pytz import utc
+from voomza.apps.backend.settings import *
 
 logger = logging.getLogger(__name__)
 
@@ -181,7 +182,7 @@ def process_photo_results(results, scoring_fxn=None, add_to_fields=None):
         fields.extend(add_to_fields)
 
     fb_results = len(results)
-    _set_largest_images(results)
+    _set_photo_by_width(results)
     extra_fields = {}
     if scoring_fxn:
         extra_fields['score'] = scoring_fxn
@@ -200,23 +201,27 @@ def process_photo_results(results, scoring_fxn=None, add_to_fields=None):
     return getter
 
 
-def _set_largest_images(results):
+def _set_photo_by_width(results):
     """
     Handle the fact that the `images` struct
-    has a few values. We want the largest
+    has a few values.
+    We want the smallest > PHOTO_WIDTH_DESIRED or
+    the largest otherwise
     """
     for photo in results:
-        largest_width = 0
-        largest = None
         try:
-            for image in photo['images']:
-                if image['width'] > largest_width:
-                    largest_width = image['width']
-                    largest = image
-            if largest:
-                photo['height'] = largest['height']
-                photo['width'] = largest['width']
-                photo['fb_url'] = largest['source']
-                del photo['images']
+            images = {image['width']: image for image in photo['images']}
+            widths = sorted(images.keys(), reverse=True)
+            above_cutoff = filter(lambda x: x > PHOTO_WIDTH_DESIRED, widths)
+            if above_cutoff:
+                chosen_width = above_cutoff[-1]
+            else:
+                # If none large enough, take the largest
+                chosen_width = widths[0]
+            photo['height'] = images[chosen_width]['height']
+            photo['width'] = images[chosen_width]['width']
+            photo['fb_url'] = images[chosen_width]['source']
+            del photo['images']
         except KeyError:
+            logger.warning('KeyError in _set_photo_by_width')
             continue

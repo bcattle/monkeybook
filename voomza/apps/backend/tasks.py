@@ -1,10 +1,12 @@
-import datetime
+import logging, datetime
 from pytz import utc
 from celery import task
 from voomza.apps.backend.getter import FreqDistResultGetter
 from voomza.apps.backend.pipeline.yearbook import YearbookTaskPipeline, \
-    AlbumInfoTask
+    AlbumInfoTask, AlbumPhotosTask
 from voomza.apps.backend.settings import *
+
+logger = logging.getLogger(__name__)
 
 
 @task.task()
@@ -25,19 +27,20 @@ def get_top_albums(user, photos_of_me_by_year):
     }
 
     # Make a flat list so we can iterate across year boundaries
-    years = reversed(albums_by_year.keys())
+    years = sorted(albums_by_year.keys(), reverse=True)
     albums_flat = []
     for year in years:
         albums_flat.extend(albums_by_year[year])
 
     # Pull 10 albums at a time from the server
     top_albums = []
-    albums_to_call = []
+    album_ids_to_call = []
     while albums_flat:
-        albums_to_call.append(albums_flat.pop(0))
-        if len(albums_to_call) == ALBUMS_TO_PULL_AT_ONCE:
+        album = albums_flat.pop(0)
+        album_ids_to_call.append(album['id'])
+        if len(album_ids_to_call) == ALBUMS_TO_PULL_AT_ONCE:
             # Make the API call
-            task = AlbumInfoTask([album['id'] for album in albums_to_call])
+            task = AlbumInfoTask(album_ids_to_call)
             results = task.run(user)
             # Results came back as a list of getters
             # ea w/ a single element. Flatten to a dictionary
@@ -48,29 +51,38 @@ def get_top_albums(user, photos_of_me_by_year):
                     k,v = getter.fields_by_id.items()[0]
                     results_by_id[k] = v
 
-            import ipdb
-            ipdb.set_trace()
-
             # The albums came back in *random* order
-            for album_id in albums_to_call:
-                album = results_by_id[album_id]
-                # Toss if name banned, or has < 4 photos
-                if album['name'].lower() not in BANNED_ALBUM_NAMES.lower() \
-                    and album['size'] >= 4:
-                    top_albums.append(album)
-                    if len(top_albums) >= NUM_TOP_ALBUMS:
-                        # We're done
-                        # We need to keep track of what album we stopped on
-                        # in case an `edit` link pushes us to the next album
-                        return albums_flat, top_albums
+            for album_id in album_ids_to_call:
+                # Toss if no results, name banned, or has < 4 photos
+                if album_id in results_by_id:
+                    album = results_by_id[album_id]
+                    if album['name'].lower() not in BANNED_ALBUM_NAMES \
+                        and album['size'] >= 4:
+                        top_albums.append(album)
+                        if len(top_albums) >= NUM_TOP_ALBUMS:
+                            # We're done
+                            # We need to keep track of what album we stopped on
+                            # in case an `edit` link pushes us to the next album
+                            return albums_flat, top_albums
+
+            # We pulled the ten albums
+            # and didn't get enough, repeat
+            album_ids_to_call = []
 
     # If we got here we ran out of albums
     # Just return what we had
     return [], top_albums
 
 
+@task.task()
+def get_top_albums_photos(top_albums_response, user, photos_i_like):
+    next_albums, top_albums = top_albums_response
 
-
+    # Pull photos for the top albums
+    task = AlbumPhotosTask([album['id'] for album in top_albums], photos_i_like)
+    result = task.run(user)
+    top_albums_photos = result['album_photos']
+    return top_albums_photos, top_albums, next_albums
 
 
 @task.task()
@@ -84,23 +96,28 @@ def run_yearbook(user):
 
     # Bucket the photos by year
     max_year, photos_of_me_by_year = results['photos_of_me'].bucket_by_year()
-
     photos_of_me_this_year = photos_of_me_by_year[max_year]
-    half_way = datetime.datetime(datetime.datetime.now().year, 6, 29, tzinfo=utc)
+
+    # Get top albums, then pull their photos
+    top_albums_async = (
+        get_top_albums.subtask((user, photos_of_me_by_year, )) |
+        get_top_albums_photos.subtask((user, results['photos_i_like']))
+    ).apply_async()
+#    next_albums, top_albums = get_top_albums(user, photos_of_me_by_year)
+
     # Get the top photos, both halves of the year
+    half_way = datetime.datetime(datetime.datetime.now().year, 6, 29, tzinfo=utc)
     top_photos_of_me_first_half = photos_of_me_this_year.filter(lambda x: x['created'] < half_way).order_by('score')
     top_photos_of_me_second_half = photos_of_me_this_year.filter(lambda x: x['created'] >= half_way).order_by('score')
 
-    # Get top albums
-#    top_albums_async = get_top_albums.delay(user, photos_of_me_by_year)
-    top_albums = get_top_albums(user, photos_of_me_by_year)
 
-    # Pull photos for the top n albums
-#    album_photos_async = pull_album_photos.delay(user, top_albums, results['photos_i_like'])
+
+    import ipdb
+    ipdb.set_trace()
 
 
     # Pull family photos out of 'tagged_with_me'
-    family_ids = user.profile.family.all().values('facebook_id')
+    family_ids = user.family.all().values('facebook_id')
 #    if family_ids:
 #        family_photos =
     # Pull gf/bf photos out of 'tagged_with_me'
@@ -117,20 +134,17 @@ def run_yearbook(user):
     # Top comment
     # Birthday comments
 
+    # Grab any derivative tasks
+    if top_albums_async.ready():
+        top_albums_photos, top_albums, next_albums = top_albums_async.get()
+        # Top albums photos     is a list of getters, 1 per album
+        # Top albums            is a list of dicts with id, owner, name, size
+        # Next albums           is a list of dicts with id, count
+    else:
+        logger.error('Top albums task failed to complete, skipping')
+
 
     # Save everything to the db
+    pass
 
-    # Make sure any derivative tasks finished
-    album_photos_async.get()
 
-#
-#@task.task(ignore_result=True)
-#def pull_album_photos(user, top_albums, photos_i_like):
-#    """
-#    This runs in its own task since it involves
-#     another roundtrip to fb
-#    """
-#    album_photos_task = AlbumPhotosTask(top_albums, photos_i_like)
-#    album_photos = album_photos_task.run(user)
-#    # Save to db
-#    return album_photos

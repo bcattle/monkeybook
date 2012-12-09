@@ -28,7 +28,6 @@ class BasePhotoResultsTask(FQLTask):
         return getter
 
 
-# name becomes 'photos_i_like'
 class PhotosILikeTask(FQLTask):
     fql = '''
         SELECT object_id FROM photo WHERE object_id IN
@@ -130,17 +129,6 @@ class PhotosWithUserTask(BasePhotoResultsTask):
         return both_of_us, just_them
 
 
-class TopAlbumPhotosTask(FQLTask):
-    """
-    Returns photos from the identified top albums
-    """
-    fql = '''
-    '''
-
-    def on_results(self, results):
-        return FreqDistResultGetter(results)
-
-
 class TopFriendsTask(FQLTask):
     # Most-tagged NOT in group shots?
     fql = '''
@@ -199,7 +187,7 @@ class AlbumInfoTask(FQLTask):
         ]
 
 
-class TopAlbumPhotosTask(FQLTask):
+class AlbumPhotosTask(FQLTask):
     """
     Pulls photos from the specified albums
     """
@@ -207,10 +195,10 @@ class TopAlbumPhotosTask(FQLTask):
         self.photos_i_like = photos_i_like
         # Build the queries
         self.fql = [
-            'SELECT %s FROM photo WHERE album_object_id=%s' % (PHOTO_FIELDS, album_id)
+            'SELECT %s FROM photo WHERE album_object_id=%s LIMIT 40' % (PHOTO_FIELDS, album_id)
             for album_id in album_ids
         ]
-        super(TopAlbumPhotosTask, self).__init__()
+        super(AlbumPhotosTask, self).__init__()
 
     def on_results(self, results):
         # Results is an array of results for each query
