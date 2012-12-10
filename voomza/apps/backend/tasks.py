@@ -2,8 +2,9 @@ import logging, datetime
 from celery.exceptions import TimeoutError
 from pytz import utc
 from celery import task, group
+from voomza.apps.core.utils import merge_dicts
 from voomza.apps.backend.getter import FreqDistResultGetter
-from voomza.apps.backend.models import PhotoRankings
+from voomza.apps.backend.models import PhotoRankings, Yearbook
 from voomza.apps.backend.pipeline.yearbook import *
 from voomza.apps.backend.settings import *
 from backend.pipeline import run_task as rt
@@ -13,9 +14,6 @@ logger = logging.getLogger(__name__)
 
 @task.task()
 def get_photos_by_year(results):
-    import ipdb
-    ipdb.set_trace()
-
     # Bucket the photos by year
     max_year, photos_of_me_by_year = results['photos_of_me'].bucket_by_year()
     photos_of_me_this_year = photos_of_me_by_year[max_year]
@@ -32,8 +30,6 @@ def get_top_albums(results, user):
     the user is in
     """
     assert 'photos_of_me_by_year' in results
-    import ipdb
-    ipdb.set_trace()
 
     # We have the *photos* bucketed by year,
     # collapse into albums by year
@@ -100,9 +96,6 @@ def get_top_albums(results, user):
 
 @task.task()
 def get_top_albums_photos(results, user):
-    import ipdb
-    ipdb.set_trace()
-
     assert 'top_albums' in results
     assert 'photos_i_like' in results
 
@@ -111,6 +104,19 @@ def get_top_albums_photos(results, user):
     result = task.run(user)
     top_albums_photos = result['album_photos']
     results['top_albums_photos'] = top_albums_photos
+    return results
+
+
+@task.task()
+def get_most_tagged_recently(results):
+    assert 'tagged_with_me' in results
+    this_year = datetime.datetime(datetime.datetime.now().year - 3, 1, 1, tzinfo=utc)
+    tagged_recently = results['tagged_with_me'].filter(
+        lambda x: x['created'] > this_year
+    )
+    results['most_tagged_recently'] = FreqDistResultGetter(
+        tagged_recently.fields, id_field='subject'
+    )
     return results
 
 
@@ -125,37 +131,81 @@ def get_top_post_of_year(results, user):
     return results
 
 
-#@task.task()
-#def on_photos_i_like(photos_i_like, user):
-#    job = group([
-#        rt.subtask((PhotosOfMeTask,     user.id)),
-#        get_top_albums.subtask((photos_i_like, user,)) | get_top_albums_photos.subtask((photos_i_like, user,)),
-#    ])
-#    job_async = job.apply_async()
-#    return job_async
+@task.task()
+def get_top_friends(results, user):
+    """
+    This takes input from PhotosOfMe and
+    TaggedWithMe, TaggedWithThisYear, and TopPostersFromYear
+
+    For convenience, it fires off the group that depends on PhotosOfMe
+    """
+
+    # Flatten the results returned from the group
+    results = merge_dicts(*results)
+
+    on_photos_of_me = group([
+        get_photos_by_year.subtask((results,)) |
+        get_top_albums.subtask((user,)) |
+        get_top_albums_photos.subtask((user,))
+    ])
+    on_photos_of_me_async = on_photos_of_me.apply_async()
+
+    top_friends = results['most_tagged_recently'].join_on_field(
+        lambda x, y: x['count'] + y['count'],
+        results['top_posters_from_year'],
+        new_field_name='count',
+        discard_orphans=False
+    )
+
+    # For each top friend, pull the photos they are tagged in
+    # (in top friends order)
+    # Just do them all since it doesn't involve
+    # another round trip to the server
+    top_friend_photos = []
+    for friend in top_friends.order_by('count'):
+        friend_photos = [tag for tag in results['tagged_with_me'].fields
+                         if tag['subject']==friend['id']]
+        if len(friend_photos) > TOP_FRIEND_MIN_PHOTOS:
+            top_friend_photos.append(friend_photos)
+
+    # Top friend photos are stored in a *list* so the order is known
+    # From now on we refer to them by index, not id
+    # Serialize the list
+    rankings = PhotoRankings.objects.get(user=user)
+    rankings.top_friends = top_friend_photos
+    rankings.save()
+
+    import ipdb
+    ipdb.set_trace()
+
+    results['top_friends'] = top_friend_photos
+    results['on_photos_of_me_async'] = on_photos_of_me_async
+    return results
 
 
 @task.task()
 def run_yearbook(user):
+    # Create db models
+    rankings = PhotoRankings(user=user)
+    rankings.save()
+
     # Fire all tasks
     job = group([
-#        rt.subtask(kwargs={'task_cls': PhotosILikeTask, 'user_id': user.id}) |
-#            rt.subtask(kwargs={'task_cls': PhotosOfMeTask, 'user_id': user.id}) |
-#            get_photos_by_year.subtask() |
-#            get_top_albums.subtask((user,)) |
-#            get_top_albums_photos.subtask((user,)),
-
-#        rt.subtask(kwargs={'task_cls': TaggedWithMeTask,        'user_id': user.id}),
-#        rt.subtask(kwargs={'task_cls': TaggedWithThisYearTask,  'user_id': user.id}),
-#        rt.subtask(kwargs={'task_cls': TopPostersFromYearTask,  'user_id': user.id}),
-
-#        rt.subtask(kwargs={'task_cls': GroupShotsTask,          'user_id': user.id}),
-
+        group([
+            rt.subtask(kwargs={'task_cls': PhotosILikeTask, 'user_id': user.id}) |
+                rt.subtask(kwargs={'task_cls': PhotosOfMeTask, 'user_id': user.id}),
+            rt.subtask(kwargs={'task_cls': TaggedWithMeTask, 'user_id': user.id}) |
+                get_most_tagged_recently.subtask(),
+            rt.subtask(kwargs={'task_cls': TopPostersFromYearTask, 'user_id': user.id}),
+        ]) | get_top_friends.subtask((user,)),
+#
+#        rt.subtask(kwargs={'task_cls': GroupShotsTask, 'user_id': user.id}),
+#
 #        rt.subtask(kwargs={'task_cls': PostsFromYearTask, 'user_id': user.id}) |
 #            get_top_post_of_year.subtask((user, )),
-
-        rt.subtask(kwargs={'task_cls': BirthdayPostsTask,  'user_id': user.id,
-                           'init_args': {'birthday': user.profile.date_of_birth}}),
+#
+#        rt.subtask(kwargs={'task_cls': BirthdayPostsTask, 'user_id': user.id,
+#                           'init_args': {'birthday': user.profile.date_of_birth}}),
     ])
     job_async = job.apply_async()
 
@@ -169,22 +219,14 @@ def run_yearbook(user):
     import ipdb
     ipdb.set_trace()
 
+    # Assign photos to the Yearbook
+#    yb = Yearbook(user=user)
+
+
     pass
 
 
-@task.task()
 def run_yearbook2(user):
-    pipeline = YearbookTaskPipeline(user)
-
-    # Perform all the I/O intensive operations
-    results = pipeline.run()
-
-    # Perform the (minimally) CPU-intensive operations
-    # otherwise known as sorting lists of like a thousand elements
-
-    # Sort the photos in score order
-
-
     # Get top albums, then pull their photos
     top_albums_async = (
         get_top_albums.subtask((user, photos_of_me_by_year, )) |

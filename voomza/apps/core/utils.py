@@ -1,3 +1,4 @@
+from itertools import chain
 from django.db import transaction
 
 @transaction.commit_manually
@@ -57,3 +58,7 @@ def merge_spaces(s):
     useful for cleaning up multiline strings
     """
     return " ".join(s.split())
+
+# http://stackoverflow.com/a/38990/1161906
+def merge_dicts(*dicts):
+    return dict(chain(*[d.iteritems() for d in dicts]))

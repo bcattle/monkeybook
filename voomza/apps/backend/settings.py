@@ -15,3 +15,5 @@ BANNED_ALBUM_NAMES      = {'mobile uploads', 'timeline photos', 'ios photos',
 
 POST_COMMENT_POINTS     = 1
 POST_LIKE_POINTS        = 1
+
+TOP_FRIEND_MIN_PHOTOS   = 1     # If a person has fewer than this many photos, they are dsq

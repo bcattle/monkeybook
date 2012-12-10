@@ -16,6 +16,38 @@ class ResultGetter(object):
     _fields_by_id = None
     _ordered = None
 
+    def join_on_field(self, map_fxn, other_getter, new_field_name, join_field='id', discard_orphans=True):
+        """
+        Joins this getter to another by indexing on a field
+        and applying a mapping function to generate new outputs
+        discard_orphans :   do we discard elements in one that
+                            don't match the other?
+        """
+        if join_field != 'id':
+            getter_by_join_field = {element[join_field]: element for element in self.fields}
+            other_by_join_field = {element[join_field]: element for element in other_getter.fields}
+        else:
+            getter_by_join_field = self._fields_by_id
+            other_by_join_field = other_getter._fields_by_id
+        keys_in_both = set(getter_by_join_field) & set(other_by_join_field)
+        # Run the mapping function
+        joined = [{
+            new_field_name: map_fxn(getter_by_join_field[key], other_by_join_field[key]),
+            # join field is same in both, by definition
+            join_field: getter_by_join_field[key][join_field]
+        } for key in keys_in_both]
+        if not discard_orphans:
+            # Append the orphans
+            # Note that this may cause problems if the
+            # mapping function introduced any new fields
+            [joined.append(getter_by_join_field[key])
+                for key in set(getter_by_join_field) - keys_in_both]
+            [joined.append(other_by_join_field[key])
+                for key in set(other_by_join_field) - keys_in_both]
+        # Return a new getter
+        return self.from_fields(joined)
+
+
     def filter(self, function):
         """
         Filters the elements in this Getter by `function`,

@@ -75,7 +75,7 @@ class TaggedWithMeTask(FQLTask):
         facebook WHERE queries are broken for `photo_tags`
     """
     fql = '''
-        SELECT subject, object_id FROM photo_tag WHERE object_id IN
+        SELECT subject, object_id, created FROM photo_tag WHERE object_id IN
             (SELECT object_id FROM photo_tag WHERE subject=me())
         AND subject!=me() ORDER BY created DESC
     '''
@@ -89,8 +89,9 @@ class TaggedWithMeTask(FQLTask):
         getter = ResultGetter(
             results,
             auto_id_field=True,
-            fields=['subject'],
-            integer_fields=['object_id', 'subject']
+            fields=['subject', 'created'],
+            integer_fields=['object_id', 'subject'],
+            timestamps=['created'],
         )
         logger.info('Got %d tags with user' % len(getter))
         return getter
@@ -211,11 +212,11 @@ class BirthdayPostsTask(FQLTask):
 
 class TopPostersFromYearTask(FQLTask):
     def __init__(self, name=None):
-        nyd = datetime.datetime(datetime.datetime.now().year - 1, 1, 1, tzinfo=utc)
+        nyd = datetime.datetime(datetime.datetime.now().year, 1, 1, tzinfo=utc)
         unix_time = calendar.timegm(nyd.utctimetuple())
         self.fql = '''
             SELECT actor_id FROM stream WHERE filter_key = 'others' AND source_id = me()
-                AND target_id = me() AND created_time < %s LIMIT 500
+                AND target_id = me() AND created_time > %s LIMIT 500
         ''' % unix_time
         super(TopPostersFromYearTask, self).__init__(name)
 
@@ -227,23 +228,23 @@ class TopPostersFromYearTask(FQLTask):
         return getter
 
 
-class TaggedWithThisYearTask(FQLTask):
-    def __init__(self, name=None):
-        nyd = datetime.datetime(datetime.datetime.now().year - 1, 1, 1, tzinfo=utc)
-        unix_time = calendar.timegm(nyd.utctimetuple())
-        self.fql = '''
-            SELECT subject FROM photo_tag WHERE object_id IN
-                (SELECT object_id FROM photo_tag WHERE subject = me())
-            AND created < %s LIMIT 500
-        ''' % unix_time
-        super(TaggedWithThisYearTask, self).__init__(name)
-
-    def on_results(self, results):
-        getter = FreqDistResultGetter(
-            results,
-            id_field='subject',
-        )
-        return getter
+#class TaggedWithThisYearTask(FQLTask):
+#    def __init__(self, name=None):
+#        nyd = datetime.datetime(datetime.datetime.now().year - 1, 1, 1, tzinfo=utc)
+#        unix_time = calendar.timegm(nyd.utctimetuple())
+#        self.fql = '''
+#            SELECT subject FROM photo_tag WHERE object_id IN
+#                (SELECT object_id FROM photo_tag WHERE subject = me())
+#            AND created < %s LIMIT 500
+#        ''' % unix_time
+#        super(TaggedWithThisYearTask, self).__init__(name)
+#
+#    def on_results(self, results):
+#        getter = FreqDistResultGetter(
+#            results,
+#            id_field='subject',
+#        )
+#        return getter
 
 
 ## ALBUM TASKS
