@@ -8,6 +8,7 @@ OUR_APPS = (
     'core',
     'yearbook',
     'backend',
+    'store',
 )
 
 INSTALLED_APPS = (

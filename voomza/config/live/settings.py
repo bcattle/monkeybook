@@ -9,6 +9,13 @@ FACEBOOK_APP_ID = '524135734282912'
 FACEBOOK_APP_SECRET = 'dc7bf6738d5ed766c8f780705c43fc8f'
 FACEBOOK_CANVAS_PAGE = 'http://apps.facebook.com/yearbook/'
 
+## Stripe
+
+STRIPE_SECRET_KEY       = 'sk_test_aUxwCNe9yrBDJz47A59fDCZx'
+STRIPE_PUBLISHABLE_KEY  = 'pk_test_e32OejkBMZNS4Ow59szBFYNu'
+#STRIPE_SECRET_KEY       = 'sk_live_A4Ycn1r9hbZnYlABFRqoEiq4'
+#STRIPE_PUBLISHABLE_KEY  = 'pk_live_4l4RVHNEZtCWbpJF3Azel5oY'
+
 ## Database
 
 DATABASES = {

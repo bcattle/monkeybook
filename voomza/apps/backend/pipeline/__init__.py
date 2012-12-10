@@ -1,7 +1,11 @@
-import re, types
+from django.contrib.auth.models import User
+import re, types, logging
+from celery import task
 from django_facebook.api import FacebookUserConverter
 from voomza.apps.backend.getter import ResultGetter
 from voomza.apps.core.utils import merge_spaces, profileit
+
+logger = logging.getLogger(__name__)
 
 
 class TaskPipeline(object):
@@ -26,7 +30,7 @@ class TaskPipeline(object):
 
 class FqlTaskPipeline(TaskPipeline):
 #    @profileit(name='pipeline-run.profile')
-    def run(self):
+    def run(self, **kwargs):
         """
         Pull the query from each FQL task,
         run them in a batch, then feed the results
@@ -34,15 +38,17 @@ class FqlTaskPipeline(TaskPipeline):
         """
         tasks = self.Meta.tasks[:]
         task_names = {task.name for task in tasks}
+        tasks_from_kwargs = {name for name in kwargs.keys()}
+        # Pass the kwargs through
+        self._results = kwargs
         # Assemble queries
         # A query can also be a list of related queries, whose results
         # will all be returned as a list to the calling Task
         queries = {}
         for task in tasks:
             # Double-check
-            if hasattr(task, 'depends_on') and set(task.depends_on) - task_names:
+            if hasattr(task, 'depends_on') and set(task.depends_on) - task_names - tasks_from_kwargs:
                 raise Exception('Task %s depends on %s but not all of those tasks are in the pipeline' % (task.name, str(task.depends_on)))
-
             if isinstance(task.fql, types.StringTypes):
                 queries[task.name] = merge_spaces(task.fql)
             else:
@@ -52,13 +58,15 @@ class FqlTaskPipeline(TaskPipeline):
         fql_results = self.facebook.open_facebook.batch_fql(queries)
         # The idea is that all the queries can run together
         # but the `on_results` functions need to go in a particular order
-        tasks_that_ran = set()
+        # Start by adding any tasks that came in as kwargs to "already ran"
+        tasks_that_ran = tasks_from_kwargs
+#        tasks_that_ran = set()
         while tasks:
             task = tasks.pop(0)
             # Does the task have dependencies that still need to run?
+            # (that aren't in kwargs)
             if hasattr(task, 'depends_on') and set(task.depends_on) - tasks_that_ran:
                 # Naive, just send to the back of the line
-                tasks.remove(task)
                 tasks.append(task)
             else:
                 # No outstanding dependencies, run
@@ -70,10 +78,14 @@ class FqlTaskPipeline(TaskPipeline):
                     # yes, bummer. We need all keys of the form `task_name_n`
                     curr_task_keys = filter(lambda x: re.match(r'^%s_\d+$' % task.name, x), fql_results.keys())
                     task_results = [fql_results[key] for key in curr_task_keys]
-                task_args = {}
                 if hasattr(task, 'depends_on'):
-                    task_args = {dependency: self._results[dependency] for dependency in task.depends_on}
-                self._results[task.name] = task.on_results(task_results, **task_args)
+                    # Dependencies either live in self._results or kwargs
+                    for dependency in task.depends_on:
+                        if dependency in kwargs:
+                            continue
+                        else:
+                            kwargs[dependency] = self._results[dependency]
+                self._results[task.name] = task.on_results(task_results, **kwargs)
                 tasks_that_ran.add(task.name)
         return self._results
 
@@ -101,16 +113,45 @@ class FQLTask(Task):
         return ResultGetter(results)
 
 #    @profileit(name='task-run.profile')
-    def run(self, user):
+    def run(self, user, **kwargs):
         """
         Allow ourselves to run a task in isolation
         instantiate a dummy pipeline and run it
         """
-        if hasattr(self, 'depends_on') and self.depends_on:
-            raise Exception('Can\'t run task standalone if it has dependencies')
+#        if hasattr(self, 'depends_on') and self.depends_on:
+#            raise Exception('Can\'t run task standalone if it has dependencies')
 
         class ThisTaskPipeline(FqlTaskPipeline):
             class Meta:
                 tasks = [self]
         pipeline = ThisTaskPipeline(user)
-        return pipeline.run()
+        return pipeline.run(**kwargs)
+
+
+@task.task()
+def run_task(results=None, task_cls=None, user_id=None, init_args=None):
+    """
+    Runs the task passed in as `task_cls`
+      args and kwargs are passed to the __init__() method
+      user is passed to the run() method
+    """
+    assert task_cls
+    assert user_id
+#    task_cls = kwargs.pop('task_cls')
+#    user_id = kwargs.pop('user_id')
+
+#    if 'init_args' in kwargs:
+#        init_args = kwargs.pop('init_args')
+#    else:
+#        init_args = {}
+
+    if not init_args:
+        init_args = {}
+    if not results:
+        results = {}
+
+    logger.info('Running task %s' % task_cls.__name__)
+    user = User.objects.get(id=user_id)
+
+    task = task_cls(**init_args)
+    return task.run(user, **results)

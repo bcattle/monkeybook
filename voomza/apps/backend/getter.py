@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime
 from pytz import utc
+from voomza.apps.backend.models import FacebookPhoto
 from voomza.apps.backend.settings import *
 
 logger = logging.getLogger(__name__)
@@ -232,9 +233,10 @@ class FreqDistResultGetter(ResultGetter):
         self._ids = set(self._fields_by_id.keys())
 
 
-def process_photo_results(results, scoring_fxn=None, add_to_fields=None):
+def process_photo_results(results, scoring_fxn=None, add_to_fields=None, commit=True):
     """
     Resolves the fields we know about for photos
+    If commit=True, saves them to the db
     """
     fields = ['created', 'height', 'width', 'fb_url',
               'comment_info.comment_count', 'like_info.like_count']
@@ -258,6 +260,8 @@ def process_photo_results(results, scoring_fxn=None, add_to_fields=None):
         logger.warning('Facebook returned %d results, our getter only produced %d' % (fb_results, getter_results))
     else:
         logger.info('Pulled %d photos' % getter_results)
+    if commit:
+        FacebookPhoto.objects.from_getter(getter)
     return getter
 
 

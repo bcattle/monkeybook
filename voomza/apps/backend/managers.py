@@ -2,12 +2,12 @@ from django.db import models
 from voomza.apps.core import bulk
 
 class FacebookPhotoManager(models.Manager):
-    def from_fb_response(self, response):
+    def from_getter(self, getter):
         """
         Saves photo results to FacebookPhoto models
         """
         facebook_photos = []
-        for photo in response.fields:
+        for photo in getter.fields:
             photo_obj = self.model(
                 facebook_id = photo['id'],
                 created = photo['created'],
@@ -17,3 +17,4 @@ class FacebookPhotoManager(models.Manager):
             )
             facebook_photos.append(photo_obj)
         bulk.insert_many(self.model, facebook_photos)
+        return self

@@ -17,7 +17,6 @@ def _photo_score(photo, photos_i_like_ids):
         PHOTO_I_LIKE_POINTS * (1 if photo['id'] in photos_i_like_ids else 0)
     return score
 
-
 def _post_score(post):
     score = \
         POST_COMMENT_POINTS * post['comment_count'] +\
@@ -177,13 +176,13 @@ class PostsFromYearTask(FQLTask):
         return getter
 
 
-class TopPostTask(FQLTask):
+class GetPostTask(FQLTask):
     def __init__(self, post_id, name=None):
         self.fql = '''
             SELECT message, comments, likes, created_time, place, attachment
                 FROM stream WHERE post_id = '%s'
         ''' % post_id
-        super(TopPostTask, self).__init__(name)
+        super(GetPostTask, self).__init__(name)
 
     def on_results(self, results):
         # This one requires looping through to get the comments (and likes for that matter)
@@ -247,24 +246,6 @@ class TaggedWithThisYearTask(FQLTask):
         return getter
 
 
-## PIPELINE
-
-class YearbookTaskPipeline(FqlTaskPipeline):
-    class Meta:
-        tasks = [
-            PhotosILikeTask(),
-            PhotosOfMeTask(),
-            TaggedWithMeTask(),
-            GroupShotsTask(),
-            PostsFromYearTask(),
-            TopPostersFromYearTask(),
-            TaggedWithThisYearTask(),
-        ]
-
-    def __init__(self, user):
-        super(YearbookTaskPipeline, self).__init__(user)
-
-
 ## ALBUM TASKS
 
 class AlbumInfoTask(FQLTask):
@@ -313,3 +294,22 @@ class AlbumPhotosTask(FQLTask):
             )
             for query_results in results
         ]
+
+
+## PIPELINE
+
+#class YearbookTaskPipeline(FqlTaskPipeline):
+#    class Meta:
+#        tasks = [
+#            PhotosILikeTask(),
+#            PhotosOfMeTask(),
+#            TaggedWithMeTask(),
+#            GroupShotsTask(),
+#            PostsFromYearTask(),
+#            TopPostersFromYearTask(),
+#            TaggedWithThisYearTask(),
+#        ]
+#
+#    def __init__(self, user):
+#        super(YearbookTaskPipeline, self).__init__(user)
+#
