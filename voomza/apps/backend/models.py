@@ -62,10 +62,6 @@ class PhotoRankings(models.Model):
 #    top_friend_3 = JSONField(default=[], max_length=100000)
 #    top_friend_4 = JSONField(default=[], max_length=100000)
 #    top_friend_5 = JSONField(default=[], max_length=100000)
-    # Posts
-    top_post = JSONField(default=[], max_length=100000)
-    birthday_posts = JSONField(default=[], max_length=100000)
-
 
 
 class Yearbook(models.Model):
@@ -102,17 +98,17 @@ class Yearbook(models.Model):
     back_in_time_photo_7 = models.PositiveSmallIntegerField(null=True)
     back_in_time_photo_8 = models.PositiveSmallIntegerField(null=True)
 
-    top_album_1_index = models.BigIntegerField(null=True)
+    top_album_1 = models.BigIntegerField(null=True)
     top_album_1_photo_1 = models.PositiveSmallIntegerField(null=True)
     top_album_1_photo_2 = models.PositiveSmallIntegerField(null=True)
     top_album_1_photo_3 = models.PositiveSmallIntegerField(null=True)
     top_album_1_photo_4 = models.PositiveSmallIntegerField(null=True)
-    top_album_2_index = models.BigIntegerField(null=True)
+    top_album_2 = models.BigIntegerField(null=True)
     top_album_2_photo_1 = models.PositiveSmallIntegerField(null=True)
     top_album_2_photo_2 = models.PositiveSmallIntegerField(null=True)
     top_album_2_photo_3 = models.PositiveSmallIntegerField(null=True)
     top_album_2_photo_4 = models.PositiveSmallIntegerField(null=True)
-    top_album_3_index = models.BigIntegerField(null=True)
+    top_album_3 = models.BigIntegerField(null=True)
     top_album_3_photo_1 = models.PositiveSmallIntegerField(null=True)
     top_album_3_photo_2 = models.PositiveSmallIntegerField(null=True)
     top_album_3_photo_3 = models.PositiveSmallIntegerField(null=True)
@@ -139,6 +135,10 @@ class Yearbook(models.Model):
     top_friend_5_photo_2 = models.PositiveSmallIntegerField(null=True)
     top_friend_5_photo_3 = models.PositiveSmallIntegerField(null=True)
 
+    # Posts
+    top_post = JSONField(default=[], max_length=100000)
+    birthday_posts = JSONField(default=[], max_length=100000)
+
 
     # Really, should use this data structure to autogenerate the model
     lists_to_fields = {
@@ -164,8 +164,6 @@ class Yearbook(models.Model):
             'top_album_2_index.top_album_2_photo_3', 'top_album_2_index.top_album_2_photo_4',
             'top_album_3_index.top_album_3_photo_1', 'top_album_3_index.top_album_3_photo_2',
             'top_album_3_index.top_album_3_photo_3', 'top_album_3_index.top_album_3_photo_4',
-            'top_album_4_index.top_album_4_photo_1', 'top_album_4_index.top_album_4_photo_2',
-            'top_album_4_index.top_album_4_photo_3', 'top_album_4_index.top_album_4_photo_4',
         ],
         'top_friends': [
             'top_friend_1.top_friend_1_photo_1', 'top_friend_1.top_friend_1_photo_2',
@@ -184,57 +182,90 @@ class Yearbook(models.Model):
 
     def get_n_unused_photos(self, list_of_photos, n):
         unused_photos = []
+        used_ids = []
         while len(unused_photos) < n:
-            unused_photo = self.get_first_unused_photo(list_of_photos)
-            if not unused_photo:
+            # Need the counter here since the photos we pick up aren't in the Yearbook yet
+            unused_photo = self.get_first_unused_photo(list_of_photos, used_ids)
+            if unused_photo is None:
                 # List ran out, return what we had
                 return unused_photos
             else:
                 unused_photos.append(unused_photo)
+                used_ids.append(_get_id_from_dict_or_int(list_of_photos[unused_photo]))
         return unused_photos
 
 
-    def get_first_unused_photo(self, list_of_photos):
+    def get_first_unused_photo(self, list_of_photos, used_ids=None):
         """
         Loops through photos in `list_of_photos`,
         running `yearbook.photo_is_used()` until it returns False
         If no photo unused, return None
         """
-        for photo in list_of_photos:
-            if not self.photo_is_used(photo):
-                return photo
+        for index, photo in enumerate(list_of_photos):
+            if not self.photo_is_used(photo, used_ids):
+                return index
         return None
 
 
-    def photo_is_used(self, photo):
+    def photo_is_used(self, photo, used_ids=None):
         """
         Iterates through all image index fields on the model,
         verifying that the images they refer to are not "claimed"
         """
-        photo_id = photo['id']
+        if not used_ids:
+            used_ids = []
+        # `photo` could either be a struct or an integer id
+        photo_id = _get_id_from_dict_or_int(photo)
+        if photo_id in used_ids:
+            return True
         ranking = PhotoRankings.objects.get(user=self.owner)
         # Iterate through the above fields
         for ranked_list_name, yb_fields in self.lists_to_fields.items():
-            ranked_list = getattr(ranking, ranked_list_name)
-            if ranked_list:
-                for yb_field in yb_fields:
-                    if '.' in yb_field:
-                        # Double-indirection
-                        photo_list_index_field, photo_index_field = yb_field.split('.')
-                        photo_list_index = getattr(self, photo_list_index_field)
-                        photo_index = getattr(self, photo_index_field)
-                        if (not photo_list_index is None) and (not photo_index is None):
-                            if ranked_list[photo_list_index][photo_index]['id'] == photo_id:
-                                return True
-                    else:
-                        # Dereference the field back to the original facebook id
-                        list_index = getattr(self, yb_field)
-                        if not list_index is None:
-                            # If the index is not None and the list is not empty
-                            if ranked_list[list_index]['id'] == photo_id:
-                                return True
-
+            for yb_field in yb_fields:
+#                if self.get_photo_from_field_string(ranking, ranked_list_name, yb_field, id_field) == photo_id:
+                if self.get_photo_from_field_string(ranking, ranked_list_name, yb_field) == photo_id:
+#                    print 'photo is used: %d' % photo_id
+                    return True
         return False
+
+
+    def get_photo_from_field_string(self, ranking, ranked_list_name, yb_field):
+        """
+        De-references and returns the id of the photo referred
+        to by a field in the PhotoRankings and a field in the Yearbook.
+        Examples:       'family_with', 'family_photo_1'
+                        'top_friends', 'top_friend_1.top_friend_1_photo_1'
+        Returns None if photo list or index is empty
+        """
+        ranked_list = getattr(ranking, ranked_list_name)
+        if ranked_list:
+            if '.' in yb_field:
+                # Double-indirection
+                photo_list_index_field, photo_index_field = yb_field.split('.')
+                photo_list_index = getattr(self, photo_list_index_field)
+                photo_index = getattr(self, photo_index_field)
+                if (not photo_list_index is None) and (not photo_index is None):
+                    photo_list = ranked_list[photo_list_index]
+                    # `photo_list` could be a list of structs, or integers
+                    return  _get_id_from_dict_or_int(photo_list[photo_index])
+            else:
+                # Dereference the field back to the original facebook id
+                list_index = getattr(self, yb_field)
+                if not list_index is None:
+                    # `ranked_list` is either a list of structs, or integers
+                    return _get_id_from_dict_or_int(ranked_list[list_index])
+        return None
+
+
+def _get_id_from_dict_or_int(photo):
+    # If it's a dict, try the key 'object_id', then try 'id'
+    if hasattr(photo, 'keys'):
+        if 'object_id' in photo:
+            return photo['object_id']
+        else:
+            return photo['id']
+    else:
+        return photo
 
 
 class Minibook(models.Model):
