@@ -28,6 +28,18 @@ DATABASES = {
     }
 }
 
+#DATABASES = {
+#    'default': {
+#        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+#        'NAME': 'yearbook_dev',
+#        'USER': 'yearbook',
+#        'PASSWORD': 'yearbook',
+#        'HOST': '127.0.0.1',   # empty = localhost
+#        'PORT': '',   # empty = default
+#    }
+#}
+
+
 
 ## Sessions
 

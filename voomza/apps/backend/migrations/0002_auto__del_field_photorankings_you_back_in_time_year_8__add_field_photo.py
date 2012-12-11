@@ -8,206 +8,31 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Deleting model 'TopFriendStat'
-        db.delete_table('backend_topfriendstat')
+        # Deleting field 'PhotoRankings.you_back_in_time_year_8'
+        db.delete_column('backend_photorankings', 'you_back_in_time_year_8')
 
-        # Deleting field 'PhotoRankings.top_friend_5'
-        db.delete_column('backend_photorankings', 'top_friend_5')
-
-        # Deleting field 'PhotoRankings.gfbf_alone'
-        db.delete_column('backend_photorankings', 'gfbf_alone')
-
-        # Deleting field 'PhotoRankings.group_back_in_time_year_8'
-        db.delete_column('backend_photorankings', 'group_back_in_time_year_8')
-
-        # Deleting field 'PhotoRankings.group_back_in_time_year_1'
-        db.delete_column('backend_photorankings', 'group_back_in_time_year_1')
-
-        # Deleting field 'PhotoRankings.group_back_in_time_year_3'
-        db.delete_column('backend_photorankings', 'group_back_in_time_year_3')
-
-        # Deleting field 'PhotoRankings.group_back_in_time_year_2'
-        db.delete_column('backend_photorankings', 'group_back_in_time_year_2')
-
-        # Deleting field 'PhotoRankings.group_back_in_time_year_5'
-        db.delete_column('backend_photorankings', 'group_back_in_time_year_5')
-
-        # Deleting field 'PhotoRankings.group_back_in_time_year_4'
-        db.delete_column('backend_photorankings', 'group_back_in_time_year_4')
-
-        # Deleting field 'PhotoRankings.group_back_in_time_year_7'
-        db.delete_column('backend_photorankings', 'group_back_in_time_year_7')
-
-        # Deleting field 'PhotoRankings.group_back_in_time_year_6'
-        db.delete_column('backend_photorankings', 'group_back_in_time_year_6')
-
-        # Deleting field 'PhotoRankings.family_alone'
-        db.delete_column('backend_photorankings', 'family_alone')
-
-        # Deleting field 'PhotoRankings.top_friend_4'
-        db.delete_column('backend_photorankings', 'top_friend_4')
-
-        # Deleting field 'PhotoRankings.top_friend_1'
-        db.delete_column('backend_photorankings', 'top_friend_1')
-
-        # Deleting field 'PhotoRankings.top_friend_3'
-        db.delete_column('backend_photorankings', 'top_friend_3')
-
-        # Deleting field 'PhotoRankings.top_friend_2'
-        db.delete_column('backend_photorankings', 'top_friend_2')
-
-        # Adding field 'PhotoRankings.top_friends'
-        db.add_column('backend_photorankings', 'top_friends',
+        # Adding field 'PhotoRankings.top_post'
+        db.add_column('backend_photorankings', 'top_post',
                       self.gf('jsonfield.fields.JSONField')(default=[], max_length=100000),
                       keep_default=False)
 
-        # Deleting field 'Yearbook.top_friend_2_photo_1'
-        db.delete_column('backend_yearbook', 'top_friend_2_photo_1')
-
-        # Adding field 'Yearbook.top_friend_1'
-        db.add_column('backend_yearbook', 'top_friend_1',
-                      self.gf('django.db.models.fields.PositiveSmallIntegerField')(default=0),
-                      keep_default=False)
-
-        # Adding field 'Yearbook.top_friend_2'
-        db.add_column('backend_yearbook', 'top_friend_2',
-                      self.gf('django.db.models.fields.PositiveSmallIntegerField')(default=0),
-                      keep_default=False)
-
-        # Adding field 'Yearbook.top_friend_3'
-        db.add_column('backend_yearbook', 'top_friend_3',
-                      self.gf('django.db.models.fields.PositiveSmallIntegerField')(default=0),
-                      keep_default=False)
-
-        # Adding field 'Yearbook.top_friend_4'
-        db.add_column('backend_yearbook', 'top_friend_4',
-                      self.gf('django.db.models.fields.PositiveSmallIntegerField')(default=0),
-                      keep_default=False)
-
-        # Adding field 'Yearbook.top_friend_5'
-        db.add_column('backend_yearbook', 'top_friend_5',
-                      self.gf('django.db.models.fields.PositiveSmallIntegerField')(default=0),
+        # Adding field 'PhotoRankings.birthday_posts'
+        db.add_column('backend_photorankings', 'birthday_posts',
+                      self.gf('jsonfield.fields.JSONField')(default=[], max_length=100000),
                       keep_default=False)
 
 
     def backwards(self, orm):
-        # Adding model 'TopFriendStat'
-        db.create_table('backend_topfriendstat', (
-            ('them_like_status', self.gf('django.db.models.fields.PositiveSmallIntegerField')(null=True)),
-            ('you_statuses_liked', self.gf('django.db.models.fields.PositiveSmallIntegerField')(null=True)),
-            ('you_links_liked', self.gf('django.db.models.fields.PositiveSmallIntegerField')(null=True)),
-            ('them_posts_to', self.gf('django.db.models.fields.PositiveSmallIntegerField')(null=True)),
-            ('them_comment_to_photo', self.gf('django.db.models.fields.PositiveSmallIntegerField')(null=True)),
-            ('friend_id', self.gf('django.db.models.fields.BigIntegerField')()),
-            ('them_like_photo', self.gf('django.db.models.fields.PositiveSmallIntegerField')(null=True)),
-            ('them_comment_to_link', self.gf('django.db.models.fields.PositiveSmallIntegerField')(null=True)),
-            ('you_photos_liked', self.gf('django.db.models.fields.PositiveSmallIntegerField')(null=True)),
-            ('tagged_with', self.gf('django.db.models.fields.PositiveSmallIntegerField')(null=True)),
-            ('user', self.gf('django.db.models.fields.related.ForeignKey')(related_name='top_friend_stats', to=orm['auth.User'])),
-            ('them_like_link', self.gf('django.db.models.fields.PositiveSmallIntegerField')(null=True)),
-            ('you_posts_to', self.gf('django.db.models.fields.PositiveSmallIntegerField')(null=True)),
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('them_comment_to_status', self.gf('django.db.models.fields.PositiveSmallIntegerField')(null=True)),
-        ))
-        db.send_create_signal('backend', ['TopFriendStat'])
-
-        # Adding field 'PhotoRankings.top_friend_5'
-        db.add_column('backend_photorankings', 'top_friend_5',
+        # Adding field 'PhotoRankings.you_back_in_time_year_8'
+        db.add_column('backend_photorankings', 'you_back_in_time_year_8',
                       self.gf('jsonfield.fields.JSONField')(default=[], max_length=100000),
                       keep_default=False)
 
-        # Adding field 'PhotoRankings.gfbf_alone'
-        db.add_column('backend_photorankings', 'gfbf_alone',
-                      self.gf('jsonfield.fields.JSONField')(default=[], max_length=100000),
-                      keep_default=False)
+        # Deleting field 'PhotoRankings.top_post'
+        db.delete_column('backend_photorankings', 'top_post')
 
-        # Adding field 'PhotoRankings.group_back_in_time_year_8'
-        db.add_column('backend_photorankings', 'group_back_in_time_year_8',
-                      self.gf('jsonfield.fields.JSONField')(default=[], max_length=100000),
-                      keep_default=False)
-
-        # Adding field 'PhotoRankings.group_back_in_time_year_1'
-        db.add_column('backend_photorankings', 'group_back_in_time_year_1',
-                      self.gf('jsonfield.fields.JSONField')(default=[], max_length=100000),
-                      keep_default=False)
-
-        # Adding field 'PhotoRankings.group_back_in_time_year_3'
-        db.add_column('backend_photorankings', 'group_back_in_time_year_3',
-                      self.gf('jsonfield.fields.JSONField')(default=[], max_length=100000),
-                      keep_default=False)
-
-        # Adding field 'PhotoRankings.group_back_in_time_year_2'
-        db.add_column('backend_photorankings', 'group_back_in_time_year_2',
-                      self.gf('jsonfield.fields.JSONField')(default=[], max_length=100000),
-                      keep_default=False)
-
-        # Adding field 'PhotoRankings.group_back_in_time_year_5'
-        db.add_column('backend_photorankings', 'group_back_in_time_year_5',
-                      self.gf('jsonfield.fields.JSONField')(default=[], max_length=100000),
-                      keep_default=False)
-
-        # Adding field 'PhotoRankings.group_back_in_time_year_4'
-        db.add_column('backend_photorankings', 'group_back_in_time_year_4',
-                      self.gf('jsonfield.fields.JSONField')(default=[], max_length=100000),
-                      keep_default=False)
-
-        # Adding field 'PhotoRankings.group_back_in_time_year_7'
-        db.add_column('backend_photorankings', 'group_back_in_time_year_7',
-                      self.gf('jsonfield.fields.JSONField')(default=[], max_length=100000),
-                      keep_default=False)
-
-        # Adding field 'PhotoRankings.group_back_in_time_year_6'
-        db.add_column('backend_photorankings', 'group_back_in_time_year_6',
-                      self.gf('jsonfield.fields.JSONField')(default=[], max_length=100000),
-                      keep_default=False)
-
-        # Adding field 'PhotoRankings.family_alone'
-        db.add_column('backend_photorankings', 'family_alone',
-                      self.gf('jsonfield.fields.JSONField')(default=[], max_length=100000),
-                      keep_default=False)
-
-        # Adding field 'PhotoRankings.top_friend_4'
-        db.add_column('backend_photorankings', 'top_friend_4',
-                      self.gf('jsonfield.fields.JSONField')(default=[], max_length=100000),
-                      keep_default=False)
-
-        # Adding field 'PhotoRankings.top_friend_1'
-        db.add_column('backend_photorankings', 'top_friend_1',
-                      self.gf('jsonfield.fields.JSONField')(default=[], max_length=100000),
-                      keep_default=False)
-
-        # Adding field 'PhotoRankings.top_friend_3'
-        db.add_column('backend_photorankings', 'top_friend_3',
-                      self.gf('jsonfield.fields.JSONField')(default=[], max_length=100000),
-                      keep_default=False)
-
-        # Adding field 'PhotoRankings.top_friend_2'
-        db.add_column('backend_photorankings', 'top_friend_2',
-                      self.gf('jsonfield.fields.JSONField')(default=[], max_length=100000),
-                      keep_default=False)
-
-        # Deleting field 'PhotoRankings.top_friends'
-        db.delete_column('backend_photorankings', 'top_friends')
-
-        # Adding field 'Yearbook.top_friend_2_photo_1'
-        db.add_column('backend_yearbook', 'top_friend_2_photo_1',
-                      self.gf('django.db.models.fields.PositiveSmallIntegerField')(default=0),
-                      keep_default=False)
-
-        # Deleting field 'Yearbook.top_friend_1'
-        db.delete_column('backend_yearbook', 'top_friend_1')
-
-        # Deleting field 'Yearbook.top_friend_2'
-        db.delete_column('backend_yearbook', 'top_friend_2')
-
-        # Deleting field 'Yearbook.top_friend_3'
-        db.delete_column('backend_yearbook', 'top_friend_3')
-
-        # Deleting field 'Yearbook.top_friend_4'
-        db.delete_column('backend_yearbook', 'top_friend_4')
-
-        # Deleting field 'Yearbook.top_friend_5'
-        db.delete_column('backend_yearbook', 'top_friend_5')
+        # Deleting field 'PhotoRankings.birthday_posts'
+        db.delete_column('backend_photorankings', 'birthday_posts')
 
 
     models = {
@@ -275,6 +100,7 @@ class Migration(SchemaMigration):
         },
         'backend.photorankings': {
             'Meta': {'object_name': 'PhotoRankings'},
+            'birthday_posts': ('jsonfield.fields.JSONField', [], {'default': '[]', 'max_length': '100000'}),
             'family_with': ('jsonfield.fields.JSONField', [], {'default': '[]', 'max_length': '100000'}),
             'gfbf_with': ('jsonfield.fields.JSONField', [], {'default': '[]', 'max_length': '100000'}),
             'group_shots': ('jsonfield.fields.JSONField', [], {'default': '[]', 'max_length': '100000'}),
@@ -284,15 +110,15 @@ class Migration(SchemaMigration):
             'top_photos': ('jsonfield.fields.JSONField', [], {'default': '[]', 'max_length': '100000'}),
             'top_photos_first_half': ('jsonfield.fields.JSONField', [], {'default': '[]', 'max_length': '100000'}),
             'top_photos_second_half': ('jsonfield.fields.JSONField', [], {'default': '[]', 'max_length': '100000'}),
-            'user': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'photo_rankings'", 'to': "orm['auth.User']"}),
+            'top_post': ('jsonfield.fields.JSONField', [], {'default': '[]', 'max_length': '100000'}),
+            'user': ('django.db.models.fields.related.OneToOneField', [], {'related_name': "'photo_rankings'", 'unique': 'True', 'to': "orm['auth.User']"}),
             'you_back_in_time_year_1': ('jsonfield.fields.JSONField', [], {'default': '[]', 'max_length': '100000'}),
             'you_back_in_time_year_2': ('jsonfield.fields.JSONField', [], {'default': '[]', 'max_length': '100000'}),
             'you_back_in_time_year_3': ('jsonfield.fields.JSONField', [], {'default': '[]', 'max_length': '100000'}),
             'you_back_in_time_year_4': ('jsonfield.fields.JSONField', [], {'default': '[]', 'max_length': '100000'}),
             'you_back_in_time_year_5': ('jsonfield.fields.JSONField', [], {'default': '[]', 'max_length': '100000'}),
             'you_back_in_time_year_6': ('jsonfield.fields.JSONField', [], {'default': '[]', 'max_length': '100000'}),
-            'you_back_in_time_year_7': ('jsonfield.fields.JSONField', [], {'default': '[]', 'max_length': '100000'}),
-            'you_back_in_time_year_8': ('jsonfield.fields.JSONField', [], {'default': '[]', 'max_length': '100000'})
+            'you_back_in_time_year_7': ('jsonfield.fields.JSONField', [], {'default': '[]', 'max_length': '100000'})
         },
         'backend.yearbook': {
             'Meta': {'object_name': 'Yearbook'},
@@ -320,7 +146,7 @@ class Migration(SchemaMigration):
             'group_photo_3': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '0'}),
             'group_photo_4': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '0'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'owner': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'yearbooks'", 'to': "orm['auth.User']"}),
+            'owner': ('django.db.models.fields.related.OneToOneField', [], {'related_name': "'yearbooks'", 'unique': 'True', 'to': "orm['auth.User']"}),
             'second_half_photo_1': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '0'}),
             'second_half_photo_2': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '0'}),
             'second_half_photo_3': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '0'}),

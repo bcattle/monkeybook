@@ -118,6 +118,7 @@ class FQLTask(Task):
         Allow ourselves to run a task in isolation
         instantiate a dummy pipeline and run it
         """
+        self.user = user
 #        if hasattr(self, 'depends_on') and self.depends_on:
 #            raise Exception('Can\'t run task standalone if it has dependencies')
 

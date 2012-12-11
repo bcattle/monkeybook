@@ -1,6 +1,9 @@
 import logging
 from django.db import models
+from django.db.models.signals import post_syncdb
+from django.dispatch.dispatcher import receiver
 from jsonfield.fields import JSONField
+from south.signals import post_migrate
 from voomza.apps.backend.managers import FacebookPhotoManager
 
 logger = logging.getLogger(__name__)
@@ -44,7 +47,6 @@ class PhotoRankings(models.Model):
     you_back_in_time_year_5 = JSONField(default=[], max_length=100000)
     you_back_in_time_year_6 = JSONField(default=[], max_length=100000)
     you_back_in_time_year_7 = JSONField(default=[], max_length=100000)
-    you_back_in_time_year_8 = JSONField(default=[], max_length=100000)
 #    group_back_in_time_year_1 = JSONField(default=[], max_length=100000)
 #    group_back_in_time_year_2 = JSONField(default=[], max_length=100000)
 #    group_back_in_time_year_3 = JSONField(default=[], max_length=100000)
@@ -52,7 +54,6 @@ class PhotoRankings(models.Model):
 #    group_back_in_time_year_5 = JSONField(default=[], max_length=100000)
 #    group_back_in_time_year_6 = JSONField(default=[], max_length=100000)
 #    group_back_in_time_year_7 = JSONField(default=[], max_length=100000)
-#    group_back_in_time_year_8 = JSONField(default=[], max_length=100000)
     # Albums
     top_albums = JSONField(default=[], max_length=100000)
     # Show up to 5 friends (if no family or gfbf)
@@ -61,6 +62,9 @@ class PhotoRankings(models.Model):
 #    top_friend_3 = JSONField(default=[], max_length=100000)
 #    top_friend_4 = JSONField(default=[], max_length=100000)
 #    top_friend_5 = JSONField(default=[], max_length=100000)
+    # Posts
+    top_post = JSONField(default=[], max_length=100000)
+    birthday_posts = JSONField(default=[], max_length=100000)
 
 
 
@@ -154,3 +158,16 @@ class MinibookRankings(models.Model):
     your_photos = JSONField(default=[], max_length=100000)
     # Should both of these be in the same table?
 
+
+
+
+@receiver(post_syncdb, dispatch_uid='backend.models')
+@receiver(post_migrate, dispatch_uid='backend.models')
+def set_table_row_format(**kwargs):
+    from django.conf import settings
+    if settings.DATABASES['default']['ENGINE'] == 'django.db.backends.mysql':
+        # Set ROW_FORMAT=DYNAMIC to allow longer rows
+        from django.db import connection, transaction
+        cursor = connection.cursor()
+        cursor.execute('ALTER TABLE `%s` ROW_FORMAT=DYNAMIC' % PhotoRankings._meta.db_table)
+        transaction.commit_unless_managed()

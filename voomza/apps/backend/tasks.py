@@ -13,10 +13,27 @@ logger = logging.getLogger(__name__)
 
 
 @task.task()
-def get_photos_by_year(results):
+def get_photos_by_year(results, user):
     # Bucket the photos by year
     max_year, photos_of_me_by_year = results['photos_of_me'].bucket_by_year()
     photos_of_me_this_year = photos_of_me_by_year[max_year]
+
+    # Get the top photos, both halves of the year
+    half_way = datetime.datetime(datetime.datetime.now().year, 6, 29, tzinfo=utc)
+    top_photos_of_me_first_half = photos_of_me_this_year.filter(lambda x: x['created'] < half_way)
+    top_photos_of_me_second_half = photos_of_me_this_year.filter(lambda x: x['created'] >= half_way)
+
+    # Serialize and store
+    rankings = PhotoRankings.objects.get(user=user)
+
+    years = list(sorted(photos_of_me_by_year.keys(), reverse=True))
+    for index, year in enumerate(years[1:NUM_PREV_YEARS + 1]):
+        setattr(rankings, 'you_back_in_time_year_%d' % (index + 1), photos_of_me_by_year[year].order_by('score'))
+
+    rankings.top_photos = photos_of_me_this_year.order_by('score')
+    rankings.top_photos_first_half = top_photos_of_me_first_half.order_by('score')
+    rankings.top_photos_second_half = top_photos_of_me_second_half.order_by('score')
+    rankings.save()
 
     results['photos_of_me_by_year'] = photos_of_me_by_year
     results['photos_of_me_this_year'] = photos_of_me_this_year
@@ -103,6 +120,17 @@ def get_top_albums_photos(results, user):
     task = AlbumPhotosTask([album['id'] for album in results['top_albums']], results['photos_i_like'])
     result = task.run(user)
     top_albums_photos = result['album_photos']
+
+    # Serialize and save
+    top_albums = []
+    for getter in top_albums_photos:
+        top_albums.append([
+            {'id': photo['id'], 'score':photo['score']} for photo in getter.order_by('score')
+        ])
+    rankings = PhotoRankings.objects.get(user=user)
+    rankings.top_albums = top_albums
+    rankings.save()
+
     results['top_albums_photos'] = top_albums_photos
     return results
 
@@ -111,7 +139,7 @@ def get_top_albums_photos(results, user):
 def get_most_tagged_recently(results):
     assert 'tagged_with_me' in results
     this_year = datetime.datetime(datetime.datetime.now().year - 3, 1, 1, tzinfo=utc)
-    tagged_recently = results['tagged_with_me'].filter(
+    tagged_recently = results['tagged_with_me']['tagged_with_me'].filter(
         lambda x: x['created'] > this_year
     )
     results['most_tagged_recently'] = FreqDistResultGetter(
@@ -126,13 +154,18 @@ def get_top_post_of_year(results, user):
     top_post = results['posts_from_year'].order_by('score')[0]
     get_post_task = GetPostTask(top_post['id'])
     top_post = get_post_task.run(user)
+
+    rankings = PhotoRankings.objects.get(user=user)
+    rankings.top_post = top_post
+    rankings.save()
+
     # Return JSON of top post
     results['top_post'] = top_post
     return results
 
 
 @task.task()
-def get_top_friends(results, user):
+def get_top_friends_and_groups(results, user):
     """
     This takes input from PhotosOfMe and
     TaggedWithMe, TaggedWithThisYear, and TopPostersFromYear
@@ -144,7 +177,7 @@ def get_top_friends(results, user):
     results = merge_dicts(*results)
 
     on_photos_of_me = group([
-        get_photos_by_year.subtask((results,)) |
+        get_photos_by_year.subtask((results,user,)) |
         get_top_albums.subtask((user,)) |
         get_top_albums_photos.subtask((user,))
     ])
@@ -159,24 +192,32 @@ def get_top_friends(results, user):
 
     # For each top friend, pull the photos they are tagged in
     # (in top friends order)
-    # Just do them all since it doesn't involve
-    # another round trip to the server
+    # Just do them all since it doesn't involve another round trip to the server
+    # Top friend photos are stored in a *list* so the order is known
     top_friend_photos = []
     for friend in top_friends.order_by('count'):
-        friend_photos = [tag for tag in results['tagged_with_me'].fields
+        friend_photos = [tag for tag in results['tagged_with_me']['tagged_with_me'].fields
                          if tag['subject']==friend['id']]
         if len(friend_photos) > TOP_FRIEND_MIN_PHOTOS:
             top_friend_photos.append(friend_photos)
 
-    # Top friend photos are stored in a *list* so the order is known
-    # From now on we refer to them by index, not id
-    # Serialize the list
+    # For each group photo, grab its score from 'photos_of_me'
+    group_photos = []
+    for group_photo in results['tagged_with_me']['group_photos'].fields:
+        group_photo_id = group_photo['id']
+        if group_photo_id in results['photos_of_me'].fields_by_id:
+            group_photos.append(results['photos_of_me'].fields_by_id[group_photo_id])
+        else:
+            logger.warn('Recieved a group photo %s that wasn\'t in \'photos_of_me\'. Odd.' % group_photo_id )
+    # Sort by score
+    group_photos.sort(key=lambda x: x['score'], reverse=True)
+
+
+    # Serialize the lists
     rankings = PhotoRankings.objects.get(user=user)
     rankings.top_friends = top_friend_photos
+    rankings.group_shots = group_photos
     rankings.save()
-
-    import ipdb
-    ipdb.set_trace()
 
     results['top_friends'] = top_friend_photos
     results['on_photos_of_me_async'] = on_photos_of_me_async
@@ -185,9 +226,8 @@ def get_top_friends(results, user):
 
 @task.task()
 def run_yearbook(user):
-    # Create db models
-    rankings = PhotoRankings(user=user)
-    rankings.save()
+    # Create db model if needed
+    rankings = PhotoRankings.objects.get_or_create(user=user)
 
     # Fire all tasks
     job = group([
@@ -197,15 +237,13 @@ def run_yearbook(user):
             rt.subtask(kwargs={'task_cls': TaggedWithMeTask, 'user_id': user.id}) |
                 get_most_tagged_recently.subtask(),
             rt.subtask(kwargs={'task_cls': TopPostersFromYearTask, 'user_id': user.id}),
-        ]) | get_top_friends.subtask((user,)),
-#
-#        rt.subtask(kwargs={'task_cls': GroupShotsTask, 'user_id': user.id}),
-#
-#        rt.subtask(kwargs={'task_cls': PostsFromYearTask, 'user_id': user.id}) |
-#            get_top_post_of_year.subtask((user, )),
-#
-#        rt.subtask(kwargs={'task_cls': BirthdayPostsTask, 'user_id': user.id,
-#                           'init_args': {'birthday': user.profile.date_of_birth}}),
+        ]) | get_top_friends_and_groups.subtask((user,)),
+
+        rt.subtask(kwargs={'task_cls': PostsFromYearTask, 'user_id': user.id}) |
+            get_top_post_of_year.subtask((user, )),
+
+        rt.subtask(kwargs={'task_cls': BirthdayPostsTask, 'user_id': user.id,
+                           'init_args': {'birthday': user.profile.date_of_birth}}),
     ])
     job_async = job.apply_async()
 
@@ -222,87 +260,4 @@ def run_yearbook(user):
     # Assign photos to the Yearbook
 #    yb = Yearbook(user=user)
 
-
     pass
-
-
-def run_yearbook2(user):
-    # Get top albums, then pull their photos
-    top_albums_async = (
-        get_top_albums.subtask((user, photos_of_me_by_year, )) |
-        get_top_albums_photos.subtask((user, results['photos_i_like']))
-    ).apply_async()
-#    next_albums, top_albums = get_top_albums(user, photos_of_me_by_year)
-
-    # Get the top photos, both halves of the year
-    half_way = datetime.datetime(datetime.datetime.now().year, 6, 29, tzinfo=utc)
-    top_photos_of_me_first_half = photos_of_me_this_year.filter(lambda x: x['created'] < half_way).order_by('score')
-    top_photos_of_me_second_half = photos_of_me_this_year.filter(lambda x: x['created'] >= half_way).order_by('score')
-
-
-    # Pull family photos out of 'tagged_with_me'
-    tagged_with_me = results['tagged_with_me'].order_by('score')
-    family_ids = {family_member['facebook_id'] for family_member in user.family.values('facebook_id')}
-    family_photos = []
-    if family_ids:
-        family_photos = [
-            photo['object_id'] for photo in tagged_with_me
-                if photo['subject'] in family_ids
-        ]
-
-    # Pull gf/bf photos out of 'tagged_with_me'
-    gf_bf_photos = []
-    if user.profile.significant_other_id:
-        gf_bf_photos = [
-            photo['object_id'] for photo in tagged_with_me
-                if photo['subject'] == user.profile.significant_other_id
-        ]
-
-    # Top photos back in time
-    # photos_of_me_by_year[year].order_by('score')
-
-    ## Later: Look for same groups back in time
-
-    # Top post of the year
-    # results['posts_from_year'].order_by('score')[0
-
-    # Pull the top post
-    top_post_task = GetPostTask(post_id=results['posts_from_year'].order_by('score')[0]['id'])
-    top_post_json = top_post_task.run(user)
-
-    # Birthday comments
-    birthday_posts_task = BirthdayPostsTask(user.profile.date_of_birth)
-    birthday_posts_json = birthday_posts_task.run(user)
-
-    # Top friends
-
-    import ipdb
-    ipdb.set_trace()
-
-
-    # Grab any derivative tasks
-    if top_albums_async.ready():
-        top_albums_photos, top_albums, next_albums = top_albums_async.get()
-        # Top albums photos     is a list of getters, 1 per album
-        # Top albums            is a list of dicts with id, owner, name, size
-        # Next albums           is a list of dicts with id, count
-    else:
-        logger.error('Top albums task failed to complete, skipping')
-
-
-    # Save the photos to the db
-
-
-    # Build the tables of photo ids
-    rankings = PhotoRankings(user=user)
-    # These are serialized lists of photo ids
-    rankings.family_with = family_photos
-    rankings.gfbf_with = gf_bf_photos
-
-    # Need to do a join on `score` in results['photos_of_me'].fields_by_id[ ]
-    rankings.group_shots = results['group_shots'].order_by
-
-    # Save everything to the db
-    pass
-
-

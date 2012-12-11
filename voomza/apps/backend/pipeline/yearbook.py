@@ -1,5 +1,6 @@
 import logging, datetime, calendar
 from pytz import utc
+from voomza.apps.backend.models import PhotoRankings
 from voomza.apps.backend.pipeline import FQLTask, FqlTaskPipeline
 from voomza.apps.backend.getter import process_photo_results, FreqDistResultGetter, ResultGetter
 from voomza.apps.backend.settings import *
@@ -66,6 +67,7 @@ class PhotosOfMeTask(FQLTask):
         return getter
 
 
+
 class TaggedWithMeTask(FQLTask):
     """
     Returns all of the tags of all photos I am in
@@ -94,22 +96,54 @@ class TaggedWithMeTask(FQLTask):
             timestamps=['created'],
         )
         logger.info('Got %d tags with user' % len(getter))
-        return getter
 
-
-class GroupShotsTask(FQLTask):
-    """
-    Gets all other people tagged in photos I'm in
-    """
-    fql = '''
-        SELECT object_id FROM photo_tag WHERE object_id IN
-           (SELECT object_id FROM photo_tag WHERE subject=me())
-        AND subject!=me()
-    '''
-
-    def on_results(self, results):
+        # Pull the group photos
+        # Do collapse on object_id here
         group_photos = FreqDistResultGetter(results, cutoff=GROUP_PHOTO_IS)
-        return group_photos
+
+        # Save the `family_with` and `gf_bf_with` fields
+        # Pull family photos out of 'tagged_with_me'
+        tagged_with_me = getter.order_by('score')
+        family_ids = {family_member['facebook_id'] for family_member in self.user.family.values('facebook_id')}
+        family_photos = []
+        if family_ids:
+            family_photos = [
+                photo['object_id'] for photo in tagged_with_me
+                if photo['subject'] in family_ids
+            ]
+
+        # Pull gf/bf photos out of 'tagged_with_me'
+        gf_bf_photos = []
+        if self.user.profile.significant_other_id:
+            gf_bf_photos = [
+                photo['object_id'] for photo in tagged_with_me
+                if photo['subject'] == self.user.profile.significant_other_id
+            ]
+
+        ranking = PhotoRankings.objects.get(user=self.user)
+        ranking.family_with = family_photos
+        ranking.gfbf_with = gf_bf_photos
+        ranking.save()
+
+        return {
+            'tagged_with_me': getter,
+            'group_photos': group_photos
+        }
+
+
+#class GroupShotsTask(FQLTask):
+#    """
+#    Gets all other people tagged in photos I'm in
+#    """
+#    fql = '''
+#        SELECT object_id FROM photo_tag WHERE object_id IN
+#           (SELECT object_id FROM photo_tag WHERE subject=me())
+#        AND subject!=me()
+#    '''
+#
+#    def on_results(self, results):
+#        group_photos = FreqDistResultGetter(results, cutoff=GROUP_PHOTO_IS)
+#        return group_photos
 
 
 # NOT NEEDED
@@ -207,6 +241,10 @@ class BirthdayPostsTask(FQLTask):
         super(BirthdayPostsTask, self).__init__(name)
 
     def on_results(self, results):
+        rankings = PhotoRankings.objects.get(user=self.user)
+        rankings.birthday_posts = results
+        rankings.save()
+
         return results
 
 
@@ -296,21 +334,3 @@ class AlbumPhotosTask(FQLTask):
             for query_results in results
         ]
 
-
-## PIPELINE
-
-#class YearbookTaskPipeline(FqlTaskPipeline):
-#    class Meta:
-#        tasks = [
-#            PhotosILikeTask(),
-#            PhotosOfMeTask(),
-#            TaggedWithMeTask(),
-#            GroupShotsTask(),
-#            PostsFromYearTask(),
-#            TopPostersFromYearTask(),
-#            TaggedWithThisYearTask(),
-#        ]
-#
-#    def __init__(self, user):
-#        super(YearbookTaskPipeline, self).__init__(user)
-#

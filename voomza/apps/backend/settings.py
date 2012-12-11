@@ -17,3 +17,5 @@ POST_COMMENT_POINTS     = 1
 POST_LIKE_POINTS        = 1
 
 TOP_FRIEND_MIN_PHOTOS   = 1     # If a person has fewer than this many photos, they are dsq
+
+NUM_PREV_YEARS          = 7     # 2011-2005

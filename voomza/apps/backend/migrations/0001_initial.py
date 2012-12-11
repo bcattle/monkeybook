@@ -22,11 +22,9 @@ class Migration(SchemaMigration):
         # Adding model 'PhotoRankings'
         db.create_table('backend_photorankings', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('user', self.gf('django.db.models.fields.related.ForeignKey')(related_name='photo_rankings', to=orm['auth.User'])),
+            ('user', self.gf('django.db.models.fields.related.OneToOneField')(related_name='photo_rankings', unique=True, to=orm['auth.User'])),
             ('family_with', self.gf('jsonfield.fields.JSONField')(default=[], max_length=100000)),
-            ('family_alone', self.gf('jsonfield.fields.JSONField')(default=[], max_length=100000)),
             ('gfbf_with', self.gf('jsonfield.fields.JSONField')(default=[], max_length=100000)),
-            ('gfbf_alone', self.gf('jsonfield.fields.JSONField')(default=[], max_length=100000)),
             ('group_shots', self.gf('jsonfield.fields.JSONField')(default=[], max_length=100000)),
             ('top_photos', self.gf('jsonfield.fields.JSONField')(default=[], max_length=100000)),
             ('top_photos_first_half', self.gf('jsonfield.fields.JSONField')(default=[], max_length=100000)),
@@ -39,27 +37,15 @@ class Migration(SchemaMigration):
             ('you_back_in_time_year_6', self.gf('jsonfield.fields.JSONField')(default=[], max_length=100000)),
             ('you_back_in_time_year_7', self.gf('jsonfield.fields.JSONField')(default=[], max_length=100000)),
             ('you_back_in_time_year_8', self.gf('jsonfield.fields.JSONField')(default=[], max_length=100000)),
-            ('group_back_in_time_year_1', self.gf('jsonfield.fields.JSONField')(default=[], max_length=100000)),
-            ('group_back_in_time_year_2', self.gf('jsonfield.fields.JSONField')(default=[], max_length=100000)),
-            ('group_back_in_time_year_3', self.gf('jsonfield.fields.JSONField')(default=[], max_length=100000)),
-            ('group_back_in_time_year_4', self.gf('jsonfield.fields.JSONField')(default=[], max_length=100000)),
-            ('group_back_in_time_year_5', self.gf('jsonfield.fields.JSONField')(default=[], max_length=100000)),
-            ('group_back_in_time_year_6', self.gf('jsonfield.fields.JSONField')(default=[], max_length=100000)),
-            ('group_back_in_time_year_7', self.gf('jsonfield.fields.JSONField')(default=[], max_length=100000)),
-            ('group_back_in_time_year_8', self.gf('jsonfield.fields.JSONField')(default=[], max_length=100000)),
             ('top_albums', self.gf('jsonfield.fields.JSONField')(default=[], max_length=100000)),
-            ('top_friend_1', self.gf('jsonfield.fields.JSONField')(default=[], max_length=100000)),
-            ('top_friend_2', self.gf('jsonfield.fields.JSONField')(default=[], max_length=100000)),
-            ('top_friend_3', self.gf('jsonfield.fields.JSONField')(default=[], max_length=100000)),
-            ('top_friend_4', self.gf('jsonfield.fields.JSONField')(default=[], max_length=100000)),
-            ('top_friend_5', self.gf('jsonfield.fields.JSONField')(default=[], max_length=100000)),
+            ('top_friends', self.gf('jsonfield.fields.JSONField')(default=[], max_length=100000)),
         ))
         db.send_create_signal('backend', ['PhotoRankings'])
 
         # Adding model 'Yearbook'
         db.create_table('backend_yearbook', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('owner', self.gf('django.db.models.fields.related.ForeignKey')(related_name='yearbooks', to=orm['auth.User'])),
+            ('owner', self.gf('django.db.models.fields.related.OneToOneField')(related_name='yearbooks', unique=True, to=orm['auth.User'])),
             ('family_photo_1', self.gf('django.db.models.fields.PositiveSmallIntegerField')(default=0)),
             ('family_photo_2', self.gf('django.db.models.fields.PositiveSmallIntegerField')(default=0)),
             ('family_photo_3', self.gf('django.db.models.fields.PositiveSmallIntegerField')(default=0)),
@@ -102,18 +88,22 @@ class Migration(SchemaMigration):
             ('top_album_3_photo_2', self.gf('django.db.models.fields.PositiveSmallIntegerField')(default=0)),
             ('top_album_3_photo_3', self.gf('django.db.models.fields.PositiveSmallIntegerField')(default=0)),
             ('top_album_3_photo_4', self.gf('django.db.models.fields.PositiveSmallIntegerField')(default=0)),
+            ('top_friend_1', self.gf('django.db.models.fields.PositiveSmallIntegerField')(default=0)),
             ('top_friend_1_photo_1', self.gf('django.db.models.fields.PositiveSmallIntegerField')(default=0)),
             ('top_friend_1_photo_2', self.gf('django.db.models.fields.PositiveSmallIntegerField')(default=0)),
             ('top_friend_1_photo_3', self.gf('django.db.models.fields.PositiveSmallIntegerField')(default=0)),
-            ('top_friend_2_photo_1', self.gf('django.db.models.fields.PositiveSmallIntegerField')(default=0)),
+            ('top_friend_2', self.gf('django.db.models.fields.PositiveSmallIntegerField')(default=0)),
             ('top_friend_2_photo_2', self.gf('django.db.models.fields.PositiveSmallIntegerField')(default=0)),
             ('top_friend_2_photo_3', self.gf('django.db.models.fields.PositiveSmallIntegerField')(default=0)),
+            ('top_friend_3', self.gf('django.db.models.fields.PositiveSmallIntegerField')(default=0)),
             ('top_friend_3_photo_1', self.gf('django.db.models.fields.PositiveSmallIntegerField')(default=0)),
             ('top_friend_3_photo_2', self.gf('django.db.models.fields.PositiveSmallIntegerField')(default=0)),
             ('top_friend_3_photo_3', self.gf('django.db.models.fields.PositiveSmallIntegerField')(default=0)),
+            ('top_friend_4', self.gf('django.db.models.fields.PositiveSmallIntegerField')(default=0)),
             ('top_friend_4_photo_1', self.gf('django.db.models.fields.PositiveSmallIntegerField')(default=0)),
             ('top_friend_4_photo_2', self.gf('django.db.models.fields.PositiveSmallIntegerField')(default=0)),
             ('top_friend_4_photo_3', self.gf('django.db.models.fields.PositiveSmallIntegerField')(default=0)),
+            ('top_friend_5', self.gf('django.db.models.fields.PositiveSmallIntegerField')(default=0)),
             ('top_friend_5_photo_1', self.gf('django.db.models.fields.PositiveSmallIntegerField')(default=0)),
             ('top_friend_5_photo_2', self.gf('django.db.models.fields.PositiveSmallIntegerField')(default=0)),
             ('top_friend_5_photo_3', self.gf('django.db.models.fields.PositiveSmallIntegerField')(default=0)),
@@ -141,26 +131,6 @@ class Migration(SchemaMigration):
         ))
         db.send_create_signal('backend', ['MinibookRankings'])
 
-        # Adding model 'TopFriendStat'
-        db.create_table('backend_topfriendstat', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('user', self.gf('django.db.models.fields.related.ForeignKey')(related_name='top_friend_stats', to=orm['auth.User'])),
-            ('friend_id', self.gf('django.db.models.fields.BigIntegerField')()),
-            ('tagged_with', self.gf('django.db.models.fields.PositiveSmallIntegerField')(null=True)),
-            ('you_posts_to', self.gf('django.db.models.fields.PositiveSmallIntegerField')(null=True)),
-            ('you_photos_liked', self.gf('django.db.models.fields.PositiveSmallIntegerField')(null=True)),
-            ('you_links_liked', self.gf('django.db.models.fields.PositiveSmallIntegerField')(null=True)),
-            ('you_statuses_liked', self.gf('django.db.models.fields.PositiveSmallIntegerField')(null=True)),
-            ('them_posts_to', self.gf('django.db.models.fields.PositiveSmallIntegerField')(null=True)),
-            ('them_comment_to_photo', self.gf('django.db.models.fields.PositiveSmallIntegerField')(null=True)),
-            ('them_comment_to_link', self.gf('django.db.models.fields.PositiveSmallIntegerField')(null=True)),
-            ('them_comment_to_status', self.gf('django.db.models.fields.PositiveSmallIntegerField')(null=True)),
-            ('them_like_photo', self.gf('django.db.models.fields.PositiveSmallIntegerField')(null=True)),
-            ('them_like_link', self.gf('django.db.models.fields.PositiveSmallIntegerField')(null=True)),
-            ('them_like_status', self.gf('django.db.models.fields.PositiveSmallIntegerField')(null=True)),
-        ))
-        db.send_create_signal('backend', ['TopFriendStat'])
-
 
     def backwards(self, orm):
         # Deleting model 'FacebookPhoto'
@@ -177,9 +147,6 @@ class Migration(SchemaMigration):
 
         # Deleting model 'MinibookRankings'
         db.delete_table('backend_minibookrankings')
-
-        # Deleting model 'TopFriendStat'
-        db.delete_table('backend_topfriendstat')
 
 
     models = {
@@ -247,30 +214,16 @@ class Migration(SchemaMigration):
         },
         'backend.photorankings': {
             'Meta': {'object_name': 'PhotoRankings'},
-            'family_alone': ('jsonfield.fields.JSONField', [], {'default': '[]', 'max_length': '100000'}),
             'family_with': ('jsonfield.fields.JSONField', [], {'default': '[]', 'max_length': '100000'}),
-            'gfbf_alone': ('jsonfield.fields.JSONField', [], {'default': '[]', 'max_length': '100000'}),
             'gfbf_with': ('jsonfield.fields.JSONField', [], {'default': '[]', 'max_length': '100000'}),
-            'group_back_in_time_year_1': ('jsonfield.fields.JSONField', [], {'default': '[]', 'max_length': '100000'}),
-            'group_back_in_time_year_2': ('jsonfield.fields.JSONField', [], {'default': '[]', 'max_length': '100000'}),
-            'group_back_in_time_year_3': ('jsonfield.fields.JSONField', [], {'default': '[]', 'max_length': '100000'}),
-            'group_back_in_time_year_4': ('jsonfield.fields.JSONField', [], {'default': '[]', 'max_length': '100000'}),
-            'group_back_in_time_year_5': ('jsonfield.fields.JSONField', [], {'default': '[]', 'max_length': '100000'}),
-            'group_back_in_time_year_6': ('jsonfield.fields.JSONField', [], {'default': '[]', 'max_length': '100000'}),
-            'group_back_in_time_year_7': ('jsonfield.fields.JSONField', [], {'default': '[]', 'max_length': '100000'}),
-            'group_back_in_time_year_8': ('jsonfield.fields.JSONField', [], {'default': '[]', 'max_length': '100000'}),
             'group_shots': ('jsonfield.fields.JSONField', [], {'default': '[]', 'max_length': '100000'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'top_albums': ('jsonfield.fields.JSONField', [], {'default': '[]', 'max_length': '100000'}),
-            'top_friend_1': ('jsonfield.fields.JSONField', [], {'default': '[]', 'max_length': '100000'}),
-            'top_friend_2': ('jsonfield.fields.JSONField', [], {'default': '[]', 'max_length': '100000'}),
-            'top_friend_3': ('jsonfield.fields.JSONField', [], {'default': '[]', 'max_length': '100000'}),
-            'top_friend_4': ('jsonfield.fields.JSONField', [], {'default': '[]', 'max_length': '100000'}),
-            'top_friend_5': ('jsonfield.fields.JSONField', [], {'default': '[]', 'max_length': '100000'}),
+            'top_friends': ('jsonfield.fields.JSONField', [], {'default': '[]', 'max_length': '100000'}),
             'top_photos': ('jsonfield.fields.JSONField', [], {'default': '[]', 'max_length': '100000'}),
             'top_photos_first_half': ('jsonfield.fields.JSONField', [], {'default': '[]', 'max_length': '100000'}),
             'top_photos_second_half': ('jsonfield.fields.JSONField', [], {'default': '[]', 'max_length': '100000'}),
-            'user': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'photo_rankings'", 'to': "orm['auth.User']"}),
+            'user': ('django.db.models.fields.related.OneToOneField', [], {'related_name': "'photo_rankings'", 'unique': 'True', 'to': "orm['auth.User']"}),
             'you_back_in_time_year_1': ('jsonfield.fields.JSONField', [], {'default': '[]', 'max_length': '100000'}),
             'you_back_in_time_year_2': ('jsonfield.fields.JSONField', [], {'default': '[]', 'max_length': '100000'}),
             'you_back_in_time_year_3': ('jsonfield.fields.JSONField', [], {'default': '[]', 'max_length': '100000'}),
@@ -279,24 +232,6 @@ class Migration(SchemaMigration):
             'you_back_in_time_year_6': ('jsonfield.fields.JSONField', [], {'default': '[]', 'max_length': '100000'}),
             'you_back_in_time_year_7': ('jsonfield.fields.JSONField', [], {'default': '[]', 'max_length': '100000'}),
             'you_back_in_time_year_8': ('jsonfield.fields.JSONField', [], {'default': '[]', 'max_length': '100000'})
-        },
-        'backend.topfriendstat': {
-            'Meta': {'object_name': 'TopFriendStat'},
-            'friend_id': ('django.db.models.fields.BigIntegerField', [], {}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'tagged_with': ('django.db.models.fields.PositiveSmallIntegerField', [], {'null': 'True'}),
-            'them_comment_to_link': ('django.db.models.fields.PositiveSmallIntegerField', [], {'null': 'True'}),
-            'them_comment_to_photo': ('django.db.models.fields.PositiveSmallIntegerField', [], {'null': 'True'}),
-            'them_comment_to_status': ('django.db.models.fields.PositiveSmallIntegerField', [], {'null': 'True'}),
-            'them_like_link': ('django.db.models.fields.PositiveSmallIntegerField', [], {'null': 'True'}),
-            'them_like_photo': ('django.db.models.fields.PositiveSmallIntegerField', [], {'null': 'True'}),
-            'them_like_status': ('django.db.models.fields.PositiveSmallIntegerField', [], {'null': 'True'}),
-            'them_posts_to': ('django.db.models.fields.PositiveSmallIntegerField', [], {'null': 'True'}),
-            'user': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'top_friend_stats'", 'to': "orm['auth.User']"}),
-            'you_links_liked': ('django.db.models.fields.PositiveSmallIntegerField', [], {'null': 'True'}),
-            'you_photos_liked': ('django.db.models.fields.PositiveSmallIntegerField', [], {'null': 'True'}),
-            'you_posts_to': ('django.db.models.fields.PositiveSmallIntegerField', [], {'null': 'True'}),
-            'you_statuses_liked': ('django.db.models.fields.PositiveSmallIntegerField', [], {'null': 'True'})
         },
         'backend.yearbook': {
             'Meta': {'object_name': 'Yearbook'},
@@ -324,7 +259,7 @@ class Migration(SchemaMigration):
             'group_photo_3': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '0'}),
             'group_photo_4': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '0'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'owner': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'yearbooks'", 'to': "orm['auth.User']"}),
+            'owner': ('django.db.models.fields.related.OneToOneField', [], {'related_name': "'yearbooks'", 'unique': 'True', 'to': "orm['auth.User']"}),
             'second_half_photo_1': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '0'}),
             'second_half_photo_2': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '0'}),
             'second_half_photo_3': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '0'}),
@@ -343,18 +278,22 @@ class Migration(SchemaMigration):
             'top_album_3_photo_2': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '0'}),
             'top_album_3_photo_3': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '0'}),
             'top_album_3_photo_4': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '0'}),
+            'top_friend_1': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '0'}),
             'top_friend_1_photo_1': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '0'}),
             'top_friend_1_photo_2': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '0'}),
             'top_friend_1_photo_3': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '0'}),
-            'top_friend_2_photo_1': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '0'}),
+            'top_friend_2': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '0'}),
             'top_friend_2_photo_2': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '0'}),
             'top_friend_2_photo_3': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '0'}),
+            'top_friend_3': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '0'}),
             'top_friend_3_photo_1': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '0'}),
             'top_friend_3_photo_2': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '0'}),
             'top_friend_3_photo_3': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '0'}),
+            'top_friend_4': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '0'}),
             'top_friend_4_photo_1': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '0'}),
             'top_friend_4_photo_2': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '0'}),
             'top_friend_4_photo_3': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '0'}),
+            'top_friend_5': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '0'}),
             'top_friend_5_photo_1': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '0'}),
             'top_friend_5_photo_2': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '0'}),
             'top_friend_5_photo_3': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '0'}),
