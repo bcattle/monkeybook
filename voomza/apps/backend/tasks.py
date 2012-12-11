@@ -115,20 +115,40 @@ def get_top_albums(results, user):
 def get_top_albums_photos(results, user):
     assert 'top_albums' in results
     assert 'photos_i_like' in results
+    assert 'photos_of_me' in results
 
     # Pull photos for the top albums
-    task = AlbumPhotosTask([album['id'] for album in results['top_albums']], results['photos_i_like'])
+    task = AlbumPhotosTask(
+        [album['id'] for album in results['top_albums']],
+        results['photos_i_like']
+    )
     result = task.run(user)
     top_albums_photos = result['album_photos']
 
-    # Serialize and save
-    top_albums = []
-    for getter in top_albums_photos:
-        top_albums.append([
-            {'id': photo['id'], 'score':photo['score']} for photo in getter.order_by('score')
-        ])
+    albums_by_score = [
+        [
+            {'id': photo['id'], 'score':photo['score']}
+            for photo in getter.order_by('score')
+        ] for getter in top_albums_photos
+    ]
+
+    # Boost highest-scoring photos *of user* in album to front
+    for album in albums_by_score:
+        found_photos = 0
+        for photo_index in range(len(album)):
+            if album[photo_index]['id'] in results['photos_of_me'].ids:
+                # Move it to the front
+                photo = album.pop(photo_index)
+                album.insert(0, photo)
+                photo_index += 1
+                found_photos += 1
+                if found_photos >= PICS_OF_USER_TO_PROMOTE:
+                    break
+
+
+    # Save ranked photos
     rankings = PhotoRankings.objects.get(user=user)
-    rankings.top_albums = top_albums
+    rankings.top_albums = albums_by_score
     rankings.save()
 
     results['top_albums_photos'] = top_albums_photos
@@ -208,7 +228,7 @@ def get_top_friends_and_groups(results, user):
         if group_photo_id in results['photos_of_me'].fields_by_id:
             group_photos.append(results['photos_of_me'].fields_by_id[group_photo_id])
         else:
-            logger.warn('Recieved a group photo %s that wasn\'t in \'photos_of_me\'. Odd.' % group_photo_id )
+            logger.warn('Received a group photo %s that wasn\'t in \'photos_of_me\'. Odd.' % group_photo_id )
     # Sort by score
     group_photos.sort(key=lambda x: x['score'], reverse=True)
 
@@ -227,7 +247,7 @@ def get_top_friends_and_groups(results, user):
 @task.task()
 def run_yearbook(user):
     # Create db model if needed
-    rankings = PhotoRankings.objects.get_or_create(user=user)
+    rankings, created = PhotoRankings.objects.get_or_create(user=user)
 
     # Fire all tasks
     job = group([
@@ -250,14 +270,64 @@ def run_yearbook(user):
     # Wait for everything to finish
     try:
         results = job_async.get()
+        results = merge_dicts(*results)
+        # Wait for the album photos subtask to finish
+        results['on_photos_of_me_async'].get()
     except TimeoutError:
         # TODO handle the timeout
         pass
 
+    # All fields in the db are filled
+    # Need to assign photos to the Yearbook in a way that doesn't cause duplicates
+    yb = Yearbook(owner=user)
+
+    # Grab top_post and birthday_posts from results
     import ipdb
     ipdb.set_trace()
 
-    # Assign photos to the Yearbook
-#    yb = Yearbook(user=user)
+    # We go through the fields and assign the first unused photo to each field
+    yb.top_photo = yb.get_first_unused_photo(rankings.top_photos)
+    if rankings.gfbf_with:
+        yb.gfbf_photo_1 = yb.get_first_unused_photo(rankings.top_photos)
+        yb.gfbf_photo_2 = yb.get_first_unused_photo(rankings.gfbf_with)
+        yb.gfbf_photo_3 = yb.get_first_unused_photo(rankings.gfbf_with)
+        yb.gfbf_photo_4 = yb.get_first_unused_photo(rankings.gfbf_with)
+    if rankings.family_with:
+        yb.family_photo_1 = yb.get_first_unused_photo(rankings.family_with)
+        yb.family_photo_2 = yb.get_first_unused_photo(rankings.family_with)
+        yb.family_photo_3 = yb.get_first_unused_photo(rankings.family_with)
+        yb.family_photo_4 = yb.get_first_unused_photo(rankings.family_with)
+    yb.group_photo_1 = yb.get_first_unused_photo(rankings.group_shots)
+    yb.group_photo_2 = yb.get_first_unused_photo(rankings.group_shots)
+    yb.group_photo_3 = yb.get_first_unused_photo(rankings.group_shots)
+    yb.group_photo_4 = yb.get_first_unused_photo(rankings.group_shots)
+    yb.first_half_photo_1 = yb.get_first_unused_photo(rankings.top_photos_first_half)
+    yb.first_half_photo_2 = yb.get_first_unused_photo(rankings.top_photos_first_half)
+    yb.first_half_photo_3 = yb.get_first_unused_photo(rankings.top_photos_first_half)
+    yb.second_half_photo_1 = yb.get_first_unused_photo(rankings.top_photos_second_half)
+    yb.second_half_photo_2 = yb.get_first_unused_photo(rankings.top_photos_second_half)
+    yb.second_half_photo_3 = yb.get_first_unused_photo(rankings.top_photos_second_half)
+    # Top albums
+    album_photos_to_show = get_top_albums_unused_photos(rankings, yb)
+    # Sort albums by num. photos, if any returned less than 3
+    # We want to see full albums first
+
 
     pass
+
+
+def get_top_albums_unused_photos(photo_rankings, yearbook):
+    pulled_albums = photo_rankings.top_albums[:]
+    albums_to_show = []
+    while pulled_albums:
+        curr_album = pulled_albums.pop(0)
+        unused_photos_this_album = yearbook.get_n_unused_photos(curr_album)
+        if unused_photos_this_album:
+            # If we pulled at least one photo, the album is good
+            albums_to_show.append(unused_photos_this_album)
+        if len(unused_photos_this_album) > NUM_TOP_ALBUMS:
+            return albums_to_show
+
+    # We ran out of albums
+    # pull more from server?
+
