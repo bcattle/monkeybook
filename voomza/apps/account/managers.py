@@ -131,3 +131,6 @@ class FacebookUserManager(fb_FacebookUserManager):
 
     def get_yearbooks_i_didnt_sign(self, user):
         return self.i_havent_signed(self, user)
+
+    def from_id(self, id):
+        return self.get(facebook_id=id)

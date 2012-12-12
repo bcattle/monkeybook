@@ -16,6 +16,7 @@ class FacebookPhoto(models.Model):
     width = models.PositiveIntegerField(default=0)
     fb_url = models.CharField(max_length=200)
     local_url = models.CharField(max_length=200, default='')
+    comments = JSONField(default=0, max_length=100000)
 
     def url(self):
         return self.local_url or self.fb_url
@@ -30,57 +31,23 @@ class PhotoRankings(models.Model):
     """
     user = models.OneToOneField('auth.User', related_name='photo_rankings')
     # Lists of photos for each category
-    family_with = JSONField(default=[], max_length=100000)
-#    family_alone = JSONField(default=[], max_length=100000)
-    gfbf_with = JSONField(default=[], max_length=100000)
-#    gfbf_alone = JSONField(default=[], max_length=100000)
-    group_shots = JSONField(default=[], max_length=100000)
-    top_photos = JSONField(default=[], max_length=100000)
-    top_photos_first_half = JSONField(default=[], max_length=100000)
-    top_photos_second_half = JSONField(default=[], max_length=100000)
-    # This is TBD, will want to see some combination of user and group,
-    # some (most?) of these lists may be empty
-    you_back_in_time_year_1 = JSONField(default=[], max_length=100000)
-    you_back_in_time_year_2 = JSONField(default=[], max_length=100000)
-    you_back_in_time_year_3 = JSONField(default=[], max_length=100000)
-    you_back_in_time_year_4 = JSONField(default=[], max_length=100000)
-    you_back_in_time_year_5 = JSONField(default=[], max_length=100000)
-    you_back_in_time_year_6 = JSONField(default=[], max_length=100000)
-    you_back_in_time_year_7 = JSONField(default=[], max_length=100000)
-#    group_back_in_time_year_1 = JSONField(default=[], max_length=100000)
-#    group_back_in_time_year_2 = JSONField(default=[], max_length=100000)
-#    group_back_in_time_year_3 = JSONField(default=[], max_length=100000)
-#    group_back_in_time_year_4 = JSONField(default=[], max_length=100000)
-#    group_back_in_time_year_5 = JSONField(default=[], max_length=100000)
-#    group_back_in_time_year_6 = JSONField(default=[], max_length=100000)
-#    group_back_in_time_year_7 = JSONField(default=[], max_length=100000)
-    # Albums
-    top_albums = JSONField(default=[], max_length=100000)
-    # Show up to 5 friends (if no family or gfbf)
-    top_friends = JSONField(default=[], max_length=100000)
-#    top_friend_2 = JSONField(default=[], max_length=100000)
-#    top_friend_3 = JSONField(default=[], max_length=100000)
-#    top_friend_4 = JSONField(default=[], max_length=100000)
-#    top_friend_5 = JSONField(default=[], max_length=100000)
+    top_photos = JSONField(default=0, max_length=100000)
+    top_photos_first_half = JSONField(default=0, max_length=100000)
+    top_photos_second_half = JSONField(default=0, max_length=100000)
+    group_shots = JSONField(default=0, max_length=100000)
+    # Top few will be gf/bf or family, if any
+    top_friends = JSONField(default=0, max_length=100000)
+    top_albums = JSONField(default=0, max_length=100000)
+    back_in_time = JSONField(default=0, max_length=100000)
 
 
 class Yearbook(models.Model):
     owner = models.OneToOneField('auth.User', related_name='yearbooks')
     # These indices point to the lists stored in PhotoRanking
-    family_photo_1 = models.PositiveSmallIntegerField(null=True)
-    family_photo_2 = models.PositiveSmallIntegerField(null=True)
-    family_photo_3 = models.PositiveSmallIntegerField(null=True)
-    family_photo_4 = models.PositiveSmallIntegerField(null=True)
-    gfbf_photo_1 = models.PositiveSmallIntegerField(null=True)
-    gfbf_photo_2 = models.PositiveSmallIntegerField(null=True)
-    gfbf_photo_3 = models.PositiveSmallIntegerField(null=True)
-    gfbf_photo_4 = models.PositiveSmallIntegerField(null=True)
-    group_photo_1 = models.PositiveSmallIntegerField(null=True)
-    group_photo_2 = models.PositiveSmallIntegerField(null=True)
-    group_photo_3 = models.PositiveSmallIntegerField(null=True)
-    group_photo_4 = models.PositiveSmallIntegerField(null=True)
+    top_photo_1 = models.PositiveSmallIntegerField(null=True)
+    top_photo_2 = models.PositiveSmallIntegerField(null=True)
+    top_photo_3 = models.PositiveSmallIntegerField(null=True)
 
-    top_photo = models.PositiveSmallIntegerField(null=True)
     first_half_photo_1 = models.PositiveSmallIntegerField(null=True)
     first_half_photo_2 = models.PositiveSmallIntegerField(null=True)
     first_half_photo_3 = models.PositiveSmallIntegerField(null=True)
@@ -88,95 +55,102 @@ class Yearbook(models.Model):
     second_half_photo_2 = models.PositiveSmallIntegerField(null=True)
     second_half_photo_3 = models.PositiveSmallIntegerField(null=True)
 
-    # Could correspond to more than one table
-    back_in_time_photo_1 = models.PositiveSmallIntegerField(null=True)
-    back_in_time_photo_2 = models.PositiveSmallIntegerField(null=True)
-    back_in_time_photo_3 = models.PositiveSmallIntegerField(null=True)
-    back_in_time_photo_4 = models.PositiveSmallIntegerField(null=True)
-    back_in_time_photo_5 = models.PositiveSmallIntegerField(null=True)
-    back_in_time_photo_6 = models.PositiveSmallIntegerField(null=True)
-    back_in_time_photo_7 = models.PositiveSmallIntegerField(null=True)
-    back_in_time_photo_8 = models.PositiveSmallIntegerField(null=True)
+    group_photo_1 = models.PositiveSmallIntegerField(null=True)
+    group_photo_2 = models.PositiveSmallIntegerField(null=True)
+    group_photo_3 = models.PositiveSmallIntegerField(null=True)
+
+    top_friend_1 = models.PositiveSmallIntegerField(null=True)
+    top_friend_1_stat = models.CharField(max_length=100, blank=True)
+    top_friend_1_photo_1 = models.PositiveSmallIntegerField(null=True)
+
+    top_friend_2 = models.PositiveSmallIntegerField(null=True)
+    top_friend_2_stat = models.CharField(max_length=100, blank=True)
+    top_friend_2_photo_1 = models.PositiveSmallIntegerField(null=True)
+
+    top_friend_3 = models.PositiveSmallIntegerField(null=True)
+    top_friend_3_stat = models.CharField(max_length=100, blank=True)
+    top_friend_3_photo_1 = models.PositiveSmallIntegerField(null=True)
+
+    top_friend_4 = models.PositiveSmallIntegerField(null=True)
+    top_friend_4_stat = models.CharField(max_length=100, blank=True)
+    top_friend_4_photo_1 = models.PositiveSmallIntegerField(null=True)
+
+    top_friend_5 = models.PositiveSmallIntegerField(null=True)
+    top_friend_5_stat = models.CharField(max_length=100, blank=True)
+    top_friend_5_photo_1 = models.PositiveSmallIntegerField(null=True)
 
     top_album_1 = models.BigIntegerField(null=True)
     top_album_1_photo_1 = models.PositiveSmallIntegerField(null=True)
     top_album_1_photo_2 = models.PositiveSmallIntegerField(null=True)
     top_album_1_photo_3 = models.PositiveSmallIntegerField(null=True)
     top_album_1_photo_4 = models.PositiveSmallIntegerField(null=True)
+
     top_album_2 = models.BigIntegerField(null=True)
     top_album_2_photo_1 = models.PositiveSmallIntegerField(null=True)
     top_album_2_photo_2 = models.PositiveSmallIntegerField(null=True)
     top_album_2_photo_3 = models.PositiveSmallIntegerField(null=True)
     top_album_2_photo_4 = models.PositiveSmallIntegerField(null=True)
+
     top_album_3 = models.BigIntegerField(null=True)
     top_album_3_photo_1 = models.PositiveSmallIntegerField(null=True)
     top_album_3_photo_2 = models.PositiveSmallIntegerField(null=True)
     top_album_3_photo_3 = models.PositiveSmallIntegerField(null=True)
     top_album_3_photo_4 = models.PositiveSmallIntegerField(null=True)
 
-    top_friend_1 = models.PositiveSmallIntegerField(null=True)
-    top_friend_1_photo_1 = models.PositiveSmallIntegerField(null=True)
-    top_friend_1_photo_2 = models.PositiveSmallIntegerField(null=True)
-    top_friend_1_photo_3 = models.PositiveSmallIntegerField(null=True)
-    top_friend_2 = models.PositiveSmallIntegerField(null=True)
-    top_friend_2_photo_1 = models.PositiveSmallIntegerField(null=True)
-    top_friend_2_photo_2 = models.PositiveSmallIntegerField(null=True)
-    top_friend_2_photo_3 = models.PositiveSmallIntegerField(null=True)
-    top_friend_3 = models.PositiveSmallIntegerField(null=True)
-    top_friend_3_photo_1 = models.PositiveSmallIntegerField(null=True)
-    top_friend_3_photo_2 = models.PositiveSmallIntegerField(null=True)
-    top_friend_3_photo_3 = models.PositiveSmallIntegerField(null=True)
-    top_friend_4 = models.PositiveSmallIntegerField(null=True)
-    top_friend_4_photo_1 = models.PositiveSmallIntegerField(null=True)
-    top_friend_4_photo_2 = models.PositiveSmallIntegerField(null=True)
-    top_friend_4_photo_3 = models.PositiveSmallIntegerField(null=True)
-    top_friend_5 = models.PositiveSmallIntegerField(null=True)
-    top_friend_5_photo_1 = models.PositiveSmallIntegerField(null=True)
-    top_friend_5_photo_2 = models.PositiveSmallIntegerField(null=True)
-    top_friend_5_photo_3 = models.PositiveSmallIntegerField(null=True)
+    # The first field is an index to the year, the second an index to the photo
+    back_in_time_1          = models.PositiveSmallIntegerField(null=True)
+    back_in_time_1_photo_1  = models.PositiveSmallIntegerField(null=True)
+    back_in_time_2          = models.PositiveSmallIntegerField(null=True)
+    back_in_time_2_photo_1  = models.PositiveSmallIntegerField(null=True)
+    back_in_time_3          = models.PositiveSmallIntegerField(null=True)
+    back_in_time_3_photo_1  = models.PositiveSmallIntegerField(null=True)
+    back_in_time_4          = models.PositiveSmallIntegerField(null=True)
+    back_in_time_4_photo_1  = models.PositiveSmallIntegerField(null=True)
+    back_in_time_5          = models.PositiveSmallIntegerField(null=True)
+    back_in_time_5_photo_1  = models.PositiveSmallIntegerField(null=True)
+    back_in_time_6          = models.PositiveSmallIntegerField(null=True)
+    back_in_time_6_photo_1  = models.PositiveSmallIntegerField(null=True)
+    back_in_time_7          = models.PositiveSmallIntegerField(null=True)
+    back_in_time_7_photo_1  = models.PositiveSmallIntegerField(null=True)
 
     # Posts
-    top_post = JSONField(default=[], max_length=100000)
-    birthday_posts = JSONField(default=[], max_length=100000)
+    top_post = JSONField(default=0, max_length=100000)
+    birthday_posts = JSONField(default=0, max_length=100000)
 
 
     # Really, should use this data structure to autogenerate the model
     lists_to_fields = {
-        'family_with': [
-            'family_photo_1', 'family_photo_2', 'family_photo_3', 'family_photo_4'
+        'top_photos': ['top_photo_1', 'top_photo_2', 'top_photo_3'],
+        'top_photos_first_half': [
+            'first_half_photo_1', 'first_half_photo_2', 'first_half_photo_3'
         ],
-        'gfbf_with': ['gfbf_photo_1', 'gfbf_photo_2', 'gfbf_photo_3', 'gfbf_photo_4',],
-        'group_shots': ['group_photo_1', 'group_photo_2', 'group_photo_3', 'group_photo_4'],
-        'top_photos': ['top_photo'],
-        'top_photos_first_half': ['first_half_photo_1', 'first_half_photo_2', 'first_half_photo_3'],
-        'top_photos_second_half': ['second_half_photo_1', 'second_half_photo_2', 'second_half_photo_3'],
-        'you_back_in_time_year_1': ['back_in_time_photo_1'],
-        'you_back_in_time_year_2': ['back_in_time_photo_2'],
-        'you_back_in_time_year_3': ['back_in_time_photo_3'],
-        'you_back_in_time_year_4': ['back_in_time_photo_4'],
-        'you_back_in_time_year_5': ['back_in_time_photo_5'],
-        'you_back_in_time_year_6': ['back_in_time_photo_6'],
-        'you_back_in_time_year_7': ['back_in_time_photo_7'],
-        'top_albums': [
-            'top_album_1_index.top_album_1_photo_1', 'top_album_1_index.top_album_1_photo_2',
-            'top_album_1_index.top_album_1_photo_3', 'top_album_1_index.top_album_1_photo_4',
-            'top_album_2_index.top_album_2_photo_1', 'top_album_2_index.top_album_2_photo_2',
-            'top_album_2_index.top_album_2_photo_3', 'top_album_2_index.top_album_2_photo_4',
-            'top_album_3_index.top_album_3_photo_1', 'top_album_3_index.top_album_3_photo_2',
-            'top_album_3_index.top_album_3_photo_3', 'top_album_3_index.top_album_3_photo_4',
+        'top_photos_second_half': [
+            'second_half_photo_1', 'second_half_photo_2', 'second_half_photo_3'
         ],
+        'group_shots': ['group_photo_1', 'group_photo_2', 'group_photo_3'],
         'top_friends': [
-            'top_friend_1.top_friend_1_photo_1', 'top_friend_1.top_friend_1_photo_2',
-            'top_friend_1.top_friend_1_photo_3',
-            'top_friend_2.top_friend_2_photo_1', 'top_friend_2.top_friend_2_photo_2',
-            'top_friend_2.top_friend_2_photo_3',
-            'top_friend_3.top_friend_3_photo_1', 'top_friend_3.top_friend_3_photo_2',
-            'top_friend_3.top_friend_3_photo_3',
-            # They may or may not have these - doesn't matter, they'll just be empty
-            'top_friend_4.top_friend_4_photo_1', 'top_friend_4.top_friend_4_photo_2',
-            'top_friend_4.top_friend_4_photo_3',
-            'top_friend_5.top_friend_5_photo_1', 'top_friend_5.top_friend_5_photo_2',
-            'top_friend_5.top_friend_5_photo_3',
+            'top_friend_1.top_friend_1_photo_1', 'top_friend_2.top_friend_2_photo_1',
+            'top_friend_3.top_friend_3_photo_1', 'top_friend_4.top_friend_4_photo_1',
+            'top_friend_5.top_friend_5_photo_1',
+        ],
+        'top_albums': [
+            'top_album_1.top_album_1_photo_1', 'top_album_1.top_album_1_photo_2',
+            'top_album_1.top_album_1_photo_3', 'top_album_1.top_album_1_photo_4',
+
+            'top_album_2.top_album_2_photo_1', 'top_album_2.top_album_2_photo_2',
+            'top_album_2.top_album_2_photo_3', 'top_album_2.top_album_2_photo_4',
+
+            'top_album_3.top_album_3_photo_1', 'top_album_3.top_album_3_photo_2',
+            'top_album_3.top_album_3_photo_3', 'top_album_3.top_album_3_photo_4',
+        ],
+        'back_in_time': [
+            'back_in_time_1.back_in_time_1_photo_1',
+            'back_in_time_2.back_in_time_2_photo_1',
+            'back_in_time_3.back_in_time_3_photo_1',
+            'back_in_time_4.back_in_time_4_photo_1',
+            'back_in_time_5.back_in_time_5_photo_1',
+            'back_in_time_6.back_in_time_6_photo_1',
+            'back_in_time_7.back_in_time_7_photo_1',
         ]
     }
 
@@ -203,6 +177,31 @@ class Yearbook(models.Model):
         """
         for index, photo in enumerate(list_of_photos):
             if not self.photo_is_used(photo, used_ids):
+                return index
+        return None
+
+
+    def get_first_unused_photo_landscape(self, list_of_photos, used_ids=None):
+        """
+        Loops through photos in `list_of_photos`,
+        running `yearbook.photo_is_used()` until it returns False
+        *and* photo width is greater than its height.
+        If no photo unused, return None
+        """
+        for index, photo in enumerate(list_of_photos):
+            if not self.photo_is_used(photo, used_ids) and photo:
+                # Is the photo landscape?
+                if hasattr(photo, 'keys'):
+                    if photo['width'] < photo['height']:
+                        continue
+                else:
+                    # Bummer, just an id - look it up in the database
+                    try:
+                        photo_db = FacebookPhoto.objects.get(id=photo)
+                        if photo_db.width < photo.height:
+                            continue
+                    except FacebookPhoto.DoesNotExist:
+                        logger.warn('Attempted to look up fb photo %d, doesn\'t exist in db.' % photo)
                 return index
         return None
 
@@ -280,11 +279,10 @@ class Minibook(models.Model):
 
 class MinibookRankings(models.Model):
     minibook = models.OneToOneField(Minibook, related_name='photo_rankings')
-    with_target = JSONField(default=[], max_length=100000)
+    with_target = JSONField(default=0, max_length=100000)
     # These could be photos of just you, you with your friends, or group shots
-    your_photos = JSONField(default=[], max_length=100000)
+    your_photos = JSONField(default=0, max_length=100000)
     # Should both of these be in the same table?
-
 
 
 
@@ -298,3 +296,4 @@ def set_table_row_format(**kwargs):
         cursor = connection.cursor()
         cursor.execute('ALTER TABLE `%s` ROW_FORMAT=DYNAMIC' % PhotoRankings._meta.db_table)
         transaction.commit_unless_managed()
+

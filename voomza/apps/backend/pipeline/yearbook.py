@@ -67,6 +67,25 @@ class PhotosOfMeTask(FQLTask):
         return getter
 
 
+class CommentsOnPhotosOfMeTask(FQLTask):
+    """
+    Returns all comments on the photos the current user is tagged in
+    """
+    fql = '''
+        SELECT object_id, fromid, time, text, likes, user_likes
+            FROM comment WHERE object_id IN
+        (SELECT object_id FROM photo_tag WHERE subject=me())
+    '''
+    def on_results(self, results):
+        getter = ResultGetter(
+            results,
+            auto_id_field=True,
+            fields=['object_id', 'fromid', 'time', 'text', 'likes', 'user_likes'],
+            integer_fields=['object_id', 'fromid', 'likes'],
+            timestamps=['time'],
+        )
+        return getter
+
 
 class TaggedWithMeTask(FQLTask):
     """
@@ -101,60 +120,10 @@ class TaggedWithMeTask(FQLTask):
         # Do collapse on object_id here
         group_photos = FreqDistResultGetter(results, cutoff=GROUP_PHOTO_IS)
 
-        # Save the `family_with` and `gf_bf_with` fields
-        # Pull family photos out of 'tagged_with_me'
-        tagged_with_me = getter.order_by('score')
-        family_ids = {family_member['facebook_id'] for family_member in self.user.family.values('facebook_id')}
-        family_photos = []
-        if family_ids:
-            family_photos = [
-                photo['object_id'] for photo in tagged_with_me
-                if photo['subject'] in family_ids
-            ]
-
-        # Pull gf/bf photos out of 'tagged_with_me'
-        gf_bf_photos = []
-        if self.user.profile.significant_other_id:
-            gf_bf_photos = [
-                photo['object_id'] for photo in tagged_with_me
-                if photo['subject'] == self.user.profile.significant_other_id
-            ]
-
-        ranking = PhotoRankings.objects.get(user=self.user)
-        ranking.family_with = family_photos
-        ranking.gfbf_with = gf_bf_photos
-        ranking.save()
-
         return {
             'tagged_with_me': getter,
             'group_photos': group_photos
         }
-
-
-#class GroupShotsTask(FQLTask):
-#    """
-#    Gets all other people tagged in photos I'm in
-#    """
-#    fql = '''
-#        SELECT object_id FROM photo_tag WHERE object_id IN
-#           (SELECT object_id FROM photo_tag WHERE subject=me())
-#        AND subject!=me()
-#    '''
-#
-#    def on_results(self, results):
-#        group_photos = FreqDistResultGetter(results, cutoff=GROUP_PHOTO_IS)
-#        return group_photos
-
-
-# NOT NEEDED
-# We need this so we can index into the friends array
-class AllFriendsTask(FQLTask):
-    fql = '''
-        SELECT uid2 FROM friend WHERE uid1=me()
-    '''
-
-    def on_results(self, results):
-        return ResultGetter(results, id_field='uid2')
 
 
 # DOESN'T WORK

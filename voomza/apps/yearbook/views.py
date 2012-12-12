@@ -50,10 +50,11 @@ def sign_friends(request,
 
 @login_required
 @ensure_csrf_cookie
-def yearbook_preview(request,
-                     template_name='yearbook_preview.html'):
+def yearbook(request,
+             template_name='yearbook_preview.html'):
     """
     User sees a preview of their yearbook
     """
     context = {}
     return render_to_response(template_name, context, RequestContext(request))
+

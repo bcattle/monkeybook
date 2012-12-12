@@ -3,13 +3,43 @@ from celery.exceptions import TimeoutError
 from pytz import utc
 from celery import task, group
 from voomza.apps.core.utils import merge_dicts
+from voomza.apps.core import bulk
 from voomza.apps.backend.getter import FreqDistResultGetter
-from voomza.apps.backend.models import PhotoRankings, Yearbook
+from voomza.apps.backend.models import PhotoRankings, Yearbook, FacebookPhoto
 from voomza.apps.backend.pipeline.yearbook import *
 from voomza.apps.backend.settings import *
 from backend.pipeline import run_task as rt
 
 logger = logging.getLogger(__name__)
+
+
+@task.task()
+def get_photo_comments(user):
+    """
+    Pulls comments for all photos `user` is in
+    and adds them to photo objects we assume are
+    already in the db.
+    """
+    comments_task = CommentsOnPhotosOfMeTask()
+    results = comments_task.run(user)
+    # Assemble into list indexed by object_id
+    comments_by_id = {}
+    for comment in results['comments_on_photos_of_me'].fields:
+        if comment['object_id'] in comments_by_id:
+            comments_by_id[comment['object_id']].append(comment)
+        else:
+            comments_by_id[comment['object_id']] = [comment]
+
+    # Serialize and save
+    comments_db = [FacebookPhoto(
+        facebook_id = photo_id,
+        comments = sorted(comments_by_id[photo_id], key=lambda x: x['time'])
+    ) for photo_id in comments_by_id]
+
+    bulk.insert_or_update_many(FacebookPhoto, comments_db, update_fields=['comments'])
+
+    return results
+
 
 
 @task.task()
@@ -156,7 +186,7 @@ def get_top_albums_photos(results, user):
 
 
 @task.task()
-def get_most_tagged_recently(results):
+def get_most_tagged(results):
     assert 'tagged_with_me' in results
     this_year = datetime.datetime(datetime.datetime.now().year - 3, 1, 1, tzinfo=utc)
     tagged_recently = results['tagged_with_me']['tagged_with_me'].filter(
@@ -164,6 +194,10 @@ def get_most_tagged_recently(results):
     )
     results['most_tagged_recently'] = FreqDistResultGetter(
         tagged_recently.fields, id_field='subject'
+    )
+    results['most_tagged'] = FreqDistResultGetter(
+        results['tagged_with_me']['tagged_with_me'].fields,
+        id_field='subject'
     )
     return results
 
@@ -192,7 +226,6 @@ def get_top_friends_and_groups(results, user):
 
     For convenience, it fires off the group that depends on PhotosOfMe
     """
-
     # Flatten the results returned from the group
     results = merge_dicts(*results)
 
@@ -210,16 +243,28 @@ def get_top_friends_and_groups(results, user):
         discard_orphans=False
     )
 
+    # Get ids of gf/bf and immediate family
+    gfbf_family_ids = []
+    if user.profile.significant_other_id:
+        gfbf_family_ids.append(user.profile.significant_other_id)
+    for family_member in user.family.all():
+        if family_member.relationship in IMMEDIATE_FAMILY:
+            gfbf_family_ids.append(family_member.facebook_id)
+
     # For each top friend, pull the photos they are tagged in
-    # (in top friends order)
-    # Just do them all since it doesn't involve another round trip to the server
-    # Top friend photos are stored in a *list* so the order is known
+    # Gf/bf and immediate family to the front, the rest in top friends order
     top_friend_photos = []
+    pulled_gfbf_family = 0
     for friend in top_friends.order_by('count'):
         friend_photos = [tag for tag in results['tagged_with_me']['tagged_with_me'].fields
                          if tag['subject']==friend['id']]
         if len(friend_photos) > TOP_FRIEND_MIN_PHOTOS:
-            top_friend_photos.append(friend_photos)
+            # Bring photos of gf/bf and immediate family to the front
+            if friend_photos[0]['subject'] in gfbf_family_ids \
+                and pulled_gfbf_family < NUM_GFBF_FAMILY_FIRST:
+                top_friend_photos.insert(0, friend_photos)
+            else:
+                top_friend_photos.append(friend_photos)
 
     # For each group photo, grab its score from 'photos_of_me'
     group_photos = []
@@ -231,7 +276,6 @@ def get_top_friends_and_groups(results, user):
             logger.warn('Received a group photo %s that wasn\'t in \'photos_of_me\'. Odd.' % group_photo_id )
     # Sort by score
     group_photos.sort(key=lambda x: x['score'], reverse=True)
-
 
     # Serialize the lists
     rankings = PhotoRankings.objects.get(user=user)
@@ -255,7 +299,7 @@ def run_yearbook(user):
             rt.subtask(kwargs={'task_cls': PhotosILikeTask, 'user_id': user.id}) |
                 rt.subtask(kwargs={'task_cls': PhotosOfMeTask, 'user_id': user.id}),
             rt.subtask(kwargs={'task_cls': TaggedWithMeTask, 'user_id': user.id}) |
-                get_most_tagged_recently.subtask(),
+                get_most_tagged.subtask(),
             rt.subtask(kwargs={'task_cls': TopPostersFromYearTask, 'user_id': user.id}),
         ]) | get_top_friends_and_groups.subtask((user,)),
 
@@ -264,12 +308,14 @@ def run_yearbook(user):
 
         rt.subtask(kwargs={'task_cls': BirthdayPostsTask, 'user_id': user.id,
                            'init_args': {'birthday': user.profile.date_of_birth}}),
+        get_photo_comments.subtask((user,)),
     ])
     job_async = job.apply_async()
 
     # Wait for everything to finish
     try:
         results = job_async.get()
+        # TODO: fix this so it doesn't choke if something returns None or an exception is thrown
         results = merge_dicts(*results)
         # Wait for the album photos subtask to finish
         results['on_photos_of_me_async'].get()
@@ -290,77 +336,62 @@ def run_yearbook(user):
     yb.birthday_posts = results['birthday_posts']
 
     # We go through the fields and assign the first unused photo to each field
-    yb.top_photo = yb.get_first_unused_photo(rankings.top_photos)
-    if rankings.gfbf_with:
-        yb.gfbf_photo_1 = yb.get_first_unused_photo(rankings.gfbf_with)
-        yb.gfbf_photo_2 = yb.get_first_unused_photo(rankings.gfbf_with)
-        yb.gfbf_photo_3 = yb.get_first_unused_photo(rankings.gfbf_with)
-        yb.gfbf_photo_4 = yb.get_first_unused_photo(rankings.gfbf_with)
-    if rankings.family_with:
-        yb.family_photo_1 = yb.get_first_unused_photo(rankings.family_with)
-        yb.family_photo_2 = yb.get_first_unused_photo(rankings.family_with)
-        yb.family_photo_3 = yb.get_first_unused_photo(rankings.family_with)
-        yb.family_photo_4 = yb.get_first_unused_photo(rankings.family_with)
-    yb.group_photo_1 = yb.get_first_unused_photo(rankings.group_shots)
-    yb.group_photo_2 = yb.get_first_unused_photo(rankings.group_shots)
-    yb.group_photo_3 = yb.get_first_unused_photo(rankings.group_shots)
-    yb.group_photo_4 = yb.get_first_unused_photo(rankings.group_shots)
-    yb.first_half_photo_1 = yb.get_first_unused_photo(rankings.top_photos_first_half)
+    yb.top_photo_1 = yb.get_first_unused_photo_landscape(rankings.top_photos)           # landscape
+    yb.top_photo_2 = yb.get_first_unused_photo(rankings.top_photos)
+    yb.top_photo_3 = yb.get_first_unused_photo(rankings.top_photos)
+    yb.first_half_photo_1 = yb.get_first_unused_photo_landscape(rankings.top_photos_first_half)     # landscape
     yb.first_half_photo_2 = yb.get_first_unused_photo(rankings.top_photos_first_half)
     yb.first_half_photo_3 = yb.get_first_unused_photo(rankings.top_photos_first_half)
-    yb.second_half_photo_1 = yb.get_first_unused_photo(rankings.top_photos_second_half)
+    yb.second_half_photo_1 = yb.get_first_unused_photo_landscape(rankings.top_photos_second_half)   # landscape
     yb.second_half_photo_2 = yb.get_first_unused_photo(rankings.top_photos_second_half)
     yb.second_half_photo_3 = yb.get_first_unused_photo(rankings.top_photos_second_half)
+    yb.group_photo_1 = yb.get_first_unused_photo_landscape(rankings.group_shots)            # landscape
+    yb.group_photo_2 = yb.get_first_unused_photo(rankings.group_shots)
+    yb.group_photo_3 = yb.get_first_unused_photo(rankings.group_shots)
 
     # Top friends
-    save_top_friends_unused_photos(user, rankings, yb)
-
+    save_top_friends_unused_photos(user, rankings, yb, results['most_tagged'])
     # Top albums
     save_top_albums_unused_photos(rankings, yb)
-
     # Back in time photos
-    yb.back_in_time_photo_1 = yb.get_first_unused_photo(rankings.you_back_in_time_year_1)
-    yb.back_in_time_photo_2 = yb.get_first_unused_photo(rankings.you_back_in_time_year_2)
-    yb.back_in_time_photo_3 = yb.get_first_unused_photo(rankings.you_back_in_time_year_3)
-    yb.back_in_time_photo_4 = yb.get_first_unused_photo(rankings.you_back_in_time_year_4)
-    yb.back_in_time_photo_5 = yb.get_first_unused_photo(rankings.you_back_in_time_year_5)
-    yb.back_in_time_photo_6 = yb.get_first_unused_photo(rankings.you_back_in_time_year_6)
-    yb.back_in_time_photo_7 = yb.get_first_unused_photo(rankings.you_back_in_time_year_7)
+    save_back_in_time_unused_photos(rankings, yb)
 
     yb.save()
     logger.info('Yearbook created')
 
+    # Initiate a task to start downloading user's yearbook photos
 
-def save_top_friends_unused_photos(user, rankings, yearbook):
-    # Exclude family and gf/bf
-    exclude_ids = {family_member.facebook_id for family_member in user.family.all()}
-    if user.profile.significant_other_id:
-        exclude_ids.add(user.profile.significant_other_id)
 
-    # If they have no family members or gf/bf. they get five friends
-    num_top_friends = 5
-    if rankings.gfbf_with:
-        num_top_friends -= 1
-    if rankings.family_with:
-        num_top_friends -= 1
-
+def save_top_friends_unused_photos(user, rankings, yearbook, most_tagged):
+    family_ids = [family_member.facebook_id for family_member in user.family.all()]
     top_friends_photos = []
     for friend_num in range(len(rankings.top_friends)):
         curr_friend = rankings.top_friends[friend_num]
         # curr_friend is a list of photo_tags
-        if curr_friend[0]['subject'] in exclude_ids:
-            continue
         # Find `n` unused photos of this person
-        curr_friend_unused = yearbook.get_n_unused_photos(curr_friend, TOP_FRIEND_PHOTOS_TO_SHOW)
-        if not curr_friend_unused or len(curr_friend_unused) < TOP_FRIEND_MIN_PHOTOS:
+#        curr_friend_unused = yearbook.get_n_unused_photos(curr_friend, TOP_FRIEND_PHOTOS_TO_SHOW)
+        curr_friend_unused = yearbook.get_n_unused_photos(curr_friend, 1)
+#        if curr_friend_unused is None or len(curr_friend_unused) < TOP_FRIEND_MIN_PHOTOS:
+        if curr_friend_unused is None:
             continue
-        top_friends_photos.append({'index': friend_num, 'photo_list': curr_friend_unused})
-        if len(top_friends_photos) >= num_top_friends:
+        # Friend "stats"
+        curr_friend_id = curr_friend[0]['subject']
+        if curr_friend_id == user.profile.significant_other_id:
+            top_friend_stat = SIGNIFICANT_OTHER_STAT
+        elif curr_friend_id in family_ids:
+            top_friend_stat = FAMILY_STAT
+        else:
+            tag_count = most_tagged.fields_by_id[curr_friend_id]['count']
+            top_friend_stat = u'Tagged in %d photo%s with you' % (tag_count, 's' if tag_count > 1 else '')
+        top_friends_photos.append({'index': friend_num, 'photo_list': curr_friend_unused, 'stat': top_friend_stat})
+        if len(top_friends_photos) >= NUM_TOP_FRIENDS:
             break
 
     # Save the friend indices and lists of photos for each friend
     save_enumerated_fields(top_friends_photos, 'top_friend', yearbook)
-
+    # Save the friend stats
+    for top_friend_num, top_friend in enumerate(top_friends_photos):
+        setattr(yearbook, 'top_friend_%d_stat' % (top_friend_num + 1), top_friend['stat'])
 
 
 def save_top_albums_unused_photos(rankings, yearbook):
@@ -370,13 +401,13 @@ def save_top_albums_unused_photos(rankings, yearbook):
         # curr_album is a list of photo_tags
         # Find `n` unused photos from this album
         curr_album_unused = yearbook.get_n_unused_photos(curr_album, ALBUM_PHOTOS_TO_SHOW)
-        if not curr_album_unused or len(curr_album_unused) < ALBUM_MIN_PHOTOS:
+        if curr_album_unused is None or len(curr_album_unused) < ALBUM_MIN_PHOTOS:
             continue
         albums_to_show.append({'index': album_num, 'photo_list': curr_album_unused})
         if len(albums_to_show) == NUM_TOP_ALBUMS:
             break
 
-    # Sort albums by num. photos, if any returned less than 3
+    # TODO: sort albums by num. photos, if any returned less than 3
     # We want to see full albums first
 
     if len(albums_to_show) != NUM_TOP_ALBUMS:
@@ -387,6 +418,25 @@ def save_top_albums_unused_photos(rankings, yearbook):
     # Save album indices and photos
     save_enumerated_fields(albums_to_show, 'top_album', yearbook)
 
+
+def save_back_in_time_unused_photos(rankings, yearbook):
+    years_to_show = []
+    for year_number in range(len(rankings.back_in_time)):
+        curr_year = rankings.back_in_time[year_number]
+        # Find an unused photo from `curr_year`
+        curr_year_unused = yearbook.get_first_unused_photo(curr_year)
+        if curr_year_unused is None:
+            continue
+        years_to_show.append({'index': year_number, 'photo_list': curr_year_unused})
+        if len(years_to_show) > NUM_PREV_YEARS:
+            break
+
+    # Special case: if only found one year, pull an additional photo from that year
+    if len(years_to_show) == 1:
+        that_year_index = years_to_show[0]['index']
+        unused_photo_2 = yearbook.get_first_unused_photo(rankings.back_in_time[that_year_index])
+        if unused_photo_2 is not None:
+            years_to_show[0]['photo_list'].append(unused_photo_2)
 
 
 def save_enumerated_fields(list_of_items, field_prefix, yearbook):
