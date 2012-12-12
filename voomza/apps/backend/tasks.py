@@ -57,12 +57,14 @@ def get_photos_by_year(results, user):
     rankings = PhotoRankings.objects.get(user=user)
 
     years = list(sorted(photos_of_me_by_year.keys(), reverse=True))
+    by_year_list = []
     for index, year in enumerate(years[1:NUM_PREV_YEARS + 1]):
-        setattr(rankings, 'you_back_in_time_year_%d' % (index + 1), photos_of_me_by_year[year].order_by('score'))
+        by_year_list.append(photos_of_me_by_year[year].order_by('score'))
 
     rankings.top_photos = photos_of_me_this_year.order_by('score')
     rankings.top_photos_first_half = top_photos_of_me_first_half.order_by('score')
     rankings.top_photos_second_half = top_photos_of_me_second_half.order_by('score')
+    rankings.back_in_time = by_year_list
     rankings.save()
 
     results['photos_of_me_by_year'] = photos_of_me_by_year
@@ -424,7 +426,7 @@ def save_back_in_time_unused_photos(rankings, yearbook):
     for year_number in range(len(rankings.back_in_time)):
         curr_year = rankings.back_in_time[year_number]
         # Find an unused photo from `curr_year`
-        curr_year_unused = yearbook.get_first_unused_photo(curr_year)
+        curr_year_unused = yearbook.get_n_unused_photos(curr_year, 1)
         if curr_year_unused is None:
             continue
         years_to_show.append({'index': year_number, 'photo_list': curr_year_unused})
@@ -437,6 +439,8 @@ def save_back_in_time_unused_photos(rankings, yearbook):
         unused_photo_2 = yearbook.get_first_unused_photo(rankings.back_in_time[that_year_index])
         if unused_photo_2 is not None:
             years_to_show[0]['photo_list'].append(unused_photo_2)
+
+    save_enumerated_fields(years_to_show, 'back_in_time', yearbook)
 
 
 def save_enumerated_fields(list_of_items, field_prefix, yearbook):
