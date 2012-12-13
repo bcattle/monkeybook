@@ -24,17 +24,23 @@ class PhotoPage(YearbookPage):
         self.index_field_name = field_name
         super(PhotoPage, self).__init__(page)
 
-    def page_content(self):
-        # De-reference the field and return pic url
+    def get_photo(self):
         photo_id = self.yearbook.get_photo_from_field_string(
             self.rankings, self.ranking_table_name, self.index_field_name
         )
         if not photo_id:
-            url = ''
+            photo = None
         else:
             photo = FacebookPhoto.objects.get(facebook_id=photo_id)
-            url = photo.url()
+        return photo
 
+    def page_content(self):
+        # De-reference the field and return pic url
+        photo = self.get_photo()
+        if not photo:
+            url = ''
+        else:
+            url = photo.url()
         return {
             'url': url,
             'field': '.'.join([self.ranking_table_name, self.index_field_name]),
@@ -43,9 +49,17 @@ class PhotoPage(YearbookPage):
 
 class PhotoWithCommentPage(PhotoPage):
     def page_content(self):
-        return {
+        """
+        Add the top comment, commenter's name and photo
+        """
+        photo = self.get_photo()
+        top_comment = photo.get_top_comment()
 
-        }
+        page_content = super(PhotoWithCommentPage, self).page_content()
+        page_content['top_comment'] = top_comment['text']
+        page_content['top_comment_name'] = top_comment['user_name']
+        page_content['top_comment_pic'] = top_comment['user_pic']
+        return page_content
 
 
 class TopFriendNamePage(PhotoPage):

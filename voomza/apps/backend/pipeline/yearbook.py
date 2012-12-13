@@ -24,6 +24,12 @@ def _post_score(post):
         POST_LIKE_POINTS * post['like_count']
     return score
 
+def _comment_score(comment):
+    score =\
+        COMMENT_I_LIKE_POINTS * comment['likes'] +\
+        COMMENT_LIKE_POINTS * (1 if comment['user_likes'] else 0)
+    return score
+
 
 class BasePhotoResultsTask(FQLTask):
     """

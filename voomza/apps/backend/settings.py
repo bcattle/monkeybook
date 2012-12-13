@@ -29,3 +29,6 @@ IMMEDIATE_FAMILY        = ['mother', 'father', 'brother', 'sister']
 NUM_GFBF_FAMILY_FIRST   = 1
 SIGNIFICANT_OTHER_STAT  = u'That special somebody'
 FAMILY_STAT             = u'Family'
+
+COMMENT_I_LIKE_POINTS   = 10
+COMMENT_LIKE_POINTS     =1

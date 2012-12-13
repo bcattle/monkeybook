@@ -4,6 +4,7 @@ from django.db.models.signals import post_syncdb
 from django.dispatch.dispatcher import receiver
 from jsonfield.fields import JSONField
 from south.signals import post_migrate
+from voomza.apps.account.models import FacebookUser
 from voomza.apps.backend.managers import FacebookPhotoManager
 
 logger = logging.getLogger(__name__)
@@ -20,6 +21,32 @@ class FacebookPhoto(models.Model):
 
     def url(self):
         return self.local_url or self.fb_url
+
+    def get_top_comment(self):
+        from voomza.apps.backend.pipeline.yearbook import _comment_score
+        # Assign a score
+        for comment in self.comments:
+            comment['score'] = _comment_score(comment)
+
+        # Sort by score, then by date
+        # Take the highest-scoring, earliest
+        top_comment = sorted(self.comments,
+                             key=lambda c: (-comment['score'], comment['time']))[0]
+
+        # Get user's name and photo
+        try:
+            fb_user = FacebookUser.objects.get(facebook_id=top_comment['fromid'])
+            top_comment_name = fb_user.name
+            top_comment_pic = fb_user.pic_square
+        except FacebookUser.DoesNotExist:
+            top_comment_name = ''
+            top_comment_pic = ''
+
+        return {
+            'text': top_comment,
+            'user_name': top_comment_name,
+            'user_pic': top_comment_pic,
+        }
 
     objects = FacebookPhotoManager()
 
