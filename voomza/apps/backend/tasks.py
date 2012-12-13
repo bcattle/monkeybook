@@ -53,14 +53,14 @@ def get_photos_by_year(results, user):
     top_photos_of_me_first_half = photos_of_me_this_year.filter(lambda x: x['created'] < half_way)
     top_photos_of_me_second_half = photos_of_me_this_year.filter(lambda x: x['created'] >= half_way)
 
-    # Serialize and store
-    rankings = PhotoRankings.objects.get(user=user)
-
+    # Back in time
     years = list(sorted(photos_of_me_by_year.keys(), reverse=True))
     by_year_list = []
     for index, year in enumerate(years[1:NUM_PREV_YEARS + 1]):
         by_year_list.append(photos_of_me_by_year[year].order_by('score'))
 
+    # Serialize and store
+    rankings = PhotoRankings.objects.get(user=user)
     rankings.top_photos = photos_of_me_this_year.order_by('score')
     rankings.top_photos_first_half = top_photos_of_me_first_half.order_by('score')
     rankings.top_photos_second_half = top_photos_of_me_second_half.order_by('score')
@@ -292,9 +292,6 @@ def get_top_friends_and_groups(results, user):
 
 @task.task()
 def run_yearbook(user):
-    # Create db model if needed
-    rankings, created = PhotoRankings.objects.get_or_create(user=user)
-
     # Fire all tasks
     job = group([
         group([
@@ -325,6 +322,10 @@ def run_yearbook(user):
         # TODO handle the timeout
         pass
 
+    # Save fields to the PhotoRankings class
+    rankings, created = PhotoRankings.objects.get_or_create(user=user)
+
+
     # All fields in PhotoRankings are filled.
     # Assign photos to the Yearbook, avoiding duplicates
     try:
@@ -338,18 +339,18 @@ def run_yearbook(user):
     yb.birthday_posts = results['birthday_posts']
 
     # We go through the fields and assign the first unused photo to each field
-    yb.top_photo_1 = yb.get_first_unused_photo_landscape(rankings.top_photos)           # landscape
-    yb.top_photo_2 = yb.get_first_unused_photo(rankings.top_photos)
-    yb.top_photo_3 = yb.get_first_unused_photo(rankings.top_photos)
-    yb.first_half_photo_1 = yb.get_first_unused_photo_landscape(rankings.top_photos_first_half)     # landscape
-    yb.first_half_photo_2 = yb.get_first_unused_photo(rankings.top_photos_first_half)
-    yb.first_half_photo_3 = yb.get_first_unused_photo(rankings.top_photos_first_half)
-    yb.second_half_photo_1 = yb.get_first_unused_photo_landscape(rankings.top_photos_second_half)   # landscape
-    yb.second_half_photo_2 = yb.get_first_unused_photo(rankings.top_photos_second_half)
-    yb.second_half_photo_3 = yb.get_first_unused_photo(rankings.top_photos_second_half)
-    yb.group_photo_1 = yb.get_first_unused_photo_landscape(rankings.group_shots)            # landscape
-    yb.group_photo_2 = yb.get_first_unused_photo(rankings.group_shots)
-    yb.group_photo_3 = yb.get_first_unused_photo(rankings.group_shots)
+    yb.top_photo_1 = yb.get_first_unused_photo_landscape(rankings, rankings.top_photos)           # landscape
+    yb.top_photo_2 = yb.get_first_unused_photo(rankings, rankings.top_photos)
+    yb.top_photo_3 = yb.get_first_unused_photo(rankings, rankings.top_photos)
+    yb.first_half_photo_1 = yb.get_first_unused_photo_landscape(rankings, rankings.top_photos_first_half)     # landscape
+    yb.first_half_photo_2 = yb.get_first_unused_photo(rankings, rankings.top_photos_first_half)
+    yb.first_half_photo_3 = yb.get_first_unused_photo(rankings, rankings.top_photos_first_half)
+    yb.second_half_photo_1 = yb.get_first_unused_photo_landscape(rankings, rankings.top_photos_second_half)   # landscape
+    yb.second_half_photo_2 = yb.get_first_unused_photo(rankings, rankings.top_photos_second_half)
+    yb.second_half_photo_3 = yb.get_first_unused_photo(rankings, rankings.top_photos_second_half)
+    yb.group_photo_1 = yb.get_first_unused_photo_landscape(rankings, rankings.group_shots)            # landscape
+    yb.group_photo_2 = yb.get_first_unused_photo(rankings, rankings.group_shots)
+    yb.group_photo_3 = yb.get_first_unused_photo(rankings, rankings.group_shots)
 
     # Top friends
     save_top_friends_unused_photos(user, rankings, yb, results['most_tagged'])
@@ -357,6 +358,9 @@ def run_yearbook(user):
     save_top_albums_unused_photos(rankings, yb)
     # Back in time photos
     save_back_in_time_unused_photos(rankings, yb)
+
+    import ipdb
+    ipdb.set_trace()
 
     yb.save()
     logger.info('Yearbook created')

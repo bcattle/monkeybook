@@ -13,6 +13,7 @@ common_urls = patterns('',
     url(r'', include('account.urls')),
     url(r'', include('core.urls')),
     url(r'', include('yearbook.urls')),
+    url(r'^backend/', include('backend.urls')),
     # Admin
     url(r'^admin/', include(admin.site.urls)),
     # Autosuggest

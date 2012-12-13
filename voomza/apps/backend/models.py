@@ -16,7 +16,7 @@ class FacebookPhoto(models.Model):
     width = models.PositiveIntegerField(default=0)
     fb_url = models.CharField(max_length=200)
     local_url = models.CharField(max_length=200, default='')
-    comments = JSONField(default=0, max_length=100000)
+    comments = JSONField(default="[]", max_length=100000)
 
     def url(self):
         return self.local_url or self.fb_url
@@ -31,14 +31,14 @@ class PhotoRankings(models.Model):
     """
     user = models.OneToOneField('auth.User', related_name='photo_rankings')
     # Lists of photos for each category
-    top_photos = JSONField(default=0, max_length=100000)
-    top_photos_first_half = JSONField(default=0, max_length=100000)
-    top_photos_second_half = JSONField(default=0, max_length=100000)
-    group_shots = JSONField(default=0, max_length=100000)
+    top_photos = JSONField(default="[]", max_length=100000)
+    top_photos_first_half = JSONField(default="[]", max_length=100000)
+    top_photos_second_half = JSONField(default="[]", max_length=100000)
+    group_shots = JSONField(default="[]", max_length=100000)
     # Top few will be gf/bf or family, if any
-    top_friends = JSONField(default=0, max_length=100000)
-    top_albums = JSONField(default=0, max_length=100000)
-    back_in_time = JSONField(default=0, max_length=100000)
+    top_friends = JSONField(default="[]", max_length=100000)
+    top_albums = JSONField(default="[]", max_length=100000)
+    back_in_time = JSONField(default="[]", max_length=100000)
 
 
 class Yearbook(models.Model):
@@ -114,8 +114,8 @@ class Yearbook(models.Model):
     back_in_time_7_photo_1  = models.PositiveSmallIntegerField(null=True)
 
     # Posts
-    top_post = JSONField(default=0, max_length=100000)
-    birthday_posts = JSONField(default=0, max_length=100000)
+    top_post = JSONField(default="[]", max_length=100000)
+    birthday_posts = JSONField(default="[]", max_length=100000)
 
 
     # Really, should use this data structure to autogenerate the model
@@ -154,12 +154,12 @@ class Yearbook(models.Model):
         ]
     }
 
-    def get_n_unused_photos(self, list_of_photos, n):
+    def get_n_unused_photos(self, ranking, list_of_photos, n):
         unused_photos = []
         used_ids = []
         while len(unused_photos) < n:
             # Need the counter here since the photos we pick up aren't in the Yearbook yet
-            unused_photo = self.get_first_unused_photo(list_of_photos, used_ids)
+            unused_photo = self.get_first_unused_photo(ranking, list_of_photos, used_ids)
             if unused_photo is None:
                 # List ran out, return what we had
                 return unused_photos
@@ -169,19 +169,19 @@ class Yearbook(models.Model):
         return unused_photos
 
 
-    def get_first_unused_photo(self, list_of_photos, used_ids=None):
+    def get_first_unused_photo(self, ranking, list_of_photos, used_ids=None):
         """
         Loops through photos in `list_of_photos`,
         running `yearbook.photo_is_used()` until it returns False
         If no photo unused, return None
         """
         for index, photo in enumerate(list_of_photos):
-            if not self.photo_is_used(photo, used_ids):
+            if not self.photo_is_used(ranking, photo, used_ids):
                 return index
         return None
 
 
-    def get_first_unused_photo_landscape(self, list_of_photos, used_ids=None):
+    def get_first_unused_photo_landscape(self, ranking, list_of_photos, used_ids=None):
         """
         Loops through photos in `list_of_photos`,
         running `yearbook.photo_is_used()` until it returns False
@@ -189,7 +189,7 @@ class Yearbook(models.Model):
         If no photo unused, return None
         """
         for index, photo in enumerate(list_of_photos):
-            if not self.photo_is_used(photo, used_ids) and photo:
+            if not self.photo_is_used(ranking, photo, used_ids) and photo:
                 # Is the photo landscape?
                 if hasattr(photo, 'keys'):
                     if photo['width'] < photo['height']:
@@ -206,7 +206,7 @@ class Yearbook(models.Model):
         return None
 
 
-    def photo_is_used(self, photo, used_ids=None):
+    def photo_is_used(self, ranking, photo, used_ids=None):
         """
         Iterates through all image index fields on the model,
         verifying that the images they refer to are not "claimed"
@@ -217,7 +217,6 @@ class Yearbook(models.Model):
         photo_id = _get_id_from_dict_or_int(photo)
         if photo_id in used_ids:
             return True
-        ranking = PhotoRankings.objects.get(user=self.owner)
         # Iterate through the above fields
         for ranked_list_name, yb_fields in self.lists_to_fields.items():
             for yb_field in yb_fields:
@@ -279,9 +278,9 @@ class Minibook(models.Model):
 
 class MinibookRankings(models.Model):
     minibook = models.OneToOneField(Minibook, related_name='photo_rankings')
-    with_target = JSONField(default=0, max_length=100000)
+    with_target = JSONField(default="[]", max_length=100000)
     # These could be photos of just you, you with your friends, or group shots
-    your_photos = JSONField(default=0, max_length=100000)
+    your_photos = JSONField(default="[]", max_length=100000)
     # Should both of these be in the same table?
 
 

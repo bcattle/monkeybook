@@ -58,7 +58,7 @@ def insert_many(*args, **kwargs):
     transaction.commit_unless_managed()
 
 
-def _update_many(model, objects, keys=None, update_fields=None, using="default"):
+def _update_many(model, objects, keys=None, update_fields=None, exclude_fields=None, using="default"):
     if not objects:
         return
 
@@ -75,6 +75,9 @@ def _update_many(model, objects, keys=None, update_fields=None, using="default")
     else:
         value_fields = [f for f in _model_fields(model) if f.name not in keys]
 
+    if exclude_fields:
+        value_fields = [f for f in value_fields if f.name not in exclude_fields]
+
     assert key_fields, "Empty key fields"
 
     # Combine the fields for the parameter list
@@ -88,10 +91,6 @@ def _update_many(model, objects, keys=None, update_fields=None, using="default")
     where_keys = " AND ".join(("%s=%%s" % con.ops.quote_name(f.column))
                               for f in key_fields)
     sql = "UPDATE %s SET %s WHERE %s" % (table, assignments, where_keys)
-
-#    import ipdb
-#    ipdb.set_trace()
-
     con.cursor().executemany(sql, parameters)
 
 
@@ -126,7 +125,8 @@ def _filter_objects(con, objects, key_fields):
         yield o
 
 
-def insert_or_update_many(model, objects, keys=None, update_fields=None, using="default"):
+def insert_or_update_many(model, objects, keys=None,
+                          update_fields=None, exclude_fields=None, using="default"):
     '''
     Bulk insert or update a list of Django objects. This works by
     first selecting each object's keys from the database. If an
@@ -172,7 +172,8 @@ def insert_or_update_many(model, objects, keys=None, update_fields=None, using="
     update_objects = [o for (o, k) in object_keys if k in existing]
     insert_objects = [o for (o, k) in object_keys if k not in existing]
 
-    _update_many(model, update_objects, keys=keys, update_fields=update_fields, using=using)
+    _update_many(model, update_objects, keys=keys,
+                 update_fields=update_fields, exclude_fields=exclude_fields, using=using)
 
     # Filter out any duplicates in the insertion
     filtered_objects = _filter_objects(con, insert_objects, key_fields)

@@ -16,5 +16,5 @@ class FacebookPhotoManager(models.Manager):
                 fb_url = photo['fb_url'],
             )
             facebook_photos.append(photo_obj)
-        bulk.insert_many(self.model, facebook_photos)
+        bulk.insert_or_update_many(self.model, facebook_photos, exclude_fields=['comments'])
         return self
