@@ -22,20 +22,21 @@ class PhotoPage(YearbookPage):
         self.index_field_name = field_name
         super(PhotoPage, self).__init__(page)
 
-
     def get_page_content(self, user):
         self.set_user(user)
-
-        import ipdb
-        ipdb.set_trace()
-
         # De-reference the field and return pic url
         photo_id = self.yearbook.get_photo_from_field_string(
             self.rankings, self.ranking_table_name, self.index_field_name
         )
-        photo = FacebookPhoto.objects.get(facebook_id=photo_id)
+        if not photo_id:
+            url = ''
+        else:
+            photo = FacebookPhoto.objects.get(facebook_id=photo_id)
+            url = photo.url()
+
         return {
-            'url': photo.url(),
+            'url': url,
+            'field': '.'.join([self.ranking_table_name, self.index_field_name]),
         }
 
 

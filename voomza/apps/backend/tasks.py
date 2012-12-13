@@ -59,16 +59,11 @@ def get_photos_by_year(results, user):
     for index, year in enumerate(years[1:NUM_PREV_YEARS + 1]):
         by_year_list.append(photos_of_me_by_year[year].order_by('score'))
 
-    # Serialize and store
-    rankings = PhotoRankings.objects.get(user=user)
-    rankings.top_photos = photos_of_me_this_year.order_by('score')
-    rankings.top_photos_first_half = top_photos_of_me_first_half.order_by('score')
-    rankings.top_photos_second_half = top_photos_of_me_second_half.order_by('score')
-    rankings.back_in_time = by_year_list
-    rankings.save()
-
+    results['photos_of_me_this_year'] = photos_of_me_this_year.order_by('score')
+    results['top_photos_of_me_first_half'] = top_photos_of_me_first_half.order_by('score')
+    results['top_photos_of_me_second_half'] = top_photos_of_me_second_half.order_by('score')
+    results['back_in_time'] = by_year_list
     results['photos_of_me_by_year'] = photos_of_me_by_year
-    results['photos_of_me_this_year'] = photos_of_me_this_year
     return results
 
 
@@ -177,12 +172,8 @@ def get_top_albums_photos(results, user):
                 if found_photos >= PICS_OF_USER_TO_PROMOTE:
                     break
 
-
-    # Save ranked photos
-    rankings = PhotoRankings.objects.get(user=user)
-    rankings.top_albums = albums_by_score
-    rankings.save()
-
+    # All photos, ranked
+    results['top_albums'] = albums_by_score
     results['top_albums_photos'] = top_albums_photos
     return results
 
@@ -210,10 +201,6 @@ def get_top_post_of_year(results, user):
     top_post = results['posts_from_year'].order_by('score')[0]
     get_post_task = GetPostTask(top_post['id'])
     top_post = get_post_task.run(user)
-
-    rankings = PhotoRankings.objects.get(user=user)
-    rankings.top_post = top_post
-    rankings.save()
 
     # Return JSON of top post
     results['top_post'] = top_post
@@ -279,13 +266,9 @@ def get_top_friends_and_groups(results, user):
     # Sort by score
     group_photos.sort(key=lambda x: x['score'], reverse=True)
 
-    # Serialize the lists
-    rankings = PhotoRankings.objects.get(user=user)
-    rankings.top_friends = top_friend_photos
-    rankings.group_shots = group_photos
-    rankings.save()
-
+    # Return the lists and the subtask
     results['top_friends'] = top_friend_photos
+    results['group_shots'] = group_photos
     results['on_photos_of_me_async'] = on_photos_of_me_async
     return results
 
@@ -317,13 +300,26 @@ def run_yearbook(user):
         # TODO: fix this so it doesn't choke if something returns None or an exception is thrown
         results = merge_dicts(*results)
         # Wait for the album photos subtask to finish
-        results['on_photos_of_me_async'].get()
+        subtask_results = results['on_photos_of_me_async'].get()
+        results = merge_dicts(results, *subtask_results)
     except TimeoutError:
         # TODO handle the timeout
         pass
 
     # Save fields to the PhotoRankings class
     rankings, created = PhotoRankings.objects.get_or_create(user=user)
+
+    # TODO prob want to fail gracefully if a key doesn't exist
+    rankings.top_photos = results['photos_of_me_this_year']
+    rankings.top_photos_first_half = results['top_photos_of_me_first_half']
+    rankings.top_photos_second_half = results['top_photos_of_me_second_half']
+
+    rankings.group_shots = results['group_shots']
+    rankings.top_friends = results['top_friends']
+    rankings.top_albums = results['top_albums']
+    rankings.back_in_time = results['back_in_time']
+
+    rankings.save()
 
 
     # All fields in PhotoRankings are filled.
@@ -359,9 +355,6 @@ def run_yearbook(user):
     # Back in time photos
     save_back_in_time_unused_photos(rankings, yb)
 
-    import ipdb
-    ipdb.set_trace()
-
     yb.save()
     logger.info('Yearbook created')
 
@@ -376,7 +369,7 @@ def save_top_friends_unused_photos(user, rankings, yearbook, most_tagged):
         # curr_friend is a list of photo_tags
         # Find `n` unused photos of this person
 #        curr_friend_unused = yearbook.get_n_unused_photos(curr_friend, TOP_FRIEND_PHOTOS_TO_SHOW)
-        curr_friend_unused = yearbook.get_n_unused_photos(curr_friend, 1)
+        curr_friend_unused = yearbook.get_n_unused_photos(rankings, curr_friend, 1)
 #        if curr_friend_unused is None or len(curr_friend_unused) < TOP_FRIEND_MIN_PHOTOS:
         if curr_friend_unused is None:
             continue
@@ -406,7 +399,7 @@ def save_top_albums_unused_photos(rankings, yearbook):
         curr_album = rankings.top_albums[album_num]
         # curr_album is a list of photo_tags
         # Find `n` unused photos from this album
-        curr_album_unused = yearbook.get_n_unused_photos(curr_album, ALBUM_PHOTOS_TO_SHOW)
+        curr_album_unused = yearbook.get_n_unused_photos(rankings, curr_album, ALBUM_PHOTOS_TO_SHOW)
         if curr_album_unused is None or len(curr_album_unused) < ALBUM_MIN_PHOTOS:
             continue
         albums_to_show.append({'index': album_num, 'photo_list': curr_album_unused})
@@ -430,7 +423,7 @@ def save_back_in_time_unused_photos(rankings, yearbook):
     for year_number in range(len(rankings.back_in_time)):
         curr_year = rankings.back_in_time[year_number]
         # Find an unused photo from `curr_year`
-        curr_year_unused = yearbook.get_n_unused_photos(curr_year, 1)
+        curr_year_unused = yearbook.get_n_unused_photos(rankings, curr_year, 1)
         if curr_year_unused is None:
             continue
         years_to_show.append({'index': year_number, 'photo_list': curr_year_unused})

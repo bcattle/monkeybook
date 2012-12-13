@@ -210,10 +210,6 @@ class BirthdayPostsTask(FQLTask):
         super(BirthdayPostsTask, self).__init__(name)
 
     def on_results(self, results):
-        rankings = PhotoRankings.objects.get(user=self.user)
-        rankings.birthday_posts = results
-        rankings.save()
-
         return results
 
 

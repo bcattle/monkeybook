@@ -9,6 +9,7 @@ from voomza.apps.yearbook.pages import PhotoWithCommentPage, PhotoPage, Yearbook
 
 
 class PageResource(Resource):
+    page = fields.IntegerField(attribute='page', readonly=True)
     page_content = fields.CharField(readonly=True)
 
     class Meta:
