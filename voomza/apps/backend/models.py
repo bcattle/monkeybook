@@ -22,31 +22,35 @@ class FacebookPhoto(models.Model):
     def url(self):
         return self.local_url or self.fb_url
 
+    def is_landscape(self):
+        return self.width > self.height
+
     def get_top_comment(self):
-        from voomza.apps.backend.pipeline.yearbook import _comment_score
-        # Assign a score
-        for comment in self.comments:
-            comment['score'] = _comment_score(comment)
+        if self.comments:
+            from voomza.apps.backend.pipeline.yearbook import _comment_score
+            # Assign a score
+            for comment in self.comments:
+                comment['score'] = _comment_score(comment)
 
-        # Sort by score, then by date
-        # Take the highest-scoring, earliest
-        top_comment = sorted(self.comments,
-                             key=lambda c: (-comment['score'], comment['time']))[0]
+            # Sort by score, then by date
+            # Take the highest-scoring, earliest
+            top_comment = sorted(self.comments,
+                                 key=lambda c: (-comment['score'], comment['time']))[0]
 
-        # Get user's name and photo
-        try:
-            fb_user = FacebookUser.objects.get(facebook_id=top_comment['fromid'])
-            top_comment_name = fb_user.name
-            top_comment_pic = fb_user.pic_square
-        except FacebookUser.DoesNotExist:
-            top_comment_name = ''
-            top_comment_pic = ''
+            # Get user's name and photo
+            try:
+                fb_user = FacebookUser.objects.get(facebook_id=top_comment['fromid'])
+                top_comment_name = fb_user.name
+                top_comment_pic = fb_user.pic_square
+            except FacebookUser.DoesNotExist:
+                top_comment_name = ''
+                top_comment_pic = ''
 
-        return {
-            'text': top_comment,
-            'user_name': top_comment_name,
-            'user_pic': top_comment_pic,
-        }
+            return {
+                'text': top_comment,
+                'user_name': top_comment_name,
+                'user_pic': top_comment_pic,
+            }
 
     objects = FacebookPhotoManager()
 
@@ -65,6 +69,7 @@ class PhotoRankings(models.Model):
     # Top few will be gf/bf or family, if any
     top_friends = JSONField(default="[]", max_length=100000)
     top_albums = JSONField(default="[]", max_length=100000)
+    top_albums_info = JSONField(default="[]", max_length=100000)
     back_in_time = JSONField(default="[]", max_length=100000)
 
 
@@ -225,7 +230,7 @@ class Yearbook(models.Model):
                     # Bummer, just an id - look it up in the database
                     try:
                         photo_db = FacebookPhoto.objects.get(id=photo)
-                        if photo_db.width < photo.height:
+                        if not photo_db.is_landscape():
                             continue
                     except FacebookPhoto.DoesNotExist:
                         logger.warn('Attempted to look up fb photo %d, doesn\'t exist in db.' % photo)
@@ -247,16 +252,14 @@ class Yearbook(models.Model):
         # Iterate through the above fields
         for ranked_list_name, yb_fields in self.lists_to_fields.items():
             for yb_field in yb_fields:
-#                if self.get_photo_from_field_string(ranking, ranked_list_name, yb_field, id_field) == photo_id:
-                if self.get_photo_from_field_string(ranking, ranked_list_name, yb_field) == photo_id:
+                if self.get_photo_id_from_field_string(ranking, ranked_list_name, yb_field) == photo_id:
 #                    print 'photo is used: %d' % photo_id
                     return True
         return False
 
-
     def get_photo_from_field_string(self, ranking, ranked_list_name, yb_field):
         """
-        De-references and returns the id of the photo referred
+        De-references and returns the photo struct of a photo referred
         to by a field in the PhotoRankings and a field in the Yearbook.
         Examples:       'family_with', 'family_photo_1'
                         'top_friends', 'top_friend_1.top_friend_1_photo_1'
@@ -272,14 +275,25 @@ class Yearbook(models.Model):
                 if (not photo_list_index is None) and (not photo_index is None):
                     photo_list = ranked_list[photo_list_index]
                     # `photo_list` could be a list of structs, or integers
-                    return  _get_id_from_dict_or_int(photo_list[photo_index])
+                    return  photo_list[photo_index]
             else:
                 # Dereference the field back to the original facebook id
                 list_index = getattr(self, yb_field)
                 if not list_index is None:
                     # `ranked_list` is either a list of structs, or integers
-                    return _get_id_from_dict_or_int(ranked_list[list_index])
+                    return ranked_list[list_index]
         return None
+
+    def get_photo_id_from_field_string(self, ranking, ranked_list_name, yb_field):
+        """
+        De-references and returns the *id* of the photo referred
+        to by a field in the PhotoRankings and a field in the Yearbook.
+        Examples:       'family_with', 'family_photo_1'
+                        'top_friends', 'top_friend_1.top_friend_1_photo_1'
+        Returns None if photo list or index is empty
+        """
+        photo = self.get_photo_from_field_string(ranking, ranked_list_name, yb_field)
+        return _get_id_from_dict_or_int(photo)
 
 
 def _get_id_from_dict_or_int(photo):

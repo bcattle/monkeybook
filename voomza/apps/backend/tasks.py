@@ -152,7 +152,8 @@ def get_top_albums_photos(results, user):
     result = task.run(user)
     top_albums_photos = result['album_photos']
 
-    albums_by_score = [
+    # All album photos, sorted by score
+    album_photos_by_score = [
         [
             {'id': photo['id'], 'score':photo['score']}
             for photo in getter.order_by('score')
@@ -160,7 +161,7 @@ def get_top_albums_photos(results, user):
     ]
 
     # Boost highest-scoring photos *of user* in album to front
-    for album in albums_by_score:
+    for album in album_photos_by_score:
         found_photos = 0
         for photo_index in range(len(album)):
             if album[photo_index]['id'] in results['photos_of_me'].ids:
@@ -173,17 +174,16 @@ def get_top_albums_photos(results, user):
                     break
 
     # All photos, ranked
-    results['top_albums'] = albums_by_score
-    results['top_albums_photos'] = top_albums_photos
+    results['top_albums_photos'] = album_photos_by_score
     return results
 
 
 @task.task()
 def get_most_tagged(results):
     assert 'tagged_with_me' in results
-    this_year = datetime.datetime(datetime.datetime.now().year - 3, 1, 1, tzinfo=utc)
+    recent_cutoff = datetime.datetime(datetime.datetime.now().year - RECENT_IS_YEARS, 1, 1, tzinfo=utc)
     tagged_recently = results['tagged_with_me']['tagged_with_me'].filter(
-        lambda x: x['created'] > this_year
+        lambda x: x['created'] > recent_cutoff
     )
     results['most_tagged_recently'] = FreqDistResultGetter(
         tagged_recently.fields, id_field='subject'
@@ -316,7 +316,8 @@ def run_yearbook(user):
 
     rankings.group_shots = results['group_shots']
     rankings.top_friends = results['top_friends']
-    rankings.top_albums = results['top_albums']
+    rankings.top_albums = results['top_albums_photos']
+    rankings.top_albums_info = results['top_albums']
     rankings.back_in_time = results['back_in_time']
 
     rankings.save()

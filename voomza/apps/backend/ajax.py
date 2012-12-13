@@ -5,7 +5,7 @@ from tastypie.resources import Resource
 from tastypie.authorization import Authorization
 from tastypie.authentication import SessionAuthentication
 from tastypie.api import Api
-from voomza.apps.yearbook.pages import PhotoWithCommentPage, PhotoPage, YearbookPage, AlbumPage, FieldPage, TopFriendNamePage, BackInTimePage, FriendsCollagePage
+from voomza.apps.yearbook.pages import *
 
 
 class PageResource(Resource):
@@ -82,28 +82,28 @@ class YearbookPageFactory(object):
         PhotoWithCommentPage( page=17, ranking_name='group_shots',            field_name='group_photo_2'),
         PhotoWithCommentPage( page=18, ranking_name='group_shots',            field_name='group_photo_3'),
 
-        AlbumPage(            page=20, ranking_name='top_albums.top_album_1', max_photos=4),
-        AlbumPage(            page=21, ranking_name='top_albums.top_album_2', max_photos=4),
-        AlbumPage(            page=22, ranking_name='top_albums.top_album_3', max_photos=4),
+        AlbumPage(            page=20, ranking_name='top_albums', field_prefix='top_album_1.top_album_1', max_photos=4),
+        AlbumPage(            page=21, ranking_name='top_albums', field_prefix='top_album_2.top_album_2', max_photos=4),
+        AlbumPage(            page=22, ranking_name='top_albums', field_prefix='top_album_3.top_album_3', max_photos=4),
 
         # Top status message
-        FieldPage(            page=26, field_name='top_comment'),
+        FieldPage(            page=26, field_name='top_post'),
 
         # Birthday comments
-        FieldPage(            page=27, field_name='birthday_comments'),
+        FieldPage(            page=27, field_name='birthday_posts'),
                               # really a two-page spread
 
         # Top photos back in time
-        BackInTimePage(       page=29),
+        BackInTimePhotosPage( page=29, ranking_name='back_in_time', field_prefix='back_in_time', max_photos=1, max_albums=7),
                               # really a two-page spread
 
-        TopFriendNamePage(    page=33, ranking_name='top_friends',              field_name='top_friend_1'),
+        TopFriendNamePage(    page=33, ranking_name='top_friends',              field_name='top_friend_1',      stat_field='top_friend_1_stat'),
         PhotoPage(            page=34, ranking_name='top_friends.top_friend_1', field_name='top_friend_1_photo_1'),
-        TopFriendNamePage(    page=35, ranking_name='top_friends',              field_name='top_friend_2'),
+        TopFriendNamePage(    page=35, ranking_name='top_friends',              field_name='top_friend_2',      stat_field='top_friend_2_stat'),
         PhotoPage(            page=36, ranking_name='top_friends.top_friend_2', field_name='top_friend_2_photo_1'),
-        TopFriendNamePage(    page=37, ranking_name='top_friends',              field_name='top_friend_3'),
+        TopFriendNamePage(    page=37, ranking_name='top_friends',              field_name='top_friend_3',      stat_field='top_friend_3_stat'),
         PhotoPage(            page=38, ranking_name='top_friends.top_friend_3', field_name='top_friend_3_photo_1'),
-        TopFriendNamePage(    page=39, ranking_name='top_friends',              field_name='top_friend_4'),
+        TopFriendNamePage(    page=39, ranking_name='top_friends',              field_name='top_friend_4',      stat_field='top_friend_4_stat'),
         PhotoPage(            page=40, ranking_name='top_friends.top_friend_4', field_name='top_friend_4_photo_1'),
 
         # Friends collage

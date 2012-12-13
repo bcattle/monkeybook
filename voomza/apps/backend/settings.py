@@ -23,6 +23,7 @@ NUM_TOP_FRIENDS         = 5
 TOP_FRIEND_MIN_PHOTOS   = 1     # If a person has fewer than this many photos, they are dsq
 #TOP_FRIEND_PHOTOS_TO_SHOW = 3
 
+RECENT_IS_YEARS         = 3
 NUM_PREV_YEARS          = 7     # 2011-2005
 
 IMMEDIATE_FAMILY        = ['mother', 'father', 'brother', 'sister']
@@ -31,4 +32,6 @@ SIGNIFICANT_OTHER_STAT  = u'That special somebody'
 FAMILY_STAT             = u'Family'
 
 COMMENT_I_LIKE_POINTS   = 10
-COMMENT_LIKE_POINTS     =1
+COMMENT_LIKE_POINTS     = 1
+
+NUM_FRIENDS_IN_FACEPILE = 84
