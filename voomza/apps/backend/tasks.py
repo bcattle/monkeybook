@@ -326,35 +326,35 @@ def run_yearbook(user):
     # All fields in PhotoRankings are filled.
     # Assign photos to the Yearbook, avoiding duplicates
     try:
-        old_yb = Yearbook.objects.get(owner=user)
+        old_yb = Yearbook.objects.get(rankings=rankings)
         old_yb.delete()
     except Yearbook.DoesNotExist: pass
-    yb = Yearbook(owner=user)
+    yb = Yearbook(rankings=rankings)
 
     # Grab top_post and birthday_posts from results
     yb.top_post = results['top_post']
     yb.birthday_posts = results['birthday_posts']
 
     # We go through the fields and assign the first unused photo to each field
-    yb.top_photo_1 = yb.get_first_unused_photo_landscape(rankings, rankings.top_photos)           # landscape
-    yb.top_photo_2 = yb.get_first_unused_photo(rankings, rankings.top_photos)
-    yb.top_photo_3 = yb.get_first_unused_photo(rankings, rankings.top_photos)
-    yb.first_half_photo_1 = yb.get_first_unused_photo_landscape(rankings, rankings.top_photos_first_half)     # landscape
-    yb.first_half_photo_2 = yb.get_first_unused_photo(rankings, rankings.top_photos_first_half)
-    yb.first_half_photo_3 = yb.get_first_unused_photo(rankings, rankings.top_photos_first_half)
-    yb.second_half_photo_1 = yb.get_first_unused_photo_landscape(rankings, rankings.top_photos_second_half)   # landscape
-    yb.second_half_photo_2 = yb.get_first_unused_photo(rankings, rankings.top_photos_second_half)
-    yb.second_half_photo_3 = yb.get_first_unused_photo(rankings, rankings.top_photos_second_half)
-    yb.group_photo_1 = yb.get_first_unused_photo_landscape(rankings, rankings.group_shots)            # landscape
-    yb.group_photo_2 = yb.get_first_unused_photo(rankings, rankings.group_shots)
-    yb.group_photo_3 = yb.get_first_unused_photo(rankings, rankings.group_shots)
+    yb.top_photo_1 = yb.get_first_unused_photo_landscape(rankings.top_photos)           # landscape
+    yb.top_photo_2 = yb.get_first_unused_photo(rankings.top_photos)
+    yb.top_photo_3 = yb.get_first_unused_photo(rankings.top_photos)
+    yb.first_half_photo_1 = yb.get_first_unused_photo_landscape(rankings.top_photos_first_half)     # landscape
+    yb.first_half_photo_2 = yb.get_first_unused_photo(rankings.top_photos_first_half)
+    yb.first_half_photo_3 = yb.get_first_unused_photo(rankings.top_photos_first_half)
+    yb.second_half_photo_1 = yb.get_first_unused_photo_landscape(rankings.top_photos_second_half)   # landscape
+    yb.second_half_photo_2 = yb.get_first_unused_photo(rankings.top_photos_second_half)
+    yb.second_half_photo_3 = yb.get_first_unused_photo(rankings.top_photos_second_half)
+    yb.group_photo_1 = yb.get_first_unused_photo_landscape(rankings.group_shots)            # landscape
+    yb.group_photo_2 = yb.get_first_unused_photo(rankings.group_shots)
+    yb.group_photo_3 = yb.get_first_unused_photo(rankings.group_shots)
 
     # Top friends
-    save_top_friends_unused_photos(user, rankings, yb, results['most_tagged'])
+    save_top_friends_unused_photos(user, yb, results['most_tagged'])
     # Top albums
-    save_top_albums_unused_photos(rankings, yb)
+    save_top_albums_unused_photos(yb)
     # Back in time photos
-    save_back_in_time_unused_photos(rankings, yb)
+    save_back_in_time_unused_photos(yb)
 
     yb.save()
     logger.info('Yearbook created')
@@ -362,15 +362,15 @@ def run_yearbook(user):
     # Initiate a task to start downloading user's yearbook photos
 
 
-def save_top_friends_unused_photos(user, rankings, yearbook, most_tagged):
+def save_top_friends_unused_photos(user, yearbook, most_tagged):
     family_ids = [family_member.facebook_id for family_member in user.family.all()]
     top_friends_photos = []
-    for friend_num in range(len(rankings.top_friends)):
-        curr_friend = rankings.top_friends[friend_num]
+    for friend_num in range(len(yearbook.rankings.top_friends)):
+        curr_friend = yearbook.rankings.top_friends[friend_num]
         # curr_friend is a list of photo_tags
         # Find `n` unused photos of this person
 #        curr_friend_unused = yearbook.get_n_unused_photos(curr_friend, TOP_FRIEND_PHOTOS_TO_SHOW)
-        curr_friend_unused = yearbook.get_n_unused_photos(rankings, curr_friend, 1)
+        curr_friend_unused = yearbook.get_n_unused_photos(curr_friend, 1)
 #        if curr_friend_unused is None or len(curr_friend_unused) < TOP_FRIEND_MIN_PHOTOS:
         if curr_friend_unused is None:
             continue
@@ -394,13 +394,13 @@ def save_top_friends_unused_photos(user, rankings, yearbook, most_tagged):
         setattr(yearbook, 'top_friend_%d_stat' % (top_friend_num + 1), top_friend['stat'])
 
 
-def save_top_albums_unused_photos(rankings, yearbook):
+def save_top_albums_unused_photos(yearbook):
     albums_to_show = []
-    for album_num in range(len(rankings.top_albums)):
-        curr_album = rankings.top_albums[album_num]
+    for album_num in range(len(yearbook.rankings.top_albums)):
+        curr_album = yearbook.rankings.top_albums[album_num]
         # curr_album is a list of photo_tags
         # Find `n` unused photos from this album
-        curr_album_unused = yearbook.get_n_unused_photos(rankings, curr_album, ALBUM_PHOTOS_TO_SHOW)
+        curr_album_unused = yearbook.get_n_unused_photos(curr_album, ALBUM_PHOTOS_TO_SHOW)
         if curr_album_unused is None or len(curr_album_unused) < ALBUM_MIN_PHOTOS:
             continue
         albums_to_show.append({'index': album_num, 'photo_list': curr_album_unused})
@@ -419,12 +419,12 @@ def save_top_albums_unused_photos(rankings, yearbook):
     save_enumerated_fields(albums_to_show, 'top_album', yearbook)
 
 
-def save_back_in_time_unused_photos(rankings, yearbook):
+def save_back_in_time_unused_photos(yearbook):
     years_to_show = []
-    for year_number in range(len(rankings.back_in_time)):
-        curr_year = rankings.back_in_time[year_number]
+    for year_number in range(len(yearbook.rankings.back_in_time)):
+        curr_year = yearbook.rankings.back_in_time[year_number]
         # Find an unused photo from `curr_year`
-        curr_year_unused = yearbook.get_n_unused_photos(rankings, curr_year, 1)
+        curr_year_unused = yearbook.get_n_unused_photos(curr_year, 1)
         if curr_year_unused is None:
             continue
         years_to_show.append({'index': year_number, 'photo_list': curr_year_unused})
@@ -434,7 +434,7 @@ def save_back_in_time_unused_photos(rankings, yearbook):
     # Special case: if only found one year, pull an additional photo from that year
     if len(years_to_show) == 1:
         that_year_index = years_to_show[0]['index']
-        unused_photo_2 = yearbook.get_first_unused_photo(rankings.back_in_time[that_year_index])
+        unused_photo_2 = yearbook.get_first_unused_photo(yearbook.rankings.back_in_time[that_year_index])
         if unused_photo_2 is not None:
             years_to_show[0]['photo_list'].append(unused_photo_2)
 

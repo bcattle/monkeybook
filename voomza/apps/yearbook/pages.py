@@ -14,8 +14,7 @@ class YearbookPage(object):
 
     def set_user(self, user):
         self.user = user
-        # Get the user's PhotoRankings and Yearbook
-        self.rankings = PhotoRankings.objects.get(user=user)
+        # Get the user's PhotoRankings
         self.yearbook = Yearbook.objects.get(owner=user)
 
     def get_page_content(self, user):
@@ -50,7 +49,7 @@ class PhotoPage(YearbookPage):
 
     def get_photo(self):
         photo_id = self.yearbook.get_photo_id_from_field_string(
-            self.rankings, self.ranking_table_name, self.index_field_name
+            self.ranking_table_name, self.index_field_name
         )
         if not photo_id:
             photo = None
@@ -62,9 +61,9 @@ class PhotoPage(YearbookPage):
     def get_next_image(self, next_index):
         # De-reference the field and get the next unallocated image
         next_photo_index = self.yearbook.get_next_unused_photo(
-            self.rankings, self.ranking_table_name, self.index_field_name, unused_index=next_index, force_landscape=self.force_landscape
+            self.ranking_table_name, self.index_field_name, unused_index=next_index, force_landscape=self.force_landscape
         )
-        next_photo = getattr(self.rankings, self.ranking_table_name)[next_photo_index]
+        next_photo = getattr(self.yearbook.rankings, self.ranking_table_name)[next_photo_index]
         next_photo_db = FacebookPhoto.objects.get(facebook_id=next_photo['id'])
         return self.get_photo_content(next_photo_db)
 
@@ -114,7 +113,7 @@ class TopFriendNamePage(PhotoPage):
         # De-reference the field and return
         # the user's first name and stat
         photo_list = self.yearbook.get_photo_from_field_string(
-            self.rankings, self.ranking_table_name, self.index_field_name
+            self.ranking_table_name, self.index_field_name
         )
         if photo_list:
             friend_id = photo_list[0]['subject']
@@ -147,7 +146,7 @@ class AlbumPage(PhotoPage):
         photos = []
         for photo_num in range(self.max_photos):
             photo_id = self.yearbook.get_photo_id_from_field_string(
-                self.rankings, self.ranking_table_name, '%s_photo_%d' % (field_prefix, (photo_num + 1))
+                self.ranking_table_name, '%s_photo_%d' % (field_prefix, (photo_num + 1))
             )
             try:
                 photo = FacebookPhoto.objects.get(facebook_id=photo_id)
@@ -160,10 +159,10 @@ class AlbumPage(PhotoPage):
         # De-reference the field and get the next unallocated image
         field_name = '%s_photo_%d' % (self.field_prefix, (photo_index+ 1))
         next_photo_index = self.yearbook.get_next_unused_photo(
-            self.rankings, self.ranking_table_name, field_name, unused_index=next_index
+            self.ranking_table_name, field_name, unused_index=next_index
         )
         album_num = getattr(self.yearbook, self.field_prefix.split('.')[0])
-        next_photo = getattr(self.rankings, self.ranking_table_name)[album_num][next_photo_index]
+        next_photo = getattr(self.yearbook.rankings, self.ranking_table_name)[album_num][next_photo_index]
         next_photo_db = FacebookPhoto.objects.get(facebook_id=next_photo['id'])
         return self.get_photo_content(next_photo_db)
 
@@ -174,7 +173,7 @@ class AlbumPage(PhotoPage):
         # Manually get the album index
         # self.field_prefix = 'top_album_1.top_album_1'
         album_index = getattr(self.yearbook, self.field_prefix.split('.')[0])
-        album_info = self.rankings.top_albums_info[album_index]
+        album_info = self.yearbook.rankings.top_albums_info[album_index]
         album_name = album_info['name']
 
         page_content = {
@@ -196,7 +195,7 @@ class BackInTimePhotosPage(AlbumPage):
         photos = []
         for photo_num in range(self.max_photos):
             photo = self.yearbook.get_photo_from_field_string(
-                self.rankings, self.ranking_table_name, '%s_photo_%d' % (field_prefix, (photo_num + 1))
+                self.ranking_table_name, '%s_photo_%d' % (field_prefix, (photo_num + 1))
             )
             photos.append(photo)
         return photos

@@ -74,7 +74,8 @@ class PhotoRankings(models.Model):
 
 
 class Yearbook(models.Model):
-    owner = models.OneToOneField('auth.User', related_name='yearbooks')
+    rankings = models.OneToOneField(PhotoRankings, related_name='yearbook')
+
     # These indices point to the lists stored in PhotoRanking
     top_photo_1 = models.PositiveSmallIntegerField(null=True)
     top_photo_2 = models.PositiveSmallIntegerField(null=True)
@@ -168,13 +169,13 @@ class Yearbook(models.Model):
         ],
         'top_albums': [
             'top_album_1.top_album_1_photo_1', 'top_album_1.top_album_1_photo_2',
-            'top_album_1.top_album_1_photo_3', 'top_album_1.top_album_1_photo_4',
+            'top_album_1.top_album_1_photo_3',
 
             'top_album_2.top_album_2_photo_1', 'top_album_2.top_album_2_photo_2',
-            'top_album_2.top_album_2_photo_3', 'top_album_2.top_album_2_photo_4',
+            'top_album_2.top_album_2_photo_3',
 
             'top_album_3.top_album_3_photo_1', 'top_album_3.top_album_3_photo_2',
-            'top_album_3.top_album_3_photo_3', 'top_album_3.top_album_3_photo_4',
+            'top_album_3.top_album_3_photo_3',
         ],
         'back_in_time': [
             'back_in_time_1.back_in_time_1_photo_1',
@@ -187,7 +188,7 @@ class Yearbook(models.Model):
         ]
     }
 
-    def photo_is_used(self, ranking, photo, used_ids=None):
+    def photo_is_used(self, photo, used_ids=None):
         """
         Iterates through all image index fields on the model,
         verifying that the images they refer to are not "claimed"
@@ -195,49 +196,47 @@ class Yearbook(models.Model):
         used_ids = used_ids or []
         # Cache the list of used ids - REMEMBER TO INVALIDATE!
         if not self._all_used_ids:
-            self._all_used_ids = self._get_all_used_ids(ranking)
+            self._all_used_ids = self._get_all_used_ids()
         # `photo` could either be a struct or an integer id
-        photo_id = _get_id_from_dict_or_int(photo)
+        photo_id = self._get_id_from_dict_or_int(photo)
         return photo_id in used_ids or photo_id in self._all_used_ids
 
-    def _get_all_used_ids(self, ranking):
+    def _get_all_used_ids(self):
         all_ids = []
         for ranked_list_name, yb_fields in self.lists_to_fields.items():
             for yb_field in yb_fields:
-                photo_id = self.get_photo_id_from_field_string(ranking, ranked_list_name, yb_field)
+                photo_id = self.get_photo_id_from_field_string(ranked_list_name, yb_field)
                 if not photo_id is None:
                     all_ids.append(photo_id)
         return all_ids
 
-    def get_n_unused_photos(self, ranking, list_of_photos, n, force_landscape=False, start_index=0):
+    def get_n_unused_photos(self, list_of_photos, n, force_landscape=False, start_index=0):
         unused_photos = []
         used_ids = []
         while len(unused_photos) < n:
             if force_landscape:
-                unused_photo = self.get_first_unused_photo_landscape(ranking, list_of_photos, used_ids, start_index)
+                unused_photo = self.get_first_unused_photo_landscape(list_of_photos, used_ids, start_index)
             else:
-                unused_photo = self.get_first_unused_photo(ranking, list_of_photos, used_ids, start_index)
+                unused_photo = self.get_first_unused_photo(list_of_photos, used_ids, start_index)
             if unused_photo is None:
                 # List ran out, return what we had
                 return unused_photos
             else:
                 unused_photos.append(unused_photo)
-                used_ids.append(_get_id_from_dict_or_int(list_of_photos[unused_photo]))
+                used_ids.append(self._get_id_from_dict_or_int(list_of_photos[unused_photo]))
         return unused_photos
 
-
-    def get_first_unused_photo(self, ranking, list_of_photos, used_ids=None, start_index=0):
+    def get_first_unused_photo(self, list_of_photos, used_ids=None, start_index=0):
         """
         Loops through photos in `list_of_photos`,
         If no photo unused, return None
         """
         for index, photo in enumerate(list_of_photos[start_index:]):
-            if not self.photo_is_used(ranking, photo, used_ids):
+            if not self.photo_is_used(photo, used_ids):
                 return index + start_index
         return None
 
-
-    def get_first_unused_photo_landscape(self, ranking, list_of_photos, used_ids=None, start_index=0):
+    def get_first_unused_photo_landscape(self, list_of_photos, used_ids=None, start_index=0):
         """
         Loops through photos in `list_of_photos`,
         running `yearbook.photo_is_used()` until it returns False
@@ -245,7 +244,7 @@ class Yearbook(models.Model):
         If no photo unused, return None
         """
         for index, photo in enumerate(list_of_photos[start_index:]):
-            if not self.photo_is_used(ranking, photo, used_ids) and photo:
+            if not self.photo_is_used(photo, used_ids) and photo:
                 # Is the photo landscape?
                 if hasattr(photo, 'keys'):
                     if photo['width'] < photo['height']:
@@ -261,21 +260,17 @@ class Yearbook(models.Model):
                 return index + start_index
         return None
 
-
-    def get_next_unused_photo(self, ranking, ranked_list_name, yb_field, unused_index=0, force_landscape=False):
+    def get_next_unused_photo(self, ranked_list_name, yb_field, unused_index=0, force_landscape=False):
         """
         Get the next unused photo in a list referred to by field name
         `unused_index` : returns the nth unused photo
         """
-        import ipdb
-        ipdb.set_trace()
-
-        photo_list = getattr(ranking, ranked_list_name)
+        photo_list = getattr(self.rankings, ranked_list_name)
         # Dereference the field, get the current index of the image being used
         curr_photo_index = self.get_photo_index_from_field_string(yb_field)
         # Get `unused_index` unused photos after that
         unused_photos = self.get_n_unused_photos(
-            ranking, photo_list, unused_index + 1, force_landscape=force_landscape, start_index=curr_photo_index
+            photo_list, unused_index + 1, force_landscape=force_landscape, start_index=curr_photo_index
         )
         # Return the last of these
         if unused_photos:
@@ -295,8 +290,7 @@ class Yearbook(models.Model):
             photo_index = getattr(self, yb_field)
         return photo_index
 
-
-    def get_photo_from_field_string(self, ranking, ranked_list_name, yb_field):
+    def get_photo_from_field_string(self, ranked_list_name, yb_field):
         """
         De-references and returns the photo struct of a photo referred
         to by a field in the PhotoRankings and a field in the Yearbook.
@@ -304,7 +298,7 @@ class Yearbook(models.Model):
                         'top_friends', 'top_friend_1.top_friend_1_photo_1'
         Returns None if photo list or index is empty
         """
-        ranked_list = getattr(ranking, ranked_list_name)
+        ranked_list = getattr(self.rankings, ranked_list_name)
         if ranked_list:
             if '.' in yb_field:
                 # Double-indirection
@@ -323,7 +317,7 @@ class Yearbook(models.Model):
                     return ranked_list[list_index]
         return None
 
-    def get_photo_id_from_field_string(self, ranking, ranked_list_name, yb_field):
+    def get_photo_id_from_field_string(self, ranked_list_name, yb_field):
         """
         De-references and returns the *id* of the photo referred
         to by a field in the PhotoRankings and a field in the Yearbook.
@@ -331,19 +325,50 @@ class Yearbook(models.Model):
                         'top_friends', 'top_friend_1.top_friend_1_photo_1'
         Returns None if photo list or index is empty
         """
-        photo = self.get_photo_from_field_string(ranking, ranked_list_name, yb_field)
-        return _get_id_from_dict_or_int(photo)
+        photo = self.get_photo_from_field_string(ranked_list_name, yb_field)
+        return self._get_id_from_dict_or_int(photo)
 
+    def dump_to_console(self):
+        """
+            top_photos
+            -------------------
+                            1120392001 (U)
+            top_photo_1 --> 1120392001 (U)
+                            1120392001
+        """
+        print 'Yearbook for user %s\n' % self.rankings.user.username
+        for ranked_list_name, yb_fields in self.lists_to_fields.items():
+            # Print the name of the ranking table
+            print '%s\n%s' % (ranked_list_name, '-'*20)
+            # For each entry in the list, print
+            # (1) whether it is pointed to by a field in `yb_fields`
+            # (2) the ID, and (3) whether the ID is in use elsewhere
+            ranked_list = getattr(self.rankings, ranked_list_name)
+            longest_field = max([len(field) for field in yb_fields])
+            for index, photo in enumerate(ranked_list):
+                field_str = ' '*(longest_field + 4)
+                # Is it pointed to from `yb_fields`?
+                for field in yb_fields:
+                    if self.get_photo_index_from_field_string(field) == index:
+                        field_str = '%s -->' % field
+                # Is it in use in the yearbook?
+                in_use_str = ''
+                if self.photo_is_used(photo):
+                    in_use_str = '(U)'
+                photo_str = '%s %s %s' % (field_str, photo['id'], in_use_str)
+                print photo_str
+            print '\n'
+        print '\n'
 
-def _get_id_from_dict_or_int(photo):
-    # If it's a dict, try the key 'object_id', then try 'id'
-    if hasattr(photo, 'keys'):
-        if 'object_id' in photo:
-            return photo['object_id']
+    def _get_id_from_dict_or_int(self, photo):
+        # If it's a dict, try the key 'object_id', then try 'id'
+        if hasattr(photo, 'keys'):
+            if 'object_id' in photo:
+                return photo['object_id']
+            else:
+                return photo['id']
         else:
-            return photo['id']
-    else:
-        return photo
+            return photo
 
 
 class Minibook(models.Model):
