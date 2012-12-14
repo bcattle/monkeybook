@@ -129,20 +129,13 @@ class ResultGetter(object):
         self._fields_by_id = {}
         self._ordered = {}
 
-        if not fields:
-            fields = []
-        if not field_names:
-            field_names = {}
-        if not defaults:
-            defaults = {}
-        if not optional_fields:
-            optional_fields = {}
-        if not extra_fields:
-            extra_fields = {}
-        if not timestamps:
-            timestamps = []
-        if not integer_fields:
-            integer_fields = []
+        fields = fields or []
+        field_names = field_names or {}
+        defaults = defaults or {}
+        optional_fields = optional_fields or {}
+        extra_fields = extra_fields or {}
+        timestamps = timestamps or []
+        integer_fields = integer_fields or []
 
         # If we are generating an auto_id,
         # still want `id_field` in results

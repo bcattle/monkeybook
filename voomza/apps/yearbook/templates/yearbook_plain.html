@@ -11,5 +11,98 @@
 
 {% block script %}
     <script src="{% static 'js/jquery-1.7.2.min.js' %}"></script>
+    <script type="text/javascript">
+        var friendsUrl = "{% url 'api_dispatch_list' api_name='v1' resource_name='yearbookpage' %}";
+        var nextPagesUrl = friendsUrl;
 
+        // Templates are either hard-coded here, or come in over AJAX
+        var page_templates = [
+            '{% static 'html/yearbook/static_image.html' %}',
+            '{% static 'html/yearbook/static_image.html' %}',
+            '{% static 'html/yearbook/bg_with_name.html' %}',
+            '{% static 'html/yearbook/static_image.html' %}',
+
+            '{% static 'html/yearbook/full_bleed.html' %}',         // 5
+            '{% static 'html/yearbook/photo_w_comment.html' %}',
+            '{% static 'html/yearbook/photo_w_comment.html' %}',
+
+            '{% static 'html/yearbook/static_image.html' %}',
+            '{% static 'html/yearbook/photo_framed.html' %}',
+            '{% static 'html/yearbook/photo_framed.html' %}',       // 10
+            '{% static 'html/yearbook/photo_framed.html' %}',
+            '{% static 'html/yearbook/photo_framed.html' %}',
+            '{% static 'html/yearbook/photo_framed.html' %}',
+            '{% static 'html/yearbook/photo_framed.html' %}',
+
+            '{% static 'html/yearbook/static_image.html' %}',       // 15
+
+            '{% static 'html/yearbook/full_bleed.html' %}',
+            '{% static 'html/yearbook/photo_w_comment.html' %}',
+            '{% static 'html/yearbook/photo_w_comment.html' %}',
+
+            '{% static 'html/yearbook/static_image.html' %}',
+            '{% static 'html/yearbook/album_photos.html' %}',       // 20
+            '{% static 'html/yearbook/album_photos.html' %}',
+            '{% static 'html/yearbook/album_photos.html' %}',
+
+            '{% static 'html/yearbook/static_image.html' %}',
+            '{% static 'html/yearbook/static_image.html' %}',
+            '{% static 'html/yearbook/static_image.html' %}',       // 25
+
+            '{% static 'html/yearbook/top_status.html' %}',
+            '{% static 'html/yearbook/birthday.html' %}',
+            '{% static 'html/yearbook/birthday.html' %}',
+
+            '{% static 'html/yearbook/back_in_time.html' %}',
+            '{% static 'html/yearbook/back_in_time.html' %}',       // 30
+
+            '{% static 'html/yearbook/static_image.html' %}',
+            '{% static 'html/yearbook/static_image.html' %}',
+
+            '{% static 'html/yearbook/top_friend_name.html' %}',
+            '{% static 'html/yearbook/full_bleed.html' %}',
+            '{% static 'html/yearbook/top_friend_name.html' %}',    // 35
+            '{% static 'html/yearbook/full_bleed.html' %}',
+            '{% static 'html/yearbook/top_friend_name.html' %}',
+            '{% static 'html/yearbook/full_bleed.html' %}',
+            '{% static 'html/yearbook/top_friend_name.html' %}',
+            '{% static 'html/yearbook/full_bleed.html' %}',         // 40
+            '{% static 'html/yearbook/top_friend_name.html' %}',
+            '{% static 'html/yearbook/full_bleed.html' %}',
+
+            '{% static 'html/yearbook/facepile.html' %}',
+            '{% static 'html/yearbook/facepile.html' %}',
+
+            '{% static 'html/yearbook/yearbook_signs.html' %}',     // 45
+            '{% static 'html/yearbook/yearbook_signs.html' %}'
+        ];
+
+        $(document).ready(function() {
+            // Instantiate hard-coded pages
+            var static_pages = [
+{#                {'page': 1,  'context': { 'background': '{% static 'img/book_background_cropped.png' %}' }},#}
+{#                {'page': 2,  'context': { 'background': '{% static 'img/book_background_cropped.png' %}' }},#}
+{#                {'page': 4,  'context': { 'background': '{% static 'img/book_background_cropped.png' %}' }},#}
+{#                {'page': 8,  'context': { 'background': '{% static 'img/book_background_cropped.png' %}' }},#}
+{#                {'page': 15, 'context': { 'background': '{% static 'img/book_background_cropped.png' %}' }},#}
+{#                {'page': 19, 'context': { 'background': '{% static 'img/book_background_cropped.png' %}' }},#}
+{#                {'page': 23, 'context': { 'background': '{% static 'img/book_background_cropped.png' %}' }},#}
+{#                {'page': 24, 'context': { 'background': '{% static 'img/book_background_cropped.png' %}' }},#}
+{#                {'page': 25, 'context': { 'background': '{% static 'img/book_background_cropped.png' %}' }},#}
+{#                {'page': 31, 'context': { 'background': '{% static 'img/book_background_cropped.png' %}' }},#}
+{#                {'page': 32, 'context': { 'background': '{% static 'img/book_background_cropped.png' %}' }}#}
+            ];
+
+            // Pull first set of pages
+        });
+
+        function onGetPages(data, textStatus, jqXHR) {
+            nextPagesUrl = data.meta.next;
+
+            // When we recieve a page, pull its template
+            // and run its context-generating function
+
+            // Pull more pages, if any
+        }
+    </script>
 {% endblock %}

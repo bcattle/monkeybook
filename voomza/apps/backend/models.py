@@ -115,19 +115,19 @@ class Yearbook(models.Model):
     top_album_1_photo_1 = models.PositiveSmallIntegerField(null=True)
     top_album_1_photo_2 = models.PositiveSmallIntegerField(null=True)
     top_album_1_photo_3 = models.PositiveSmallIntegerField(null=True)
-    top_album_1_photo_4 = models.PositiveSmallIntegerField(null=True)
+#    top_album_1_photo_4 = models.PositiveSmallIntegerField(null=True)
 
     top_album_2 = models.BigIntegerField(null=True)
     top_album_2_photo_1 = models.PositiveSmallIntegerField(null=True)
     top_album_2_photo_2 = models.PositiveSmallIntegerField(null=True)
     top_album_2_photo_3 = models.PositiveSmallIntegerField(null=True)
-    top_album_2_photo_4 = models.PositiveSmallIntegerField(null=True)
+#    top_album_2_photo_4 = models.PositiveSmallIntegerField(null=True)
 
     top_album_3 = models.BigIntegerField(null=True)
     top_album_3_photo_1 = models.PositiveSmallIntegerField(null=True)
     top_album_3_photo_2 = models.PositiveSmallIntegerField(null=True)
     top_album_3_photo_3 = models.PositiveSmallIntegerField(null=True)
-    top_album_3_photo_4 = models.PositiveSmallIntegerField(null=True)
+#    top_album_3_photo_4 = models.PositiveSmallIntegerField(null=True)
 
     # The first field is an index to the year, the second an index to the photo
     back_in_time_1          = models.PositiveSmallIntegerField(null=True)
@@ -149,6 +149,7 @@ class Yearbook(models.Model):
     top_post = JSONField(default="[]", max_length=100000)
     birthday_posts = JSONField(default="[]", max_length=100000)
 
+    _all_used_ids = None
 
     # Really, should use this data structure to autogenerate the model
     lists_to_fields = {
@@ -186,12 +187,36 @@ class Yearbook(models.Model):
         ]
     }
 
-    def get_n_unused_photos(self, ranking, list_of_photos, n):
+    def photo_is_used(self, ranking, photo, used_ids=None):
+        """
+        Iterates through all image index fields on the model,
+        verifying that the images they refer to are not "claimed"
+        """
+        used_ids = used_ids or []
+        # Cache the list of used ids - REMEMBER TO INVALIDATE!
+        if not self._all_used_ids:
+            self._all_used_ids = self._get_all_used_ids(ranking)
+        # `photo` could either be a struct or an integer id
+        photo_id = _get_id_from_dict_or_int(photo)
+        return photo_id in used_ids or photo_id in self._all_used_ids
+
+    def _get_all_used_ids(self, ranking):
+        all_ids = []
+        for ranked_list_name, yb_fields in self.lists_to_fields.items():
+            for yb_field in yb_fields:
+                photo_id = self.get_photo_id_from_field_string(ranking, ranked_list_name, yb_field)
+                if not photo_id is None:
+                    all_ids.append(photo_id)
+        return all_ids
+
+    def get_n_unused_photos(self, ranking, list_of_photos, n, force_landscape=False, start_index=0):
         unused_photos = []
         used_ids = []
         while len(unused_photos) < n:
-            # Need the counter here since the photos we pick up aren't in the Yearbook yet
-            unused_photo = self.get_first_unused_photo(ranking, list_of_photos, used_ids)
+            if force_landscape:
+                unused_photo = self.get_first_unused_photo_landscape(ranking, list_of_photos, used_ids, start_index)
+            else:
+                unused_photo = self.get_first_unused_photo(ranking, list_of_photos, used_ids, start_index)
             if unused_photo is None:
                 # List ran out, return what we had
                 return unused_photos
@@ -201,26 +226,25 @@ class Yearbook(models.Model):
         return unused_photos
 
 
-    def get_first_unused_photo(self, ranking, list_of_photos, used_ids=None):
+    def get_first_unused_photo(self, ranking, list_of_photos, used_ids=None, start_index=0):
         """
         Loops through photos in `list_of_photos`,
-        running `yearbook.photo_is_used()` until it returns False
         If no photo unused, return None
         """
-        for index, photo in enumerate(list_of_photos):
+        for index, photo in enumerate(list_of_photos[start_index:]):
             if not self.photo_is_used(ranking, photo, used_ids):
-                return index
+                return index + start_index
         return None
 
 
-    def get_first_unused_photo_landscape(self, ranking, list_of_photos, used_ids=None):
+    def get_first_unused_photo_landscape(self, ranking, list_of_photos, used_ids=None, start_index=0):
         """
         Loops through photos in `list_of_photos`,
         running `yearbook.photo_is_used()` until it returns False
         *and* photo width is greater than its height.
         If no photo unused, return None
         """
-        for index, photo in enumerate(list_of_photos):
+        for index, photo in enumerate(list_of_photos[start_index:]):
             if not self.photo_is_used(ranking, photo, used_ids) and photo:
                 # Is the photo landscape?
                 if hasattr(photo, 'keys'):
@@ -229,33 +253,48 @@ class Yearbook(models.Model):
                 else:
                     # Bummer, just an id - look it up in the database
                     try:
-                        photo_db = FacebookPhoto.objects.get(id=photo)
+                        photo_db = FacebookPhoto.objects.get(facebook_id=photo)
                         if not photo_db.is_landscape():
                             continue
                     except FacebookPhoto.DoesNotExist:
                         logger.warn('Attempted to look up fb photo %d, doesn\'t exist in db.' % photo)
-                return index
+                return index + start_index
         return None
 
 
-    def photo_is_used(self, ranking, photo, used_ids=None):
+    def get_next_unused_photo(self, ranking, ranked_list_name, yb_field, unused_index=0, force_landscape=False):
         """
-        Iterates through all image index fields on the model,
-        verifying that the images they refer to are not "claimed"
+        Get the next unused photo in a list referred to by field name
+        `unused_index` : returns the nth unused photo
         """
-        if not used_ids:
-            used_ids = []
-        # `photo` could either be a struct or an integer id
-        photo_id = _get_id_from_dict_or_int(photo)
-        if photo_id in used_ids:
-            return True
-        # Iterate through the above fields
-        for ranked_list_name, yb_fields in self.lists_to_fields.items():
-            for yb_field in yb_fields:
-                if self.get_photo_id_from_field_string(ranking, ranked_list_name, yb_field) == photo_id:
-#                    print 'photo is used: %d' % photo_id
-                    return True
-        return False
+        import ipdb
+        ipdb.set_trace()
+
+        photo_list = getattr(ranking, ranked_list_name)
+        # Dereference the field, get the current index of the image being used
+        curr_photo_index = self.get_photo_index_from_field_string(yb_field)
+        # Get `unused_index` unused photos after that
+        unused_photos = self.get_n_unused_photos(
+            ranking, photo_list, unused_index + 1, force_landscape=force_landscape, start_index=curr_photo_index
+        )
+        # Return the last of these
+        if unused_photos:
+            return unused_photos[-1]
+        else:
+            return None
+
+    def get_photo_index_from_field_string(self, yb_field):
+        """
+        Returns the index of the image being referred to by `yb_field`
+        """
+        if '.' in yb_field:
+            # Double-indirection
+            photo_list_index_field, photo_index_field = yb_field.split('.')
+            photo_index = getattr(self, photo_index_field)
+        else:
+            photo_index = getattr(self, yb_field)
+        return photo_index
+
 
     def get_photo_from_field_string(self, ranking, ranked_list_name, yb_field):
         """

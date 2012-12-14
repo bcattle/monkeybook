@@ -1,6 +1,6 @@
 import logging
 from django.template.context import RequestContext
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, render
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django_facebook.api import require_persistent_graph
@@ -44,7 +44,8 @@ def invite_friends_to_sign(request,
     context = {
         'next_view': next_view
     }
-    return render_to_response(template_name, context, RequestContext(request))
+#    return render_to_response(template_name, context, RequestContext(request))
+    return render(request, template_name, context)
 
 
 @facebook_required_lazy(canvas=True)
