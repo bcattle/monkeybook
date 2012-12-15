@@ -194,12 +194,11 @@ class Yearbook(models.Model):
         verifying that the images they refer to are not "claimed"
         """
         used_ids = used_ids or []
-        # Cache the list of used ids - REMEMBER TO INVALIDATE!
-        if not self._all_used_ids:
-            self._all_used_ids = self._get_all_used_ids()
-        # `photo` could either be a struct or an integer id
         photo_id = self._get_id_from_dict_or_int(photo)
-        return photo_id in used_ids or photo_id in self._all_used_ids
+        if photo_id in used_ids:
+            return True
+        all_used_ids = self._get_all_used_ids()
+        return photo_id in all_used_ids
 
     def _get_all_used_ids(self):
         all_ids = []
@@ -360,7 +359,7 @@ class Yearbook(models.Model):
             for list_name, fields in fields_by_index_field.items():
                 sub_list_index = getattr(self, list_name)
                 sub_list_name_str = '%s : %s --> %d' % (ranked_list_name, list_name, sub_list_index)
-                self.dump_list(sub_list_name_str, ranked_list[sub_list_index], yb_fields)
+                self.dump_list(sub_list_name_str, ranked_list[sub_list_index], fields)
         print '\n'
 
 
