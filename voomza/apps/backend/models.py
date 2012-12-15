@@ -330,35 +330,77 @@ class Yearbook(models.Model):
 
     def dump_to_console(self):
         """
-            top_photos
+            top_photos    (45 photos)
             -------------------
                             1120392001 (U)
             top_photo_1 --> 1120392001 (U)
                             1120392001
         """
-        print 'Yearbook for user %s\n' % self.rankings.user.username
-        for ranked_list_name, yb_fields in self.lists_to_fields.items():
-            # Print the name of the ranking table
-            print '%s\n%s' % (ranked_list_name, '-'*20)
-            # For each entry in the list, print
-            # (1) whether it is pointed to by a field in `yb_fields`
-            # (2) the ID, and (3) whether the ID is in use elsewhere
+        print 'Yearbook for user <%s>\n' % self.rankings.user.username
+        single_indirect = [item for item in self.lists_to_fields.items() if '.' not in item[1][0]]
+        dbl_indirect = [item for item in self.lists_to_fields.items() if '.' in item[1][0]]
+
+        # Do single indirection first
+        for ranked_list_name, yb_fields in single_indirect:
             ranked_list = getattr(self.rankings, ranked_list_name)
-            longest_field = max([len(field) for field in yb_fields])
-            for index, photo in enumerate(ranked_list):
-                field_str = ' '*(longest_field + 4)
-                # Is it pointed to from `yb_fields`?
-                for field in yb_fields:
-                    if self.get_photo_index_from_field_string(field) == index:
-                        field_str = '%s -->' % field
-                # Is it in use in the yearbook?
-                in_use_str = ''
-                if self.photo_is_used(photo):
-                    in_use_str = '(U)'
-                photo_str = '%s %s %s' % (field_str, photo['id'], in_use_str)
-                print photo_str
-            print '\n'
+            self.dump_list(ranked_list_name, ranked_list, yb_fields)
+
+        for ranked_list_name, yb_fields in dbl_indirect:
+            ranked_list = getattr(self.rankings, ranked_list_name)
+            fields_by_index_field = {}
+            for yb_field in yb_fields:
+                list_index_field_name, photo_field_name = yb_field.split('.')
+                if list_index_field_name in fields_by_index_field:
+                    fields_by_index_field[list_index_field_name].append(photo_field_name)
+                else:
+                    fields_by_index_field[list_index_field_name] = [photo_field_name]
+
+            # Now have a list of photo fields by field index,
+            # dump these
+            for list_name, fields in fields_by_index_field.items():
+                sub_list_index = getattr(self, list_name)
+                sub_list_name_str = '%s : %s --> %d' % (ranked_list_name, list_name, sub_list_index)
+                self.dump_list(sub_list_name_str, ranked_list[sub_list_index], yb_fields)
         print '\n'
+
+
+    def dump_list(self, list_name, photo_list, list_fields):
+        """
+        `list_fields` -> the fields that point into the list
+        """
+        MAX_PHOTOS_PER_LIST = 15
+        # Print the name of the ranking table
+        print '%s\t(%d photos)\n%s' % (list_name, len(photo_list), '-'*(len(list_name) + 20))
+        # For each entry in the list, print
+        # (1) whether it is pointed to by a field in `yb_fields`
+        # (2) the ID, and (3) whether the ID is in use elsewhere
+        longest_field = max([len(field) for field in list_fields])
+        for index, photo in enumerate(photo_list):
+            field_str = ' '*(longest_field + 4)
+            # Is it pointed to from `yb_fields`?
+            for field in list_fields:
+                if self.get_photo_index_from_field_string(field) == index:
+                    field_str = '%s -->' % field
+                    break
+                # Is it in use in the yearbook?
+            in_use_str = ''
+            if self.photo_is_used(photo):
+                in_use_str = '(U)'
+            score_str = ''
+            if 'score' in photo:
+                score_str = photo['score']
+            portrait_str = ''
+            if 'width' in photo and 'height' in photo:
+                if photo['width'] < photo['height']:
+                    portrait_str = 'Portrait'
+            photo_str = '%s %s %s %s %s' % (field_str, str(self._get_id_from_dict_or_int(photo)).ljust(18), str(score_str).ljust(3), in_use_str, portrait_str)
+            print photo_str
+
+            if index >= MAX_PHOTOS_PER_LIST:
+                print ' '*(longest_field + 4) + '  ...'
+                break
+        print '\n'
+
 
     def _get_id_from_dict_or_int(self, photo):
         # If it's a dict, try the key 'object_id', then try 'id'
