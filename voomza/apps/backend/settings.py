@@ -21,7 +21,7 @@ POST_LIKE_POINTS        = 1
 
 NUM_TOP_FRIENDS         = 5
 TOP_FRIEND_MIN_PHOTOS   = 1     # If a person has fewer than this many photos, they are dsq
-#TOP_FRIEND_PHOTOS_TO_SHOW = 3
+TOP_FRIEND_PHOTOS_TO_SHOW = 2
 
 RECENT_IS_YEARS         = 3
 NUM_PREV_YEARS          = 7     # 2011-2005

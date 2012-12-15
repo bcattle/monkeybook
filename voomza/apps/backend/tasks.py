@@ -342,9 +342,11 @@ def run_yearbook(user):
     yb.first_half_photo_1 = yb.get_first_unused_photo_landscape(rankings.top_photos_first_half)     # landscape
     yb.first_half_photo_2 = yb.get_first_unused_photo(rankings.top_photos_first_half)
     yb.first_half_photo_3 = yb.get_first_unused_photo(rankings.top_photos_first_half)
+    yb.first_half_photo_4 = yb.get_first_unused_photo(rankings.top_photos_first_half)
     yb.second_half_photo_1 = yb.get_first_unused_photo_landscape(rankings.top_photos_second_half)   # landscape
     yb.second_half_photo_2 = yb.get_first_unused_photo(rankings.top_photos_second_half)
     yb.second_half_photo_3 = yb.get_first_unused_photo(rankings.top_photos_second_half)
+    yb.second_half_photo_4 = yb.get_first_unused_photo(rankings.top_photos_second_half)
     yb.group_photo_1 = yb.get_first_unused_photo_landscape(rankings.group_shots)            # landscape
     yb.group_photo_2 = yb.get_first_unused_photo(rankings.group_shots)
     yb.group_photo_3 = yb.get_first_unused_photo(rankings.group_shots)
@@ -369,10 +371,8 @@ def save_top_friends_unused_photos(user, yearbook, most_tagged):
         curr_friend = yearbook.rankings.top_friends[friend_num]
         # curr_friend is a list of photo_tags
         # Find `n` unused photos of this person
-#        curr_friend_unused = yearbook.get_n_unused_photos(curr_friend, TOP_FRIEND_PHOTOS_TO_SHOW)
-        curr_friend_unused = yearbook.get_n_unused_photos(curr_friend, 1)
-#        if curr_friend_unused is None or len(curr_friend_unused) < TOP_FRIEND_MIN_PHOTOS:
-        if curr_friend_unused is None:
+        curr_friend_unused = yearbook.get_n_unused_photos(curr_friend, TOP_FRIEND_PHOTOS_TO_SHOW)
+        if curr_friend_unused is None or len(curr_friend_unused) < TOP_FRIEND_MIN_PHOTOS:
             continue
         # Friend "stats"
         curr_friend_id = curr_friend[0]['subject']
