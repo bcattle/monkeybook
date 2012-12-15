@@ -13,3 +13,4 @@ git+git://github.com/toastdriven/django-tastypie.git
 gevent
 django-jsonfield
 # pip install --index-url https://code.stripe.com --upgrade stripe
+django_compressor

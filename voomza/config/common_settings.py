@@ -26,6 +26,7 @@ INSTALLED_APPS = (
     'djcelery',
     'django_facebook',
     'dajaxice',
+    'compressor',
 )
 INSTALLED_APPS += OUR_APPS
 
