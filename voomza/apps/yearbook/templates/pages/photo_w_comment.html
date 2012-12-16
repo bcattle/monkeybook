@@ -1,0 +1,30 @@
+{% if photo.is_square %}
+    <div class="l15_1s_p43 border">
+        <div class="photo s218" style="background-image:url({{ photo.url }});">
+        </div>
+    </div>
+{% elif photo.is_portrait %}
+    <div class="l14_1p_p43 border">
+        <div class="photo p218" style="background-image:url({{ photo.url }});">
+        </div>
+    </div>
+{% else %}
+    {# Photo is landscape #}
+    <div class="l13_1l_p43 border">
+        <div class="photo l290" style="background-image:url({{ photo.url }});">
+        </div>
+    </div>
+{% endif %}
+
+
+{% if comment %}
+    <div class="top_photo_comment">
+        <div class="comment_long">
+            <img class="comment_image" src="{{ comment_pic }}" width="22px">
+            <h5>{{ comment_name }}</h5>
+            <p class="comment_long_text">{{ comment }}</p>
+        </div>
+    </div>
+{% endif %}
+
+{% include 'pages/next_prev_buttons.html' %}

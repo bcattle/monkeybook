@@ -8,7 +8,8 @@ logger = logging.getLogger(__name__)
 
 
 class YearbookPage(object):
-    def __init__(self, template=None):
+    def __init__(self, page, template=None):
+        self.page = page
         if template:
             self.template = template
 
@@ -19,27 +20,29 @@ class YearbookPage(object):
 
     def get_page_content(self, user):
         self.set_user(user)
-        return self.page_content()
+        page_content = self.page_content()
+        page_content['page_num'] = self.page
+        return page_content
 
     def get_next_content(self, user):
         raise NotImplementedError
 
 
 class StaticPage(YearbookPage):
-    template = 'static_image.html'
+    """
+    Returns an empty div, the background image is set in CSS
+    """
+    template = 'full_bleed.html'
 
-    def __init__(self, bg_path, **kwargs):
-        self.bg_path = bg_path
+    def __init__(self, **kwargs):
         super(StaticPage, self).__init__(**kwargs)
 
     def page_content(self):
-        return {
-            'url': self.bg_path
-        }
+        return { }
 
 
 class PhotoPage(YearbookPage):
-    template = 'full_bleed.html'
+    template = 'full_bleed_editable.html'
 
     def __init__(self, ranking_name, field_name, force_landscape=False, **kwargs):
         self.ranking_table_name = ranking_name
@@ -47,9 +50,10 @@ class PhotoPage(YearbookPage):
         self.force_landscape = force_landscape
         super(PhotoPage, self).__init__(**kwargs)
 
-    def get_photo(self):
+    def get_photo(self, field_name=None):
+        field_name = field_name or self.index_field_name
         photo_id = self.yearbook.get_photo_id_from_field_string(
-            self.ranking_table_name, self.index_field_name
+            self.ranking_table_name, field_name
         )
         if not photo_id:
             photo = None
@@ -57,6 +61,11 @@ class PhotoPage(YearbookPage):
 #            print '%d: %s' % (self.page, photo_id)
             photo = FacebookPhoto.objects.get(facebook_id=photo_id)
         return photo
+
+    def get_photo_content(self, photo):
+        return {
+            'photo': photo
+        }
 
     def get_next_image(self, next_index):
         # De-reference the field and get the next unallocated image
@@ -67,21 +76,38 @@ class PhotoPage(YearbookPage):
         next_photo_db = FacebookPhoto.objects.get(facebook_id=next_photo['id'])
         return self.get_photo_content(next_photo_db)
 
-    def get_photo_content(self, photo):
-        if photo:
-            return {
-                'url': photo.url(),
-                'is_landscape': photo.is_landscape(),
-            }
-        else:
-            return {}
+    def page_content(self):
+        # De-reference the field and return pic url
+        photo = self.get_photo()
+        return self.get_photo_content(photo)
+
+
+
+class PhotoPageDoublePort(PhotoPage):
+    template='lands_sq_port_dbl_port.html'
+
+    def __init__(self, field_name_2, **kwargs):
+        self.index_field_name_2 = field_name_2
+        super(PhotoPageDoublePort, self).__init__(**kwargs)
 
     def page_content(self):
         # De-reference the field and return pic url
         photo = self.get_photo()
-        page_content = self.get_photo_content(photo)
-#        page_content['field'] = self.field_name
-        return page_content
+        # Pull the second photo, if any
+        # (only applies if first photo was portrait)
+        photo_2 = self.get_photo(self.index_field_name_2)
+        return {
+            'photo': photo,
+            'photo_2': photo_2
+        }
+
+
+#class SinglePhotoVariableLayout(PhotoPage):
+#    template = 'lands_sq_port_dbl_port.html'
+
+
+#class SinglePhotoVariableFullBleed(PhotoPage):
+#    template = 'lands_sq_port_dbl_port_full_bleed.html'
 
 
 class PhotoWithCommentPage(PhotoPage):
@@ -92,13 +118,12 @@ class PhotoWithCommentPage(PhotoPage):
         Add the top comment, commenter's name and photo
         """
         photo = self.get_photo()
+        page_content = self.get_photo_content(photo)
         top_comment = photo.get_top_comment()
-
-        page_content = super(PhotoWithCommentPage, self).page_content()
         if top_comment:
-            page_content['top_comment'] = top_comment['text']
-            page_content['top_comment_name'] = top_comment['user_name']
-            page_content['top_comment_pic'] = top_comment['user_pic']
+            page_content['comment'] = top_comment['text']
+            page_content['comment_name'] = top_comment['user_name']
+            page_content['comment_pic'] = top_comment['user_pic']
         return page_content
 
 
@@ -124,21 +149,17 @@ class TopFriendNamePage(PhotoPage):
                     'name': friend.name,
                     'pic': friend.pic_square,
                     'friend_stat': friend_stat,
-#                    'field': self.field_name,
                 }
             except FacebookUser.DoesNotExist:
-                return {
-#                    'field': self.field_name,
-                }
+                return { }
 
 
 class AlbumPage(PhotoPage):
-    template = 'album_photos.html'
-
-    def __init__(self, ranking_name, field_prefix, max_photos, **kwargs):
+    def __init__(self, ranking_name, field_prefix, max_photos, get_album_name=True, **kwargs):
         self.ranking_table_name = ranking_name
         self.field_prefix = field_prefix
         self.max_photos = max_photos
+        self.get_album_name = get_album_name
         # Calls *PhotoPage* constructor!
         super(PhotoPage, self).__init__(**kwargs)
 
@@ -169,24 +190,39 @@ class AlbumPage(PhotoPage):
     def page_content(self):
         # Return up to `max_photos` photos, dereferenced to `ranking_name`
         photos = self.get_album_photos(self.field_prefix)
+        # Sort them according to whether they are portrait or landscape
+        photos_portrait = [photo for photo in photos if not photo.is_landscape()]       # includes square
+        photos_landscape = [photo for photo in photos if photo.is_landscape()]
 
-        # Manually get the album index
-        # self.field_prefix = 'top_album_1.top_album_1'
-        album_index = getattr(self.yearbook, self.field_prefix.split('.')[0])
-        album_info = self.yearbook.rankings.top_albums_info[album_index]
-        album_name = album_info['name']
+        album_name = ''
+        if self.get_album_name:
+            # Manually get the album index
+            # self.field_prefix = 'top_album_1.top_album_1'
+            album_index = getattr(self.yearbook, self.field_prefix.split('.')[0])
+            album_info = self.yearbook.rankings.top_albums_info[album_index]
+            album_name = album_info['name']
 
         page_content = {
             'photos': photos,
+            'photos_portrait': photos_portrait,
+            'photos_landscape': photos_landscape,
             'album_name': album_name,
-#            'field': '.'.join([self.ranking_table_name, self.field_prefix])
         }
         return page_content
 
 
-class BackInTimePhotosPage(AlbumPage):
-    template = 'back_in_time.html'
+#class TopFriendPhotoPage(AlbumPage):
+#    template='lands_sq_port_dbl_port_full_bleed.html'
+#
+#    def __init__(self, ranking_name, field_name, stat_field, **kwargs):
+#        self.stat_field = stat_field
+#        super(TopFriendPhotoPage, self).__init__(ranking_name, field_name, **kwargs)
+#
+#    def page_content(self):
+#        pass
 
+
+class BackInTimePhotosPage(AlbumPage):
     def __init__(self, ranking_name, field_prefix, max_photos, max_albums, **kwargs):
         self.max_albums = max_albums
         super(BackInTimePhotosPage, self).__init__(ranking_name, field_prefix, max_photos, **kwargs)
@@ -206,8 +242,9 @@ class BackInTimePhotosPage(AlbumPage):
             created = dateutil.parser.parse(photo['created'])
             return {
                 'year': created.year,
-                'url': photo['fb_url'],
-                'is_landscape': photo['width'] > photo['height'],
+                'photo': photo,
+#                'url': photo['fb_url'],
+#                'is_landscape': photo['width'] > photo['height'],
             }
         else:
             return {}
@@ -248,8 +285,6 @@ class FieldPage(YearbookPage):
 
 
 class FriendsCollagePage(YearbookPage):
-    template = 'facepile.html'
-
     # Pull the facepile from the existing (invites) API
     def page_content(self):
         facepile_friend_pics = self.user.friends.all()[:NUM_FRIENDS_IN_FACEPILE]\
@@ -262,63 +297,62 @@ class FriendsCollagePage(YearbookPage):
 
 class YearbookPageFactory(object):
     _pages = [
-        StaticPage( bg_path='img/yearbook/cover.jpg'),
-        StaticPage( bg_path='img/yearbook/cover.jpg'),
-        FieldPage( field_name='owner.first_name', template='bg_with_name.html'),
+#        FieldPage(            page=3,  field_name='owner.first_name'),
+        StaticPage(           page=3),
         # Top photos
-        StaticPage( bg_path='img/yearbook/cover.jpg'),
-        PhotoPage(            ranking_name='top_photos',             field_name='top_photo_1',          force_landscape=True),      # 5
-        PhotoWithCommentPage( ranking_name='top_photos',             field_name='top_photo_2'),
-        PhotoWithCommentPage( ranking_name='top_photos',             field_name='top_photo_3'),
-        StaticPage( bg_path='img/yearbook/cover.jpg'),
-        PhotoPage(            ranking_name='top_photos_first_half',  field_name='first_half_photo_1',   force_landscape=True),
-        PhotoPage(            ranking_name='top_photos_first_half',  field_name='first_half_photo_2'),      # 10
-        PhotoPage(            ranking_name='top_photos_first_half',  field_name='first_half_photo_3'),
-        StaticPage( bg_path='img/yearbook/cover.jpg'),
-        PhotoPage(            ranking_name='top_photos_second_half', field_name='second_half_photo_1',  force_landscape=True),
-        PhotoPage(            ranking_name='top_photos_second_half', field_name='second_half_photo_2'),
-        PhotoPage(            ranking_name='top_photos_second_half', field_name='second_half_photo_3'),     # 15
+        StaticPage(           page=4),
+        PhotoPage(            page=5,  ranking_name='top_photos',             field_name='top_photo_1',         force_landscape=True),
+        PhotoWithCommentPage( page=6,  ranking_name='top_photos',             field_name='top_photo_2'),
+        PhotoWithCommentPage( page=7,  ranking_name='top_photos',             field_name='top_photo_3'),
+        StaticPage(           page=8),
+        PhotoPage(            page=9,  ranking_name='top_photos_first_half',  field_name='first_half_photo_1',  force_landscape=True),
+        PhotoPageDoublePort(  page=10, ranking_name='top_photos_first_half',  field_name='first_half_photo_2',  field_name_2='first_half_photo_4'),
+        PhotoPageDoublePort(  page=11, ranking_name='top_photos_first_half',  field_name='first_half_photo_3',  field_name_2='first_half_photo_5'),
+        StaticPage(           page=12),
+        PhotoPage(            page=13, ranking_name='top_photos_second_half', field_name='second_half_photo_1', force_landscape=True),
+        PhotoPageDoublePort(  page=14, ranking_name='top_photos_second_half', field_name='second_half_photo_2', field_name_2='second_half_photo_4'),
+        PhotoPageDoublePort(  page=15, ranking_name='top_photos_second_half', field_name='second_half_photo_3', field_name_2='second_half_photo_5'),
         # Group photos
-        StaticPage( bg_path='img/yearbook/cover.jpg'),
-        PhotoPage(            ranking_name='group_shots',            field_name='group_photo_1',        force_landscape=True),
-        PhotoWithCommentPage( ranking_name='group_shots',            field_name='group_photo_2'),
-        PhotoWithCommentPage( ranking_name='group_shots',            field_name='group_photo_3'),
-        StaticPage( bg_path='img/yearbook/cover.jpg'),                                                      # 20
-        AlbumPage(            ranking_name='top_albums',    field_prefix='top_album_1.top_album_1', max_photos=4),
-        AlbumPage(            ranking_name='top_albums',    field_prefix='top_album_2.top_album_2', max_photos=4),
-        AlbumPage(            ranking_name='top_albums',    field_prefix='top_album_3.top_album_3', max_photos=4),
-        StaticPage( bg_path='img/yearbook/cover.jpg'),
-        StaticPage( bg_path='img/yearbook/cover.jpg'),                                                      # 25
-        StaticPage( bg_path='img/yearbook/cover.jpg'),
+        StaticPage(           page=16),
+        PhotoPage(            page=17, ranking_name='group_shots',            field_name='group_photo_1',       force_landscape=True),
+        PhotoWithCommentPage( page=18, ranking_name='group_shots',            field_name='group_photo_2'),
+        PhotoWithCommentPage( page=19, ranking_name='group_shots',            field_name='group_photo_3'),
+        StaticPage(           page=20),
+        AlbumPage(            page=21, ranking_name='top_albums',    field_prefix='top_album_1.top_album_1', max_photos=ALBUM_PHOTOS_TO_SHOW, template='album_page_1.html'),
+        AlbumPage(            page=22, ranking_name='top_albums',    field_prefix='top_album_2.top_album_2', max_photos=ALBUM_PHOTOS_TO_SHOW, template='album_page_2.html'),
+        AlbumPage(            page=23, ranking_name='top_albums',    field_prefix='top_album_3.top_album_3', max_photos=ALBUM_PHOTOS_TO_SHOW, template='album_page_3.html'),
+        StaticPage(           page=24),
+        StaticPage(           page=25),
+        StaticPage(           page=26),
         # Top status message
-        FieldPage( field_name='top_post',        template='top_status.html'),
+        FieldPage(            page=27, field_name='top_post',           template='top_status.html'),
 
         # Birthday comments
         # really a two-page spread
-        FieldPage( field_name='birthday_posts',  template='birthday.html'),
-        FieldPage( field_name='birthday_posts',  template='birthday.html'),
+        FieldPage(            page=28, field_name='birthday_posts',     template='birthday_left.html'),
+        FieldPage(            page=29, field_name='birthday_posts',     template='birthday_right.html'),
 
         # Top photos back in time
         # really a two-page spread
-        BackInTimePhotosPage( ranking_name='back_in_time', field_prefix='back_in_time', max_photos=1, max_albums=7),            # 30
-        BackInTimePhotosPage( ranking_name='back_in_time', field_prefix='back_in_time', max_photos=1, max_albums=7),
-        StaticPage(bg_path='img/yearbook/cover.jpg'),
-        StaticPage(bg_path='img/yearbook/cover.jpg'),
-        TopFriendNamePage(    ranking_name='top_friends', field_name='top_friend_1',      stat_field='top_friend_1_stat'),
-        PhotoPage(            ranking_name='top_friends', field_name='top_friend_1.top_friend_1_photo_1'),                      # 35
-        TopFriendNamePage(    ranking_name='top_friends', field_name='top_friend_2',      stat_field='top_friend_2_stat'),
-        PhotoPage(            ranking_name='top_friends', field_name='top_friend_2.top_friend_2_photo_1'),
-        TopFriendNamePage(    ranking_name='top_friends', field_name='top_friend_3',      stat_field='top_friend_3_stat'),
-        PhotoPage(            ranking_name='top_friends', field_name='top_friend_3.top_friend_3_photo_1'),
-        TopFriendNamePage(    ranking_name='top_friends', field_name='top_friend_4',      stat_field='top_friend_4_stat'),      # 40
-        PhotoPage(            ranking_name='top_friends', field_name='top_friend_4.top_friend_4_photo_1'),
-        TopFriendNamePage(    ranking_name='top_friends', field_name='top_friend_5',      stat_field='top_friend_5_stat'),
-        PhotoPage(            ranking_name='top_friends', field_name='top_friend_5.top_friend_5_photo_1'),
+        BackInTimePhotosPage( page=30, ranking_name='back_in_time', field_prefix='back_in_time', max_photos=1, max_albums=NUM_PREV_YEARS,   template='back_in_time_left.html'),
+        BackInTimePhotosPage( page=31, ranking_name='back_in_time', field_prefix='back_in_time', max_photos=1, max_albums=NUM_PREV_YEARS,   template='back_in_time_right.html'),
+        StaticPage(           page=32),
+        StaticPage(           page=33),
+        TopFriendNamePage(    page=34, ranking_name='top_friends', field_name='top_friend_1',      stat_field='top_friend_1_stat'),
+        AlbumPage(            page=35, ranking_name='top_friends', field_prefix='top_friend_1.top_friend_1', max_photos=TOP_FRIEND_PHOTOS_TO_SHOW,  template='lands_sq_port_dbl_port_full_bleed.html', get_album_name=False),
+        TopFriendNamePage(    page=36, ranking_name='top_friends', field_name='top_friend_2',      stat_field='top_friend_2_stat'),
+        AlbumPage(            page=37, ranking_name='top_friends', field_prefix='top_friend_1.top_friend_1', max_photos=TOP_FRIEND_PHOTOS_TO_SHOW,  template='lands_sq_port_dbl_port_full_bleed.html', get_album_name=False),
+        TopFriendNamePage(    page=38, ranking_name='top_friends', field_name='top_friend_3',      stat_field='top_friend_3_stat'),
+        AlbumPage(            page=39, ranking_name='top_friends', field_prefix='top_friend_1.top_friend_1', max_photos=TOP_FRIEND_PHOTOS_TO_SHOW,  template='lands_sq_port_dbl_port_full_bleed.html', get_album_name=False),
+        TopFriendNamePage(    page=40, ranking_name='top_friends', field_name='top_friend_4',      stat_field='top_friend_4_stat'),
+        AlbumPage(            page=41, ranking_name='top_friends', field_prefix='top_friend_1.top_friend_1', max_photos=TOP_FRIEND_PHOTOS_TO_SHOW,  template='lands_sq_port_dbl_port_full_bleed.html', get_album_name=False),
+        TopFriendNamePage(    page=42, ranking_name='top_friends', field_name='top_friend_5',      stat_field='top_friend_5_stat'),
+        AlbumPage(            page=43, ranking_name='top_friends', field_prefix='top_friend_1.top_friend_1', max_photos=TOP_FRIEND_PHOTOS_TO_SHOW,  template='lands_sq_port_dbl_port_full_bleed.html', get_album_name=False),
 
         # Friends collage
         # really a two-page spread
-        FriendsCollagePage(   ),
-        FriendsCollagePage(   ),                                                                                                # 45
+        FriendsCollagePage(   page=44),
+        FriendsCollagePage(   page=45),
     ]
 
     def __init__(self):

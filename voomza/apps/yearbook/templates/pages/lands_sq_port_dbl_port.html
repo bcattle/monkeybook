@@ -1,0 +1,24 @@
+{% if photo_2 %}
+    <div class="l12_2p_p43">
+        <div class="sub_l1_2p border">
+            <div class="photo p246" style="background-image:url({{ photo.url }});"></div>
+        </div>
+        <div class="sub_l1_2p border">
+            <div class="photo p246" style="background-image:url({{ photo_2.url }});"></div>
+        </div>
+    </div>
+{% elif photo.is_square %}
+    <div class="l8_1s_p43 border">
+        <div class="photo s246" style="background-image:url({{ photo.url }});"></div>
+    </div>
+{% elif photo.is_square %}
+    <div class="l10_1p_p43 border">
+        <div class="photo p246" style="background-image:url({{ photo.url }});"></div>
+    </div>
+{% else %}
+    <div class="l7_1l_p43 border">
+        <div class="photo l330" style="background-image:url({{ photo.url }});"></div>
+    </div>
+{% endif %}
+
+{% include 'pages/next_prev_buttons.html' %}

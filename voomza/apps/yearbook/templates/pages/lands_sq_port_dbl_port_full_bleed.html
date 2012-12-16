@@ -1,0 +1,22 @@
+{% if photos|length_is:"2" and photos.0.is_portrait and photos.1.is_portrait %}
+    <div class="l12_2p_p43">
+        <div class="sub_l1_2p border">
+            <div class="photo p246" style="background-image:url({{ photos.0.url }});"></div>
+        </div>
+        <div class="sub_l1_2p border">
+            <div class="photo p246" style="background-image:url({{ photos.1.url }});"></div>
+        </div>
+    </div>
+{% elif photos.0.is_square %}
+    <div class="l8_1s_p43 border">
+        <div class="photo s246" style="background-image:url({{ photos.0.url }});"></div>
+    </div>
+{% elif photos.0.is_portrait %}
+    <div class="l10_1p_p43 border">
+        <div class="photo p246" style="background-image:url({{ photos.0.url }});"></div>
+    </div>
+{% else %}
+    <div class="photo full_bleed"></div>
+{% endif %}
+
+{% include 'pages/next_prev_buttons.html' %}

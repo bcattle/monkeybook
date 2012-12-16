@@ -25,7 +25,7 @@ INSTALLED_APPS = (
     'south',
     'djcelery',
     'django_facebook',
-    'dajaxice',
+#    'dajaxice',
     'compressor',
 )
 INSTALLED_APPS += OUR_APPS
@@ -95,7 +95,7 @@ STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
     #    'django.contrib.staticfiles.finders.DefaultStorageFinder',
 #    'compressor.finders.CompressorFinder',
-    'dajaxice.finders.DajaxiceFinder',
+#    'dajaxice.finders.DajaxiceFinder',
 )
 
 

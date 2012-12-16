@@ -62,7 +62,7 @@ def sign_friends(request,
 @facebook_required_lazy(canvas=True)
 @ensure_csrf_cookie
 def yearbook(request,
-             template_name='yearbook_plain.html'):
+             template_name='yearbook.html'):
     """
     User's yearbook
     """

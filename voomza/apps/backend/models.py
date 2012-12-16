@@ -6,6 +6,7 @@ from jsonfield.fields import JSONField
 from south.signals import post_migrate
 from voomza.apps.account.models import FacebookUser
 from voomza.apps.backend.managers import FacebookPhotoManager
+from voomza.apps.backend.settings import *
 
 logger = logging.getLogger(__name__)
 
@@ -22,8 +23,18 @@ class FacebookPhoto(models.Model):
     def url(self):
         return self.local_url or self.fb_url
 
+    @property
+    def aspect_ratio(self):
+        return float(self.width) / float(self.height)
+
+    def is_square(self):
+        return LOWEST_SQUARE_ASPECT_RATIO < self.aspect_ratio < HIGHEST_SQUARE_ASPECT_RATIO
+
+    def is_portrait(self):
+        return self.aspect_ratio < LOWEST_SQUARE_ASPECT_RATIO
+
     def is_landscape(self):
-        return self.width > self.height
+        return self.aspect_ratio > HIGHEST_SQUARE_ASPECT_RATIO
 
     def get_top_comment(self):
         if self.comments:
@@ -84,11 +95,15 @@ class Yearbook(models.Model):
     first_half_photo_1 = models.PositiveSmallIntegerField(null=True)
     first_half_photo_2 = models.PositiveSmallIntegerField(null=True)
     first_half_photo_3 = models.PositiveSmallIntegerField(null=True)
+    # If 2 or 3 were portrait, respectively
     first_half_photo_4 = models.PositiveSmallIntegerField(null=True)
+    first_half_photo_5 = models.PositiveSmallIntegerField(null=True)
     second_half_photo_1 = models.PositiveSmallIntegerField(null=True)
     second_half_photo_2 = models.PositiveSmallIntegerField(null=True)
     second_half_photo_3 = models.PositiveSmallIntegerField(null=True)
+    # If 2 or 3 were portrait, respectively
     second_half_photo_4 = models.PositiveSmallIntegerField(null=True)
+    second_half_photo_5 = models.PositiveSmallIntegerField(null=True)
 
     group_photo_1 = models.PositiveSmallIntegerField(null=True)
     group_photo_2 = models.PositiveSmallIntegerField(null=True)
@@ -163,10 +178,10 @@ class Yearbook(models.Model):
     lists_to_fields = {
         'top_photos': ['top_photo_1', 'top_photo_2', 'top_photo_3'],
         'top_photos_first_half': [
-            'first_half_photo_1', 'first_half_photo_2', 'first_half_photo_3', 'first_half_photo_4'
+            'first_half_photo_1', 'first_half_photo_2', 'first_half_photo_3', 'first_half_photo_4', 'first_half_photo_5'
         ],
         'top_photos_second_half': [
-            'second_half_photo_1', 'second_half_photo_2', 'second_half_photo_3', 'second_half_photo_4'
+            'second_half_photo_1', 'second_half_photo_2', 'second_half_photo_3', 'second_half_photo_4', 'second_half_photo_5'
         ],
         'group_shots': ['group_photo_1', 'group_photo_2', 'group_photo_3'],
         'top_friends': [
@@ -234,14 +249,18 @@ class Yearbook(models.Model):
                 used_ids.append(self._get_id_from_dict_or_int(list_of_photos[unused_photo]))
         return unused_photos
 
-    def get_first_unused_photo(self, list_of_photos, used_ids=None, start_index=0):
+    def get_first_unused_photo(self, list_of_photos, used_ids=None, start_index=0, return_id=False):
         """
         Loops through photos in `list_of_photos`,
         If no photo unused, return None
         """
         for index, photo in enumerate(list_of_photos[start_index:]):
             if not self.photo_is_used(photo, used_ids):
+                if return_id:
+                    return index + start_index, self._get_id_from_dict_or_int(photo)
                 return index + start_index
+        if return_id:
+            return None, None
         return None
 
     def get_first_unused_photo_landscape(self, list_of_photos, used_ids=None, start_index=0):
@@ -267,6 +286,32 @@ class Yearbook(models.Model):
                         logger.warn('Attempted to look up fb photo %d, doesn\'t exist in db.' % photo)
                 return index + start_index
         return None
+
+
+    def get_first_unused_photo_portrait(self, list_of_photos, used_ids=None, start_index=0):
+        """
+        Loops through photos in `list_of_photos`,
+        running `yearbook.photo_is_used()` until it returns False
+        *and* photo height is greater than its width.
+        If no photo unused, return None
+        """
+        for index, photo in enumerate(list_of_photos[start_index:]):
+            if not self.photo_is_used(photo, used_ids) and photo:
+                # Is the photo landscape?
+                if hasattr(photo, 'keys'):
+                    if photo['width'] > photo['height']:
+                        continue
+                else:
+                    # Bummer, just an id - look it up in the database
+                    try:
+                        photo_db = FacebookPhoto.objects.get(facebook_id=photo)
+                        if not photo_db.is_portrait():
+                            continue
+                    except FacebookPhoto.DoesNotExist:
+                        logger.warn('Attempted to look up fb photo %d, doesn\'t exist in db.' % photo)
+                return index + start_index
+        return None
+
 
     def get_next_unused_photo(self, ranked_list_name, yb_field, unused_index=0, force_landscape=False):
         """

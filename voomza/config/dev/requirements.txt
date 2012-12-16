@@ -4,7 +4,7 @@ south
 django-celery
 django_facebook
 pil
-django-dajaxice
+#django-dajaxice
 ipython
 ipdb
 django-redis-sessions

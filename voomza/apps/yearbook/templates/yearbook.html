@@ -40,6 +40,8 @@
     <script type="text/javascript" src="{% static 'js/hash.js' %}"></script>
 
     <script type="text/javascript">
+        var nextPagesUrl = "{% url 'api_dispatch_list' api_name='v1' resource_name='yearbookpage' %}";
+
         function loadApp() {
             var flipbook = $('.sj-book');
 
@@ -225,7 +227,6 @@
                     }
                 }
             });
-
 
             $('#slider').slider('option', 'max', numberOfViews(flipbook));
 

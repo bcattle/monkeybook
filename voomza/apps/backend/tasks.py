@@ -340,13 +340,41 @@ def run_yearbook(user):
     yb.top_photo_2 = yb.get_first_unused_photo(rankings.top_photos)
     yb.top_photo_3 = yb.get_first_unused_photo(rankings.top_photos)
     yb.first_half_photo_1 = yb.get_first_unused_photo_landscape(rankings.top_photos_first_half)     # landscape
-    yb.first_half_photo_2 = yb.get_first_unused_photo(rankings.top_photos_first_half)
-    yb.first_half_photo_3 = yb.get_first_unused_photo(rankings.top_photos_first_half)
-    yb.first_half_photo_4 = yb.get_first_unused_photo(rankings.top_photos_first_half)
+    yb.first_half_photo_2, fh_photo_2_id = yb.get_first_unused_photo(rankings.top_photos_first_half, return_id=True)
+    yb.first_half_photo_3, fh_photo_3_id = yb.get_first_unused_photo(rankings.top_photos_first_half, return_id=True)
+
+    # If #2 was portrait, try to pull a #4 that is also portrait
+    try:
+        fh_photo_2_db = FacebookPhoto.objects.get(facebook_id=fh_photo_2_id)
+        if fh_photo_2_db.is_portrait():
+            yb.first_half_photo_4 = yb.get_first_unused_photo_portrait(rankings.top_photos_first_half)
+    except FacebookPhoto.DoesNotExist: pass
+
+    # If #3 was portrait, try to pull a #4 that is also portrait
+    try:
+        fh_photo_3_db = FacebookPhoto.objects.get(facebook_id=fh_photo_3_id)
+        if fh_photo_3_db.is_portrait():
+            yb.first_half_photo_5 = yb.get_first_unused_photo_portrait(rankings.top_photos_first_half)
+    except FacebookPhoto.DoesNotExist: pass
+
     yb.second_half_photo_1 = yb.get_first_unused_photo_landscape(rankings.top_photos_second_half)   # landscape
-    yb.second_half_photo_2 = yb.get_first_unused_photo(rankings.top_photos_second_half)
-    yb.second_half_photo_3 = yb.get_first_unused_photo(rankings.top_photos_second_half)
-    yb.second_half_photo_4 = yb.get_first_unused_photo(rankings.top_photos_second_half)
+    yb.second_half_photo_2, sh_photo_2_id = yb.get_first_unused_photo(rankings.top_photos_second_half, return_id=True)
+    yb.second_half_photo_3, sh_photo_3_id = yb.get_first_unused_photo(rankings.top_photos_second_half, return_id=True)
+
+    # If #2 was portrait, try to pull a #4 that is also portrait
+    try:
+        sh_photo_2_db = FacebookPhoto.objects.get(facebook_id=sh_photo_2_id)
+        if sh_photo_2_db.is_portrait():
+            yb.first_half_photo_4 = yb.get_first_unused_photo_portrait(rankings.top_photos_first_half)
+    except FacebookPhoto.DoesNotExist: pass
+
+    # If #3 was portrait, try to pull a #4 that is also portrait
+    try:
+        sh_photo_3_db = FacebookPhoto.objects.get(facebook_id=sh_photo_3_id)
+        if sh_photo_3_db.is_portrait():
+            yb.first_half_photo_5 = yb.get_first_unused_photo_portrait(rankings.top_photos_first_half)
+    except FacebookPhoto.DoesNotExist: pass
+
     yb.group_photo_1 = yb.get_first_unused_photo_landscape(rankings.group_shots)            # landscape
     yb.group_photo_2 = yb.get_first_unused_photo(rankings.group_shots)
     yb.group_photo_3 = yb.get_first_unused_photo(rankings.group_shots)
