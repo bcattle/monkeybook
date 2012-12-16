@@ -6,6 +6,12 @@ from voomza.apps.backend.settings import *
 
 logger = logging.getLogger(__name__)
 
+class PageInvalidError(Exception):
+    """
+    This exception is raised when a page should be omitted,
+    for instance if it is lacking some necessary data
+    """
+
 
 class YearbookPage(object):
     def __init__(self, page, template=None):
@@ -19,8 +25,20 @@ class YearbookPage(object):
         self.yearbook = Yearbook.objects.get(owner=user)
 
     def get_page_content(self, user):
+        """
+        If the page raises an exception, kill it
+        Any exception other than PageInvalidError, log
+        """
         self.set_user(user)
-        page_content = self.page_content()
+        try:
+            page_content = self.page_content()
+        except PageInvalidError:
+            # The page is no good, return the empty page
+            pass
+        except Exception:
+            # Some other error happened, log it
+            logger.error()
+
         page_content['page_num'] = self.page
         return page_content
 
@@ -222,32 +240,20 @@ class AlbumPage(PhotoPage):
 #        pass
 
 
-class BackInTimePhotosPage(AlbumPage):
-    def __init__(self, ranking_name, field_prefix, max_photos, max_albums, **kwargs):
+class MultiAlbumPage(AlbumPage):
+    def __init__(self, max_albums, **kwargs):
         self.max_albums = max_albums
-        super(BackInTimePhotosPage, self).__init__(ranking_name, field_prefix, max_photos, **kwargs)
+        super(MultiAlbumPage, self).__init__(**kwargs)
 
     def get_album_photos(self, field_prefix):
         photos = []
         for photo_num in range(self.max_photos):
-            photo = self.yearbook.get_photo_from_field_string(
+            photo_id = self.yearbook.get_photo_id_from_field_string(
                 self.ranking_table_name, '%s_photo_%d' % (field_prefix, (photo_num + 1))
             )
+            photo = FacebookPhoto.objects.get(facebook_id=photo_id)
             photos.append(photo)
         return photos
-
-    def get_photo_content(self, photo):
-        if photo:
-            # photo['created'] is a string
-            created = dateutil.parser.parse(photo['created'])
-            return {
-                'year': created.year,
-                'photo': photo,
-#                'url': photo['fb_url'],
-#                'is_landscape': photo['width'] > photo['height'],
-            }
-        else:
-            return {}
 
     def page_content(self):
         # Dereference up to `max_albums` albums, return up to `max_photos` from each
@@ -259,8 +265,6 @@ class BackInTimePhotosPage(AlbumPage):
 
         # Flatten the list
         photos = list(chain.from_iterable(albums_photos))
-        # Get the fields we want
-        photos = map(self.get_photo_content, photos)
 
         return {
             'photos': photos,
@@ -283,15 +287,96 @@ class FieldPage(YearbookPage):
             self.field_name: field_value
         }
 
+    def get_user_by_id(self, facebook_id):
+        """
+        Helper that looks up a user by id, where they could be the
+        current user or one of the current user's facebook friends
+        """
+        try:
+            fb_user = FacebookUser.objects.get(facebook_id=facebook_id)
+            return fb_user
+        except FacebookUser.DoesNotExist:
+            return None
+
+
+class TopStatusPage(FieldPage):
+    template='top_status.html'
+
+    def __init__(self, **kwargs):
+        super(FieldPage, self).__init__(**kwargs)
+
+    def page_content(self):
+        top_post = self.yearbook.top_post
+        # Resolve the user ids of the poster and the people who commented
+        poster = None
+        if 'actor_id' in top_post:
+            poster_id = top_post['actor_id']
+            if poster_id:
+                poster = self.get_user_by_id(top_post['actor_id'])
+                if not poster:
+                    logger.warn('Unable to find poster of comment in db, #%d' % top_post['actor_id'])
+
+        commentors = []
+        comments_list = []
+        if 'comments' in top_post and 'comment_list' in top_post['comments']:
+            for comment in top_post['comments']['comment_list']:
+                if 'fromid' in comment:
+                    commentors.append(self.get_user_by_id(comment['fromid']))
+                    # Note that if there wasn't a match, we still want to
+                    # append `None` to the list, so it will iterate with the comments themselves
+
+            comments_list = zip(top_post['comments']['comment_list'], commentors)
+
+        page_content = {
+            'top_post': top_post,
+            'poster': poster,
+            'comments_list': comments_list,
+        }
+        return page_content
+
+
+class BirthdayPage(FieldPage):
+    def __init__(self, first_half, **kwargs):
+        self.first_half = first_half
+        super(FieldPage, self).__init__(**kwargs)
+
+    def page_content(self):
+        max_posts = min(len(self.yearbook.birthday_posts), NUM_BIRTHDAY_POSTS)
+        halfway = max_posts / 2
+        if self.first_half:
+            birthday_posts = self.yearbook.birthday_posts[:halfway]
+        else:
+            birthday_posts = self.yearbook.birthday_posts[halfway:max_posts]
+        posters = []
+        for post in birthday_posts:
+            if 'actor_id' in post:
+                posters.append(self.get_user_by_id(post['actor_id']))
+            else:
+                posters.append(None)
+
+        posts_list = zip(birthday_posts, posters)
+        return {
+            'posts_list': posts_list,
+            'posts_count': len(self.yearbook.birthday_posts)
+        }
+
 
 class FriendsCollagePage(YearbookPage):
-    # Pull the facepile from the existing (invites) API
+    def __init__(self, first_half, **kwargs):
+        self.first_half = first_half
+        super(FriendsCollagePage, self).__init__(**kwargs)
+
     def page_content(self):
-        facepile_friend_pics = self.user.friends.all()[:NUM_FRIENDS_IN_FACEPILE]\
-            .values_list('facebook_user__pic_square', flat=True)
+        max_faces = min(len(self.user.friends.count()), NUM_BIRTHDAY_POSTS)
+        halfway = max_faces / 2
+        if self.first_half:
+            query = self.user.friends.all()[:halfway]
+        else:
+            query = self.user.friends.all()[halfway:max_faces]
+        facepile_friend_pics = query.values_list('facebook_user__pic_square', flat=True)
 
         return {
-            'facepile_friend_pics': facepile_friend_pics
+            'pics': facepile_friend_pics
         }
 
 
@@ -325,17 +410,17 @@ class YearbookPageFactory(object):
         StaticPage(           page=25),
         StaticPage(           page=26),
         # Top status message
-        FieldPage(            page=27, field_name='top_post',           template='top_status.html'),
+        TopStatusPage(        page=27),
 
         # Birthday comments
         # really a two-page spread
-        FieldPage(            page=28, field_name='birthday_posts',     template='birthday_left.html'),
-        FieldPage(            page=29, field_name='birthday_posts',     template='birthday_right.html'),
+        BirthdayPage(         page=28, first_half=True,     template='birthday_left.html'),
+        BirthdayPage(         page=29, first_half=False,    template='birthday_right.html'),
 
         # Top photos back in time
         # really a two-page spread
-        BackInTimePhotosPage( page=30, ranking_name='back_in_time', field_prefix='back_in_time', max_photos=1, max_albums=NUM_PREV_YEARS,   template='back_in_time_left.html'),
-        BackInTimePhotosPage( page=31, ranking_name='back_in_time', field_prefix='back_in_time', max_photos=1, max_albums=NUM_PREV_YEARS,   template='back_in_time_right.html'),
+        MultiAlbumPage(       page=30, ranking_name='back_in_time', field_name='second_half_photo_1', max_photos=2, max_albums=NUM_PREV_YEARS,   template='back_in_time_left.html'),
+        MultiAlbumPage(       page=31, ranking_name='back_in_time', field_name='second_half_photo_1', max_photos=2, max_albums=NUM_PREV_YEARS,   template='back_in_time_right.html'),
         StaticPage(           page=32),
         StaticPage(           page=33),
         TopFriendNamePage(    page=34, ranking_name='top_friends', field_name='top_friend_1',      stat_field='top_friend_1_stat'),
@@ -351,8 +436,8 @@ class YearbookPageFactory(object):
 
         # Friends collage
         # really a two-page spread
-        FriendsCollagePage(   page=44),
-        FriendsCollagePage(   page=45),
+        FriendsCollagePage(   page=44, first_half=True,     template='friends_collage_left.html'),
+        FriendsCollagePage(   page=45, first_half=False,    template='friends_collage_right.html'),
     ]
 
     def __init__(self):

@@ -1,0 +1,27 @@
+{% if photos|length < "6" %}
+    <!-- IF 1,2,3,4,5 years / photos-->
+    <div class="l5_1l_p30 border">
+        <div class="year_tray">
+            <h5 class="year_right">{{ photos.-1.created.year }}</h5>
+        </div>
+        <div class="photo l330" style="background-image:url({{ photos.-1.url }});"></div>
+    </div>
+{% else %}
+    <!-- IF 6 or 7 years / photos-->
+    <div class="l6_3l_p30 border">
+        <div class="year_tray">
+            <h5 class="year_left">{{ photos.-3.created.year }}</h5>
+        </div>
+
+        <div class="photo l290 float_right" style="background-image:url({{ photos.-3.url }});"></div>
+        <div class="photo l142" style="background-image:url({{ photos.-2.url }});"></div>
+        <div class="photo l142" style="background-image:url({{ photos.-1.url }});"></div>
+
+        <div class="year_tray">
+            <h5 class="year_left">{{ photos.-2.created.year }}</h5>
+            <h5 class="year_right">{{ photos.-1.created.year }}</h5>
+        </div>
+    </div>
+{% endif %}
+
+<h4 class="years_text">It felt like yesterday.</h4>

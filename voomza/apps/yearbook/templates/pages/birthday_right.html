@@ -1,0 +1,11 @@
+<div class="birthday_container bc_right">
+    {% for post, user in posts_list %}
+        <div class="comment">
+            <img class="comment_image" src="{{ user.pic_square }}" width="22px">
+            <h5>{{ user.name }}</h5>
+            <p class="comment_text">{{ post.message|truncatechars:60 }}</p>
+        </div>
+    {% endfor %}
+</div>
+
+<h4 class="birthday_header">{{ post_count }} post{{ post_count|pluralize }} on your birthday.</h4>

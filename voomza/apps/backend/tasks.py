@@ -203,7 +203,12 @@ def get_top_post_of_year(results, user):
     top_post = get_post_task.run(user)
 
     # Return JSON of top post
-    results['top_post'] = top_post
+    results['top_post'] = top_post['get_post'][0]
+    # If a timestamp, convert to datetime
+    if 'created_time' in results['top_post']:
+        timestamp = results['top_post']['created_time']
+        created_datetime = datetime.datetime.utcfromtimestamp(timestamp).replace(tzinfo=utc)
+        results['top_post']['created_time'] = created_datetime
     return results
 
 

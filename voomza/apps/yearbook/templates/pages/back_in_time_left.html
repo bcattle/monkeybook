@@ -1,0 +1,67 @@
+{% if photos|length_is:"5" or photos|length_is:"7" %}
+
+    {#  IF 5 or 7 years / photos  #}
+
+    <div class="l1_4l_p30 border">
+        <div class="year_tray">
+            <h5 class="year_left">{{ photos.0.created.year }}</h5>
+            <h5 class="year_right">{{ photos.1.created.year }}</h5>
+        </div>
+
+        <div class="photo l180" style="background-image:url({{ photos.0.url }});"></div>
+        <div class="photo l180" style="background-image:url({{ photos.1.url }});"></div>
+
+        <div class="photo l180" style="background-image:url({{ photos.2.url }});"></div>
+        <div class="photo l180" style="background-image:url({{ photos.3.url }});"></div>
+
+        <div class="year_tray">
+            <h5 class="year_left">{{ photos.2.created.year }}</h5>
+            <h5 class="year_right">{{ photos.3.created.year }}</h5>
+        </div>
+    </div>
+
+{% elif photos|length_is:"4" or photos|length_is:"6" %}
+
+    {#  IF 4 or 6 years / photos  #}
+
+    <div class="l2_3l_p30 border">
+        <div class="year_tray">
+            <h5 class="year_left">{{ photos.0.created.year }}</h5>
+            <h5 class="year_right">{{ photos.1.created.year }}</h5>
+        </div>
+        <div class="photo l290" style="background-image:url({{ photos.0.url }});"></div>
+        <div class="photo l142" style="background-image:url({{ photos.1.url }});"></div>
+
+        <div class="photo l142" style="background-image:url({{ photos.2.url }});"></div>
+        <div class="year_tray">
+            <h5 class="year_left">{{ photos.2.created.year }}</h5>
+        </div>
+    </div>
+
+{% elif photos|length_is:"3" %}
+
+    {#  IF 3 years / photos  #}
+
+    <div class="l3_2l_p30 border">
+        <div class="year_tray">
+            <h5 class="year_left">{{ photos.0.created.year }}</h5>
+        </div>
+        <div class="photo l210" style="background-image:url({{ photos.0.url }});"></div>
+        <div class="photo l210" style="background-image:url({{ photos.1.url }});"></div>
+        <div class="year_tray">
+            <h5 class="year_right">{{ photos.1.created.year }}</h5>
+        </div>
+    </div>
+
+{% else %}
+
+    {#  IF 1 or 2 years / photos  #}
+
+    <div class="l4_1l_p30 border">
+        <div class="year_tray">
+            <h5 class="year_left">{{ photos.0.created.year }}</h5>
+        </div>
+        <div class="photo l330" style="background-image:url({{ photos.0.url }});"></div>
+    </div>
+
+{% endif %}

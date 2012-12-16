@@ -1,0 +1,32 @@
+<div class="top_status_container">
+    <div class="top_status">
+        <div class="top_status_text">
+            <img class="comment_image" src="{{ poster.pic_square }}" width="22px">
+            <h5 class="status_name">{{ poster.name }}</h5>
+            <h5 class="status_message">{{ top_post.message|truncatechars:500 }}</h5>
+        </div>
+
+        <div class="top_status_footer">
+            <div class="top_status_footer_left">
+                <h5 class="comment_date">{{ top_post.created_time|date:"N j" }}</h5> {# Sept. 4 #}
+            </div>
+
+            <div class="top_status_footer_right">
+                {% if top_post.comments.count %}
+                    <h5 class="total_comments">{{ top_post.comments.count }} Comment{{ top_post.comments.count|pluralize }}</h5>
+                {% endif %}
+                {% if top_post.likes.count %}
+                    <h5 class="total_likes">{{ top_post.likes.count }} Like{{ top_post.likes.count|pluralize }}</h5>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% for comment, commentor in comments_list %}
+        <div class="comment_long">
+            <img class="comment_image" src="{{ commentor.pic_square }}" width="22px">
+            <h5>{{ commentor.name }}</h5>
+            <p class="comment_long_text">{{ comment.text }}</p>
+        </div>
+    {% endfor %}
+</div>

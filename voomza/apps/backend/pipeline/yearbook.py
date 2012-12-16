@@ -167,7 +167,7 @@ class PostsFromYearTask(FQLTask):
         nyd = datetime.datetime(datetime.datetime.now().year - 1, 1, 1, tzinfo=utc)
         unix_time = calendar.timegm(nyd.utctimetuple())
         self.fql = '''
-            SELECT post_id, comments, likes FROM stream
+            SELECT post_id, actor_id, comments, likes FROM stream
                 WHERE source_id = me() AND created_time < %s LIMIT 500
         ''' % unix_time
         super(PostsFromYearTask, self).__init__(name)
@@ -177,7 +177,7 @@ class PostsFromYearTask(FQLTask):
             results,
             id_field='post_id',
             id_is_int=False,
-            fields=['comments.count', 'likes.count'],
+            fields=['actor_id', 'comments.count', 'likes.count'],
             field_names={'comments.count': 'comment_count', 'likes.count': 'like_count'},
             defaults={'comments.count': 0, 'likes.count':0 },
             extra_fields={'score': _post_score},
