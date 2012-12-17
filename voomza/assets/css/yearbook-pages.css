@@ -261,12 +261,43 @@ body {
 
 /* PAGES LAYOUTS*/
 
+.years_text {
+    color:gray;
+    position:absolute;
+    right:8px;
+    bottom:0;
+}
+
+.year_tray {
+    height:16px;
+    float:left;
+    width:100%;
+    margin-top:-3px;
+    margin-bottom:-2px;
+}
+.year_left {
+    color:white;
+    float:left;
+    margin:0;
+    margin-left:4px;
+    margin-bottom:-4px;
+    line-height:17.5px;
+}
+.year_right {
+    color:white;
+    float:right;
+    margin:0;
+    margin-right:4px;
+    margin-bottom:-4px;
+    line-height:17.5px;
+}
+
 .text_45 {
     text-align:right;
     color:white;
     position:absolute;
     bottom:-8px;
-    right:10px;
+    right:6px;
 }
 
 .album_name_23 {
@@ -484,16 +515,16 @@ body {
 
 .collage_container {
     position:absolute;
-    width:812px;
+    width:406px;
     height:230px;
-    right:-406px;
+    right:-1px;
     top:52px;
     opacity:.9;
     overflow:hidden;
 }
 
 .cc_right {
-    left:-406px;
+    left:0;
 }
 
 .collage_image {
@@ -614,7 +645,7 @@ body {
 .l1_4l_p30 {
     position:absolute;
     left:9%;
-    top:7.5%;
+    top:4.5%;
     width:368px;
 }
 
@@ -643,13 +674,13 @@ body {
     position:absolute;
     width:334px;
     left:13%;
-    top:12%;
+    top:4.5%;
 }
 
 .l6_3l_p30 {
     position:absolute;
     left:1%;
-    top:16%;
+    top:4.5%;
     width:440px;
 }
 
