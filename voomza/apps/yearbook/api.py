@@ -1,5 +1,5 @@
 import logging
-from collections import OrderedDict, defaultdict
+from collections import defaultdict
 from django.utils import timezone
 from django_facebook.api import FacebookUserConverter
 from django_facebook.signals import facebook_post_store_friends
@@ -91,52 +91,27 @@ class YearbookFacebookUserConverter(FacebookUserConverter):
                              '       (SELECT object_id FROM photo_tag WHERE subject=me()) AND subject!=me() '
                              'LIMIT 300',
 
-            'tagged_users': 'SELECT uid, name, sex, pic_square FROM user WHERE uid IN '
+            'tagged_users': 'SELECT uid, first_name, name, sex, pic_square FROM user WHERE uid IN '
                             '   (SELECT subject FROM photo_tag WHERE object_id IN '
                             '       (SELECT object_id FROM photo_tag WHERE subject=me()) AND subject!=me()) '
                             'LIMIT 300',
         })
+        # TODO: re-write this to replace the call in TaggedWithMe
+        from voomza.apps.backend.getter import ResultGetter, FreqDistResultGetter
 
-        friend_ids = []
-        for friend in results['all_friend_ids']:
-            try:
-                friend_ids.append(int(friend['uid2']))
-            # Skip anything that's not an integer
-            except ValueError: pass
-        friend_ids = set(friend_ids)
+        all_friend_ids = ResultGetter(results['all_friend_ids'], id_field='uid2')
+        # Collapse to a count, filter out anyone we're not still friends with
+        tagged_ids = FreqDistResultGetter(results['tagged_photos'], id_field='subject')\
+            .filter(lambda x: x['id'] in all_friend_ids.ids)
+        tagged_users = ResultGetter(
+            results['tagged_users'],
+            fields=['first_name', 'name', 'pic_square', 'sex'],
+            extra_fields={'gender': lambda x: gender_map[x.get('sex')]},
+            id_field='uid'
+        )
 
-        # Collapse to a frequencies and user_ids
-        all_ids = []
-        for photo in results['tagged_photos']:
-            try:
-                int_id = int(photo['subject'])
-                # Only add people you are still friends with
-                if int_id in friend_ids:
-                    all_ids.append(int_id)
-        # Skip anything that's not an integer
-            except ValueError: pass
-
-        all_users = {}
-        for u in results['tagged_users']:
-            try:
-                all_users[int(u['uid'])] = u
-            # Skip anything that's not an integer
-            except ValueError: pass
-
-        counted = [(id, all_ids.count(id)) for id in all_ids]
-        counted_in_order = OrderedDict(sorted(counted, key=lambda t: t[1]))
-
-        # Holds {user_id: rank="topness index", other fields... }
-        friends_ranked = {}
-        for index,id in enumerate(counted_in_order):
-            try:
-                f = dict(top_friends_order=index+1, **all_users[id])
-                f.pop('uid')
-                if f.get('sex'):
-                    f['gender'] = gender_map[f.get('sex')]
-                    f.pop('sex')
-                friends_ranked[id] = f
-            except KeyError: pass
+        # Join on how many photos the person is tagged in
+        top_friends = tagged_users.join_on_field(tagged_ids).order_by('count')
 
         # First, create FacebookUser for all pulled users
         # since there is a pk on facebook_id, this will update any existing entries
@@ -145,11 +120,13 @@ class YearbookFacebookUserConverter(FacebookUserConverter):
 
         facebook_users = []
         facebook_friends = []
-        for facebook_id, u in friends_ranked.items():
+        # Reversing them means the index corresponds to top friends order
+        for top_friends_order, u in enumerate(reversed(top_friends)):
             facebook_users.append(
                 FacebookUser(
-                    facebook_id = facebook_id,
+                    facebook_id = u['id'],
                     name        = u['name'],
+                    first_name  = u['first_name'],
                     pic_square  = u['pic_square'],
                     gender      = u['gender']
                 )
@@ -157,18 +134,17 @@ class YearbookFacebookUserConverter(FacebookUserConverter):
             facebook_friends.append(
                 FacebookFriend(
                     owner             = user,
-                    facebook_user_id  = facebook_id,
-                    top_friends_order = u['top_friends_order']
+                    facebook_user_id  = u['id'],
+                    top_friends_order = top_friends_order
                 )
             )
             bulk.insert_many(FacebookUser, facebook_users)
             bulk.insert_many(FacebookFriend, facebook_friends)
 
-        logger.info('found %s top friends', len(all_users))
+        logger.info('found %s top friends', len(top_friends))
 
         # Return the queryset of top friends
         return FacebookUser.objects.filter(friend_of__owner=user)
-
 
 
     def get_and_store_optional_fields(self, user):
