@@ -1,11 +1,11 @@
 {% if photos_landscape and photos_portrait %}
-    {% if photos_landscape|length > "1" %}
+    {% if photos_landscape|length > 1 %}
         <div class="l23_1p_2l_p22 border">
             <div class="photo p244" style="background-image:url({{ photos_portrait.0.url }});"></div>
             <div class="photo l160" style="background-image:url({{ photos_landscape.0.url }});"></div>
             <div class="photo l160" style="background-image:url({{ photos_landscape.1.url }});"></div>
         </div>
-    {% elif photos_portrait|length > "1" %}
+    {% elif photos_portrait|length > 1 %}
         <div class="l24_1l_2p_p22 border">
             <div class="photo l331" style="background-image:url({{ photos_landscape.0.url }});"></div>
             <div class="photo p122" style="background-image:url({{ photos_portrait.0.url }});"></div>
@@ -24,13 +24,13 @@
 {#        </div>#}
     {% endif %}
 {% elif photos_portrait %}
-    {% if photos_portrait|length > "2" %}
+    {% if photos_portrait|length > 2 %}
         <div class="l21_3p_p22 border">
             <div class="photo p190" style="background-image:url({{ photos_portrait.0.url }});"></div>
             <div class="photo p190" style="background-image:url({{ photos_portrait.1.url }});"></div>
             <div class="photo p190" style="background-image:url({{ photos_portrait.2.url }});"></div>
         </div>
-    {% elif photos_portrait|length > "1" %}
+    {% elif photos_portrait|length > 1 %}
         <div class="l22_2p_p22 border">
             <div class="photo p246" style="background-image:url({{ photos_portrait.0.url }});"></div>
             <div class="photo p246" style="background-image:url({{ photos_portrait.1.url }});"></div>
@@ -41,7 +41,7 @@
         </div>
     {% endif %}
 {% elif photos_landscape %}
-    {% if photos_landscape|length > "3" %}
+    {% if photos_landscape|length > 3 %}
         <div class="l17_4l_p22 border">
             <div class="photo l160" style="background-image:url({{ photos_landscape.0.url }});"></div>
             <div class="photo l160" style="background-image:url({{ photos_landscape.1.url }});"></div>
@@ -49,7 +49,7 @@
             <div class="photo l160" style="background-image:url({{ photos_landscape.3.url }});"></div>
         </div>
 
-    {% elif photos_landscape|length > "2" %}
+    {% elif photos_landscape|length > 2 %}
         <div class="l16_3l_p22 border">
             <div class="photo l290" style="background-image:url({{ photos_landscape.0.url }});"></div>
             <div class="photo l142" style="background-image:url({{ photos_landscape.1.url }});"></div>

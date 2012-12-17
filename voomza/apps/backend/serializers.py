@@ -10,17 +10,22 @@ class DjangoTemplateSerializer(Serializer):
     if HTML format is requested
     """
     def to_json(self, data, options=None):
+        options = options or {}
+        request = data.request
+        data = self.to_simple(data, options)
+
         # Data is a list of bundles
         # For each, render the template and add to a list
-        rendered_strings = []
-        for bundle in data:
-            template = bundle.data.pop('template')
-            request_context = RequestContext(bundle.request)
-            rendered_string = render_to_string(template, bundle.data['page_content'], request_context)
-            rendered_strings.append(rendered_string)
+        if 'error_message' in data:
+            return simplejson.dumps(data, cls=json.DjangoJSONEncoder, sort_keys=True, ensure_ascii=False, indent=4)
 
-        results = {
-            'meta': data['meta'],
-            'objects': rendered_strings
-        }
-        return simplejson.dumps(results, cls=json.DjangoJSONEncoder, sort_keys=True)
+        if hasattr(data, 'keys'):
+            data = [data]
+
+        for bundle in data:
+            template = bundle.pop('template')
+            request_context = RequestContext(request)
+            bundle['rendered'] = render_to_string(template, bundle.pop('page_content'), request_context)
+
+        return simplejson.dumps(data, cls=json.DjangoJSONEncoder, sort_keys=True, ensure_ascii=False)
+

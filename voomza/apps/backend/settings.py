@@ -9,7 +9,7 @@ PHOTO_I_LIKE_POINTS     = 2     # How many points does it get if I like it?
 GROUP_PHOTO_IS          = 4     # How many people are in a group photo?
 
 NUM_TOP_ALBUMS          = 3
-ALBUM_PHOTOS_TO_SHOW    = 3
+ALBUM_PHOTOS_TO_SHOW    = 4
 ALBUM_MIN_PHOTOS        = 1
 ALBUMS_TO_PULL_AT_ONCE  = 10
 BANNED_ALBUM_NAMES      = {'mobile uploads', 'timeline photos', 'ios photos',
@@ -39,3 +39,5 @@ NUM_BIRTHDAY_POSTS      = 24
 
 LOWEST_SQUARE_ASPECT_RATIO  = 0.9        # How low can the aspect ratio be for a photo to be considered "square"?
 HIGHEST_SQUARE_ASPECT_RATIO = 1.1        # How high?
+
+PAGE_TEMPLATE_DIR       = 'pages/'

@@ -138,19 +138,19 @@ class Yearbook(models.Model):
     top_album_1_photo_1 = models.PositiveSmallIntegerField(null=True)
     top_album_1_photo_2 = models.PositiveSmallIntegerField(null=True)
     top_album_1_photo_3 = models.PositiveSmallIntegerField(null=True)
-#    top_album_1_photo_4 = models.PositiveSmallIntegerField(null=True)
+    top_album_1_photo_4 = models.PositiveSmallIntegerField(null=True)
 
     top_album_2 = models.BigIntegerField(null=True)
     top_album_2_photo_1 = models.PositiveSmallIntegerField(null=True)
     top_album_2_photo_2 = models.PositiveSmallIntegerField(null=True)
     top_album_2_photo_3 = models.PositiveSmallIntegerField(null=True)
-#    top_album_2_photo_4 = models.PositiveSmallIntegerField(null=True)
+    top_album_2_photo_4 = models.PositiveSmallIntegerField(null=True)
 
     top_album_3 = models.BigIntegerField(null=True)
     top_album_3_photo_1 = models.PositiveSmallIntegerField(null=True)
     top_album_3_photo_2 = models.PositiveSmallIntegerField(null=True)
     top_album_3_photo_3 = models.PositiveSmallIntegerField(null=True)
-#    top_album_3_photo_4 = models.PositiveSmallIntegerField(null=True)
+    top_album_3_photo_4 = models.PositiveSmallIntegerField(null=True)
 
     # The first field is an index to the year, the second an index to the photo
     back_in_time_1          = models.PositiveSmallIntegerField(null=True)
@@ -193,13 +193,13 @@ class Yearbook(models.Model):
         ],
         'top_albums': [
             'top_album_1.top_album_1_photo_1', 'top_album_1.top_album_1_photo_2',
-            'top_album_1.top_album_1_photo_3',
+            'top_album_1.top_album_1_photo_3', 'top_album_1.top_album_1_photo_4',
 
             'top_album_2.top_album_2_photo_1', 'top_album_2.top_album_2_photo_2',
-            'top_album_2.top_album_2_photo_3',
+            'top_album_2.top_album_2_photo_3', 'top_album_2.top_album_2_photo_4',
 
             'top_album_3.top_album_3_photo_1', 'top_album_3.top_album_3_photo_2',
-            'top_album_3.top_album_3_photo_3',
+            'top_album_3.top_album_3_photo_3', 'top_album_3.top_album_3_photo_4',
         ],
         'back_in_time': [
             'back_in_time_1.back_in_time_1_photo_1',

@@ -1,4 +1,6 @@
 from django.conf.urls import url
+from django.template.context import RequestContext
+from django.template.loader import render_to_string
 from tastypie import fields
 from tastypie.bundle import Bundle
 from tastypie.exceptions import NotFound
@@ -8,7 +10,7 @@ from tastypie.authorization import Authorization
 from tastypie.authentication import SessionAuthentication
 from tastypie.api import Api
 from tastypie.utils.urls import trailing_slash
-from voomza.apps.backend.serializers import DjangoTemplateSerializer
+#from voomza.apps.backend.serializers import DjangoTemplateSerializer
 from voomza.apps.yearbook.pages import *
 
 
@@ -70,19 +72,21 @@ class PageResource(Resource):
         Fetches an individual object on the resource.
         If the object can not be found this should raise a NotFound exception
         """
+        page = None
         try:
             page = self.factory.get_page(int(kwargs['pk']))
-        except ValueError:
-            raise NotFound
+        except ValueError: pass
         if not page:
-            raise NotFound
+            raise NotFound("Couldn't find an instance of '%s' which matched page='%s'." % (self.__class__.__name__, kwargs['pk']))
         return page
 
 
     def dehydrate(self, bundle):
         user = bundle.request.user
-        bundle.data['template'] = bundle.obj.template
-        bundle.data['page_content'] = bundle.obj.get_page_content(user)
+        context = bundle.obj.get_page_content(user)
+        # Render the template
+        template = PAGE_TEMPLATE_DIR + bundle.obj.template
+        bundle.data['page_content'] = render_to_string(template, context, RequestContext(bundle.request)).strip()
         return bundle
 
 

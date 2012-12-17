@@ -1,7 +1,7 @@
-import logging, dateutil.parser
+import logging
 from itertools import chain
 from voomza.apps.account.models import FacebookUser
-from voomza.apps.backend.models import PhotoRankings, Yearbook, FacebookPhoto
+from voomza.apps.backend.models import Yearbook, FacebookPhoto
 from voomza.apps.backend.settings import *
 
 logger = logging.getLogger(__name__)
@@ -22,7 +22,7 @@ class YearbookPage(object):
     def set_user(self, user):
         self.user = user
         # Get the user's PhotoRankings
-        self.yearbook = Yearbook.objects.get(owner=user)
+        self.yearbook = Yearbook.objects.get(rankings__user=user)
 
     def get_page_content(self, user):
         """
@@ -30,16 +30,14 @@ class YearbookPage(object):
         Any exception other than PageInvalidError, log
         """
         self.set_user(user)
-        try:
-            page_content = self.page_content()
-        except PageInvalidError:
+#        try:
+        page_content = self.page_content()
+#        except PageInvalidError:
             # The page is no good, return the empty page
-            pass
-        except Exception:
+#            pass
+#        except Exception:
             # Some other error happened, log it
-            logger.error()
-
-        page_content['page_num'] = self.page
+#            logger.error()
         return page_content
 
     def get_next_content(self, user):
@@ -76,7 +74,6 @@ class PhotoPage(YearbookPage):
         if not photo_id:
             photo = None
         else:
-#            print '%d: %s' % (self.page, photo_id)
             photo = FacebookPhoto.objects.get(facebook_id=photo_id)
         return photo
 
@@ -189,7 +186,7 @@ class AlbumPage(PhotoPage):
             )
             try:
                 photo = FacebookPhoto.objects.get(facebook_id=photo_id)
-                photos.append(self.get_photo_content(photo))
+                photos.append(photo)
             except FacebookPhoto.DoesNotExist:
                 logger.warn('Tried to get fb photo %s, referenced by album but not in db' % photo_id)
         return photos
@@ -268,6 +265,7 @@ class MultiAlbumPage(AlbumPage):
 
         return {
             'photos': photos,
+            'photos_reversed': list(reversed(photos)),
         }
 
 
@@ -367,7 +365,7 @@ class FriendsCollagePage(YearbookPage):
         super(FriendsCollagePage, self).__init__(**kwargs)
 
     def page_content(self):
-        max_faces = min(len(self.user.friends.count()), NUM_BIRTHDAY_POSTS)
+        max_faces = min(self.user.friends.count(), NUM_FRIENDS_IN_FACEPILE)
         halfway = max_faces / 2
         if self.first_half:
             query = self.user.friends.all()[:halfway]
@@ -383,7 +381,7 @@ class FriendsCollagePage(YearbookPage):
 class YearbookPageFactory(object):
     _pages = [
 #        FieldPage(            page=3,  field_name='owner.first_name'),
-        StaticPage(           page=3),
+        StaticPage(           page=3,  template='page3.html'),
         # Top photos
         StaticPage(           page=4),
         PhotoPage(            page=5,  ranking_name='top_photos',             field_name='top_photo_1',         force_landscape=True),
@@ -419,8 +417,8 @@ class YearbookPageFactory(object):
 
         # Top photos back in time
         # really a two-page spread
-        MultiAlbumPage(       page=30, ranking_name='back_in_time', field_name='second_half_photo_1', max_photos=2, max_albums=NUM_PREV_YEARS,   template='back_in_time_left.html'),
-        MultiAlbumPage(       page=31, ranking_name='back_in_time', field_name='second_half_photo_1', max_photos=2, max_albums=NUM_PREV_YEARS,   template='back_in_time_right.html'),
+        MultiAlbumPage(       page=30, ranking_name='back_in_time', field_prefix='back_in_time', max_photos=1, max_albums=NUM_PREV_YEARS,   template='back_in_time_left.html'),
+        MultiAlbumPage(       page=31, ranking_name='back_in_time', field_prefix='back_in_time', max_photos=1, max_albums=NUM_PREV_YEARS,   template='back_in_time_right.html'),
         StaticPage(           page=32),
         StaticPage(           page=33),
         TopFriendNamePage(    page=34, ranking_name='top_friends', field_name='top_friend_1',      stat_field='top_friend_1_stat'),
@@ -438,19 +436,19 @@ class YearbookPageFactory(object):
         # really a two-page spread
         FriendsCollagePage(   page=44, first_half=True,     template='friends_collage_left.html'),
         FriendsCollagePage(   page=45, first_half=False,    template='friends_collage_right.html'),
+        
+        # Yearbook signs
+        StaticPage(           page=46),
+        StaticPage(           page=47),
+        StaticPage(           page=48),
+        StaticPage(           page=49),
     ]
-
-    def __init__(self):
-        """
-        Set page numbers of all child pages
-        """
-        for num, page_class in enumerate(self._pages):
-            page_class.page = num
 
     def pages(self):
         return self._pages
 
-    def get_page(self, page):
-        if 0 < page < len(self._pages):
-            return self._pages[page]
+    def get_page(self, page_num):
+        for page in self._pages:
+            if page.page == page_num:
+                return page
         return None
