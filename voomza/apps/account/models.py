@@ -40,7 +40,8 @@ class FacebookUser(models.Model):
     # This needs to have a pk on facebook_id so any updates from
     # new users won't break existing links
     facebook_id = models.BigIntegerField(primary_key=True, db_index=True)
-    name = models.TextField(blank=True, null=True)
+    name = models.CharField(max_length=100, blank=True, null=True)
+    first_name = models.CharField(max_length=50, blank=True, null=True)
     gender = models.CharField(choices=(('F', 'female'), ('M', 'male')), blank=True, null=True, max_length=1)
     pic_square = models.CharField(max_length=200, blank=True)
 

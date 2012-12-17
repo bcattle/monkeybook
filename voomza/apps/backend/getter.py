@@ -118,11 +118,18 @@ class ResultGetter(object):
         max_year = max(getters_by_year.keys())
         return max_year, getters_by_year
 
-    def __len__(self):
-        return len(self.ids)
+    def get_in_decending_year_score_order(self, date_field='created'):
+        """
+        Returns a flat list of elements, sorted by year
+        then by score within each year
+        """
+        return sorted(self.fields, key=lambda x: (x[date_field].year, x['score']), reverse=True)
 
-#    def __iter__(self):
-#        return self.fields.__iter__()
+    def __len__(self):
+            return len(self.ids)
+
+    #    def __iter__(self):
+    #        return self.fields.__iter__()
 
     def __init__(self, results, id_field='object_id', auto_id_field=False, id_is_int=True,
                  fields=None, field_names=None, defaults=None, optional_fields=None, timestamps=None,
@@ -225,7 +232,7 @@ class ResultGetter(object):
                 # add to _fields_by_id
                 self._fields_by_id[curr_id] = processed_fields
 
-            except (ValueError, KeyError), e:
+            except (ValueError, KeyError):
                 if fail_silently:
                     continue
                 else:

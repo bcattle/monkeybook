@@ -16,10 +16,11 @@ class FacebookUserManager(fb_FacebookUserManager):
     to pull the user's friends from facebook if they
     haven't been yet.
     """
-    def get_friends_for_user(self, request):
+    def get_friends_for_user(self, request, return_async=False):
         """
         Pull the FacebookUsers that a user is connected to,
         from facebook if necessary
+        If `async` is True, this returns an async_result, rather than blocking
         """
         # If we have a pending async request, let it finish
         async_result = request.session.get('pull_friends_async', None)
@@ -34,11 +35,11 @@ class FacebookUserManager(fb_FacebookUserManager):
                 facebook = YearbookFacebookUserConverter(graph)
                 async_result = get_and_store_top_friends_fast.delay(request.user, facebook,
                     pull_all_friends_when_done=True)
-#                get_and_store_top_friends_fast(request.user, facebook, pull_all_friends_when_done=True)
-
             request.session['pull_friends_async'] = async_result
 
         if async_result:
+            if return_async:
+                return async_result
             # There was an async in session, or we just created one
             # Commit the transaction so we can pull new results
             flush_transaction()

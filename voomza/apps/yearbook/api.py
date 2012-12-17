@@ -21,9 +21,11 @@ class YearbookFacebookUserConverter(FacebookUserConverter):
         """
         friends = getattr(self, '_friends', None)
         if friends is None:
-            friends_response = self.open_facebook.fql(
-                "SELECT uid, name, sex, pic_square FROM user WHERE uid IN (SELECT uid2 "
-                "FROM friend WHERE uid1 = me()) LIMIT %s" % limit)
+            friends_response = self.open_facebook.fql('''
+                SELECT uid, name, first_name, sex, pic_square FROM user
+                    WHERE uid IN (SELECT uid2 FROM friend WHERE uid1 = me())
+                LIMIT %s
+                ''' % limit)
             friends = []
             for response_dict in friends_response:
                 response_dict['id'] = response_dict['uid']
@@ -49,6 +51,7 @@ class YearbookFacebookUserConverter(FacebookUserConverter):
                         FacebookUser(
                             facebook_id = f['id'],
                             name        = f.get('name', ''),
+                            first_name        = f.get('first_name', ''),
                             pic_square  = f.get('pic_square', ''),
                             gender      = gender_map[f.get('sex', '')]
                         )
@@ -61,7 +64,7 @@ class YearbookFacebookUserConverter(FacebookUserConverter):
                     )
             # Use the "bulk" library rather than the built-in `bulk_create`
             # so we can specify ON DUPLICATE KEY UPDATE
-            bulk.insert_many(FacebookUser, facebook_users)
+            bulk.insert_or_update_many(FacebookUser, facebook_users)
             bulk.insert_many(FacebookFriend, facebook_friends)
 
             logger.debug('Pulled all friends, found %s friends', len(friends))
@@ -138,8 +141,8 @@ class YearbookFacebookUserConverter(FacebookUserConverter):
                     top_friends_order = top_friends_order
                 )
             )
-            bulk.insert_many(FacebookUser, facebook_users)
-            bulk.insert_many(FacebookFriend, facebook_friends)
+        bulk.insert_or_update_many(FacebookUser, facebook_users)
+        bulk.insert_many(FacebookFriend, facebook_friends)
 
         logger.info('found %s top friends', len(top_friends))
 
@@ -155,7 +158,7 @@ class YearbookFacebookUserConverter(FacebookUserConverter):
         from voomza.apps.account.models import FamilyConnection, FacebookUser
 
         me_response = self.open_facebook.get('me', fields=[
-            'id', 'name', 'picture', 'locale', 'relationship_status',
+            'id', 'name', 'first_name', 'picture', 'gender', 'locale', 'relationship_status',
             'significant_other'
         ])
         family_response = self.open_facebook.get('me/family')
@@ -179,7 +182,9 @@ class YearbookFacebookUserConverter(FacebookUserConverter):
             fu = FacebookUser(
                 facebook_id=me_response['id'],
                 name=me_response.get('name', ''),
-                pic_square=pic_square
+                first_name=me_response.get('first_name', ''),
+                pic_square=pic_square,
+                gender=gender_map[me_response.get('gender')]
             )
             fu.save()
             user.profile.facebook_user = fu

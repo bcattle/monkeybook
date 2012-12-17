@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django_facebook.api import require_persistent_graph
 from django_facebook.decorators import facebook_required_lazy
+from voomza.apps.account.models import FacebookUser
 from voomza.apps.backend.models import Yearbook
 from voomza.apps.yearbook.api import YearbookFacebookUserConverter
 from account.tasks import get_and_store_optional_profile_fields
@@ -13,7 +14,7 @@ from backend.tasks import run_yearbook
 logger = logging.getLogger(__name__)
 
 
-#@login_required
+@login_required
 @facebook_required_lazy(canvas=True)
 @ensure_csrf_cookie
 def invite_friends_to_sign(request,
@@ -22,6 +23,9 @@ def invite_friends_to_sign(request,
     """
     User invites people to sgn their yearbook
     """
+    # Start pulling the user's top friends (fast)
+    FacebookUser.objects.get_friends_for_user(request, return_async=True)
+
     # If this is our first time here, pull the optional fields
     # This creates a FacebookUser for the person
     if request.user.profile.facebook_user_id is None \
@@ -48,6 +52,7 @@ def invite_friends_to_sign(request,
     return render(request, template_name, context)
 
 
+@login_required
 @facebook_required_lazy(canvas=True)
 @ensure_csrf_cookie
 def sign_friends(request,
@@ -59,6 +64,7 @@ def sign_friends(request,
     return render_to_response(template_name, context, RequestContext(request))
 
 
+@login_required
 @facebook_required_lazy(canvas=True)
 @ensure_csrf_cookie
 def yearbook(request,

@@ -201,7 +201,6 @@ def get_top_post_of_year(results, user):
     top_post = results['posts_from_year'].order_by('score')[0]
     get_post_task = GetPostTask(top_post['id'])
     top_post = get_post_task.run(user)
-
     # Return JSON of top post
     results['top_post'] = top_post['get_post'][0]
     # If a timestamp, convert to datetime
@@ -231,8 +230,8 @@ def get_top_friends_and_groups(results, user):
     on_photos_of_me_async = on_photos_of_me.apply_async()
 
     top_friends = results['most_tagged_recently'].join_on_field(
-        lambda x, y: x['count'] + y['count'],
         results['top_posters_from_year'],
+        map_fxn=lambda x, y: x['count'] + y['count'],
         new_field_name='count',
         discard_orphans=False
     )
@@ -261,6 +260,8 @@ def get_top_friends_and_groups(results, user):
                 top_friend_photos.append(friend_photos)
 
     # For each group photo, grab its score from 'photos_of_me'
+    # and filter to photos from this year
+#    this_year = datetime.datetime(datetime.datetime.now().year, 1, 1, tzinfo=utc)
     group_photos = []
     for group_photo in results['tagged_with_me']['group_photos'].fields:
         group_photo_id = group_photo['id']
@@ -268,12 +269,14 @@ def get_top_friends_and_groups(results, user):
             group_photos.append(results['photos_of_me'].fields_by_id[group_photo_id])
         else:
             logger.warn('Received a group photo %s that wasn\'t in \'photos_of_me\'. Odd.' % group_photo_id )
-    # Sort by score
-    group_photos.sort(key=lambda x: x['score'], reverse=True)
+
+    # Sort by year, score
+    group_photos_getter = ResultGetter.from_fields(group_photos)
+    group_shots = group_photos_getter.get_in_decending_year_score_order()
 
     # Return the lists and the subtask
     results['top_friends'] = top_friend_photos
-    results['group_shots'] = group_photos
+    results['group_shots'] = group_shots
     results['on_photos_of_me_async'] = on_photos_of_me_async
     return results
 

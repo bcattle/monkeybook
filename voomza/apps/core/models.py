@@ -2,6 +2,9 @@ from itertools import chain, dropwhile
 from operator import mul, attrgetter, __not__
 from django.db import models
 from django.db.models.query import REPR_OUTPUT_SIZE, EmptyQuerySet
+from django.db.models.signals import post_syncdb
+from django.dispatch.dispatcher import receiver
+from south.signals import post_migrate
 
 
 class DefaultUnicodeBase(models.Model):
@@ -258,3 +261,27 @@ class QuerySetSequence(IableSequence):
             if qs.exists():
                 return True
         return False
+
+
+
+# http://stackoverflow.com/questions/2108824/mysql-incorrect-string-value-error-when-save-unicode-string-in-django
+@receiver(post_syncdb, dispatch_uid='core.models')
+@receiver(post_migrate, dispatch_uid='core.models')
+def set_all_cols_utf8(app, **kwargs):
+    # post_syncdb, `app` is a Module. post_migrate `app` is a string
+    from django.conf import settings
+    if settings.DATABASES['default']['ENGINE'] == 'django.db.backends.mysql':
+        # Set ROW_FORMAT=DYNAMIC to allow longer rows
+        from django.db import connection, transaction
+        cursor = connection.cursor()
+        db_name = settings.DATABASES['default']['NAME']
+        cursor.execute("ALTER DATABASE `%s` CHARACTER SET 'utf8' COLLATE 'utf8_unicode_ci'" % db_name)
+
+        sql = "SELECT DISTINCT(table_name) FROM information_schema.columns WHERE table_schema = '%s'" % db_name
+        cursor.execute(sql)
+
+        results = cursor.fetchall()
+        for row in results:
+            sql = "ALTER TABLE `%s` convert to character set DEFAULT COLLATE DEFAULT" % (row[0])
+            cursor.execute(sql)
+        transaction.commit_unless_managed()

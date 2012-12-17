@@ -46,7 +46,7 @@ class FacebookPhoto(models.Model):
             # Sort by score, then by date
             # Take the highest-scoring, earliest
             top_comment = sorted(self.comments,
-                                 key=lambda c: (-comment['score'], comment['time']))[0]
+                                 key=lambda comment: (-comment['score'], comment['time']))[0]
 
             # Get user's name and photo
             try:
@@ -485,14 +485,16 @@ class MinibookRankings(models.Model):
 
 
 
-@receiver(post_syncdb, dispatch_uid='backend.models')
+#@receiver(post_syncdb, dispatch_uid='backend.models')
 @receiver(post_migrate, dispatch_uid='backend.models')
-def set_table_row_format(**kwargs):
-    from django.conf import settings
-    if settings.DATABASES['default']['ENGINE'] == 'django.db.backends.mysql':
-        # Set ROW_FORMAT=DYNAMIC to allow longer rows
-        from django.db import connection, transaction
-        cursor = connection.cursor()
-        cursor.execute('ALTER TABLE `%s` ROW_FORMAT=DYNAMIC' % PhotoRankings._meta.db_table)
-        transaction.commit_unless_managed()
+def set_table_row_format(app, **kwargs):
+    # post_syncdb, `app` is a Module. post_migrate `app` is a string
+    if app == 'backend':
+        from django.conf import settings
+        if settings.DATABASES['default']['ENGINE'] == 'django.db.backends.mysql':
+            # Set ROW_FORMAT=DYNAMIC to allow longer rows
+            from django.db import connection, transaction
+            cursor = connection.cursor()
+            cursor.execute('ALTER TABLE `%s` ROW_FORMAT=DYNAMIC' % PhotoRankings._meta.db_table)
+            transaction.commit_unless_managed()
 
