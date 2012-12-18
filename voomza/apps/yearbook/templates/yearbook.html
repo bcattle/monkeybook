@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load staticfiles %}
+{% load url from future %}
 
 {% block meta %}
     <meta http-equiv="Access-Control-Allow-Origin" content="*">
@@ -38,9 +39,10 @@
     <script type="text/javascript" src="{% static 'js/jquery.mousewheel.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/modernizr.2.5.3.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/hash.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/underscore-min.js' %}"></script>
 
     <script type="text/javascript">
-        var nextPagesUrl = "{% url 'api_dispatch_list' api_name='v1' resource_name='yearbookpage' %}";
+        var pagesUrl = "{% url 'api_dispatch_list' api_name='v1' resource_name='yearbookpage' hash=hash %}";
 
         function loadApp() {
             var flipbook = $('.sj-book');
@@ -85,12 +87,11 @@
             });
 
             // Slider
-            $( "#slider" ).slider({
+            $("#slider").slider({
                 min: 1,
                 max: 100,
 
                 start: function(event, ui) {
-
                     if (!window._thumbPreview) {
                         _thumbPreview = $('<div />', {'class': 'thumbnail'}).html('<div></div>');
                         setPreview(ui.value);
@@ -112,7 +113,6 @@
                 }
             });
 
-
             // URIs
             Hash.on('^page\/([0-9]*)$', {
                 yep: function(path, parts) {
@@ -121,7 +121,6 @@
                         if ($('.sj-book').turn('is'))
                             $('.sj-book').turn('page', page);
                     }
-
                 },
                 nop: function(path) {
                     if ($('.sj-book').turn('is'))
@@ -242,9 +241,10 @@
         // Load turn.js
         yepnope({
             test : Modernizr.csstransforms,
-            yep: ["{% static 'lib/turn.min.js' %}"],
+            yep: ["{% static 'js/turn.min.js' %}"],
             nope: ["{% static 'js/turn.html4.min.js' %}", "{% static 'css/jquery.ui.html4.css' %}", "{% static 'css/turnjs-html4.css' %}"],
-            both: ["{% static 'js/yearbook.js' %}", "{% static 'css/jquery.ui.css' %}", "{% static 'css/turnjs.css' %}"],
+            both: ["{% static 'css/jquery.ui.css' %}", "{% static 'css/turnjs.css' %}",
+                   "{% static 'js/yearbook.js' %}", "{% static 'css/yearbook-pages.css' %}"],
             complete: loadApp
         });
     </script>

@@ -168,7 +168,7 @@ class PostsFromYearTask(FQLTask):
         unix_time = calendar.timegm(nyd.utctimetuple())
         self.fql = '''
             SELECT post_id, actor_id, comments, likes FROM stream
-                WHERE source_id = me() AND created_time < %s LIMIT 500
+                WHERE source_id = me() AND created_time > %s LIMIT 500
         ''' % unix_time
         super(PostsFromYearTask, self).__init__(name)
 

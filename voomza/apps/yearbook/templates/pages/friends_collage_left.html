@@ -1,6 +1,6 @@
 <div class="collage_container">
-    {% for pic in pics %}
-        <img class="collage_image" src="{{ pic }}">
+    {% for friend in friends %}
+        <img class="collage_image" src="{{ friend.facebook_user__pic_square }}" title="{{ friend.facebook_user__name }}">
     {% endfor %}
 </div>
 

@@ -23,10 +23,12 @@
     </div>
 
     {% for comment, commentor in comments_list %}
-        <div class="comment_long">
-            <img class="comment_image" src="{{ commentor.pic_square }}" width="22px">
-            <h5>{{ commentor.name }}</h5>
-            <p class="comment_long_text">{{ comment.text }}</p>
-        </div>
+        {% if commentor.name %}
+            <div class="comment_long">
+                <img class="comment_image" src="{{ commentor.pic_square }}" width="22px">
+                <h5>{{ commentor.name }}</h5>
+                <p class="comment_long_text">{{ comment.text }}</p>
+            </div>
+        {% endif %}
     {% endfor %}
 </div>

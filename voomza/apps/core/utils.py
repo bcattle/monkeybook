@@ -1,3 +1,4 @@
+import datetime
 from itertools import chain
 from django.db import transaction
 
@@ -33,7 +34,7 @@ def profileit(name):
             prof = cProfile.Profile()
             retval = prof.runcall(func, *args, **kwargs)
             # Note use of name from outer scope
-            prof.dump_stats(name)
+            prof.dump_stats('%s-%s.profile' % (name, datetime.datetime.now()))
             return retval
         return wrapper
     return inner

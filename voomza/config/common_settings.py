@@ -1,6 +1,11 @@
 import djcelery
 djcelery.setup_loader()
 
+## Our app settings
+
+YEARBOOK_HASH_LENGTH = 10
+
+
 ## Installed aps
 
 OUR_APPS = (
@@ -133,8 +138,8 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    # Uncomment the next line for simple clickjacking protection:
-    # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
+#     'django.middleware.http.ConditionalGetMiddleware',
+#     'django.middleware.gzip.GZipMiddleware',
 )
 
 from django.conf.global_settings import TEMPLATE_CONTEXT_PROCESSORS

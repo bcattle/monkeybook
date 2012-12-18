@@ -2,7 +2,7 @@
     {% for post, user in posts_list %}
         <div class="comment">
             <img class="comment_image" src="{{ user.pic_square }}" width="22px">
-            <h5>{{ user.name }}</h5>
+            <h5>{{ user.name|truncatechars:18 }}</h5>
             <p class="comment_text">{{ post.message|truncatechars:60 }}</p>
         </div>
     {% endfor %}

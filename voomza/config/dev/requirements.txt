@@ -15,3 +15,5 @@ django-jsonfield
 # pip install --index-url https://code.stripe.com --upgrade stripe
 django_compressor
 dateutil
+# Celery monitoring
+flower

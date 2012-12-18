@@ -23,12 +23,23 @@ function updateDepth(book, newPage) {
 		$('.sj-book .p51 .depth').css({width: 0});
 }
 
-function loadPage(page) {
-	$.ajax({url: 'pages/page' + page + '.html'}).
-		done(function(pageHtml) {
-			$('.sj-book .p' + page).html(pageHtml.replace('samples/steve-jobs/', ''));
-		});
+function getPage(page) {
+    // Load pages from our API
+    $.ajax({
+        url: pagesUrl + page + "/",
+        success: onGetPage,
+        error: onGetPageError
+    });
 }
+
+function onGetPage(data, textStatus, jqXHR) {
+    $('.sj-book .p' + data.page).html(data.page_content);
+}
+
+function onGetPageError(jqXHR, textStatus, errorThrown) {
+    // TODO
+}
+
 
 function addPage(page, book) {
 	var id, pages = book.turn('pages');
@@ -40,7 +51,7 @@ function addPage(page, book) {
 			html('<div class="loader"></div>');
 
 		if (book.turn('addPage', element, page)) {
-			loadPage(page);
+			getPage(page);
 		}
 	}
 }

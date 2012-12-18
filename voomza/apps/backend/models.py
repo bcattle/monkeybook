@@ -1,6 +1,7 @@
-import logging
+import logging, hashlib, time
+from django.core.urlresolvers import reverse
 from django.db import models
-from django.db.models.signals import post_syncdb
+from django.conf import settings
 from django.dispatch.dispatcher import receiver
 from jsonfield.fields import JSONField
 from south.signals import post_migrate
@@ -71,7 +72,8 @@ class PhotoRankings(models.Model):
     The photo rankings for a user,
     holds a ranking of all photos for relevance in each category
     """
-    user = models.OneToOneField('auth.User', related_name='photo_rankings')
+#    user = models.OneToOneField('auth.User', related_name='photo_rankings')
+    user = models.ForeignKey('auth.User', related_name='photo_rankings')
     # Lists of photos for each category
     top_photos = JSONField(default="[]", max_length=100000)
     top_photos_first_half = JSONField(default="[]", max_length=100000)
@@ -85,7 +87,11 @@ class PhotoRankings(models.Model):
 
 
 class Yearbook(models.Model):
-    rankings = models.OneToOneField(PhotoRankings, related_name='yearbook')
+#    rankings = models.OneToOneField(PhotoRankings, related_name='yearbook')
+    rankings = models.ForeignKey(PhotoRankings, related_name='yearbook')
+    hash = models.CharField(max_length=20, unique=True, db_index=True)
+    created = models.DateTimeField(auto_now_add=True)
+    run_time = models.FloatField(null=True)
 
     # These indices point to the lists stored in PhotoRanking
     top_photo_1 = models.PositiveSmallIntegerField(null=True)
@@ -173,6 +179,25 @@ class Yearbook(models.Model):
     birthday_posts = JSONField(default="[]", max_length=100000)
 
     _all_used_ids = None
+
+    def save(self, *args, **kwargs):
+        if not self.hash:
+            # Generate a unique hash to use as the "shareable" url
+            while True:
+                hash = hashlib.md5(str(time.time())).hexdigest()[:settings.YEARBOOK_HASH_LENGTH]
+                try:
+                    existing = Yearbook.objects.get(hash=hash)
+                except self.DoesNotExist:
+                    break
+            self.hash = hash
+        super(Yearbook, self).save(*args, **kwargs)
+
+
+    class Meta:
+        ordering = ['-created']
+
+    def get_absolute_url(self):
+        return reverse('yearbook', kwargs={'hash': self.hash})
 
     # Really, should use this data structure to autogenerate the model
     lists_to_fields = {

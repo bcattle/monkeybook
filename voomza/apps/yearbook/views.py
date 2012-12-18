@@ -1,6 +1,5 @@
 import logging
-from django.template.context import RequestContext
-from django.shortcuts import render_to_response, render
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django_facebook.api import require_persistent_graph
@@ -60,18 +59,39 @@ def sign_friends(request,
     """
     User signs friends' yearbooks
     """
-    context = {}
-    return render_to_response(template_name, context, RequestContext(request))
+    return render(request, template_name)
+
+
+# No login required
+def yearbook(request, hash, template_name='yearbook.html'):
+    """
+    The user-shared link to a yearbook
+    This view is publically-visible
+    """
+    # Make sure the hash exists and pass them through
+    try:
+#        import ipdb
+#        ipdb.set_trace()
+
+        yearbook = Yearbook.objects.get(hash=hash)
+    except Yearbook.DoesNotExist:
+        logger.info('Attempt to access a bogus hash %s' % hash)
+        return redirect('homepage')
+    context = {
+        'hash': yearbook.hash
+    }
+    return render(request, template_name, context)
 
 
 @login_required
 @facebook_required_lazy(canvas=True)
-@ensure_csrf_cookie
-def yearbook(request,
-             template_name='yearbook.html'):
+#@ensure_csrf_cookie
+def yearbook_no_hash(request):
     """
-    User's yearbook
+    If the user has a yearbook, redirect to it
     """
-    context = {}
-    return render_to_response(template_name, context, RequestContext(request))
-
+    yearbooks = Yearbook.objects.filter(rankings__user=request.user)
+    if yearbooks:
+        return redirect(yearbooks[0].get_absolute_url())
+    else:
+        return redirect('homepage')

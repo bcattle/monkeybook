@@ -52,6 +52,7 @@ SESSION_REDIS_PREFIX = 'session'
 ## Celery
 
 CELERYD_POOL = 'celery.concurrency.gevent.TaskPool'
+#CELERYD_CONCURRENCY = 10000
 CELERYD_CONCURRENCY = 1000
 BROKER_URL = 'redis://localhost:6379/0'
 CELERY_RESULT_BACKEND = BROKER_URL

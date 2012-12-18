@@ -17,16 +17,19 @@ class ResultGetter(object):
     _fields_by_id = None
     _ordered = None
 
-    def join_on_field(self, other_getter, map_fxn=None, new_field_name=None, join_field='id', discard_orphans=True):
+    def join_on_field(self, other_getter, map_fxn=None, new_field_name=None,
+                      join_field='id', join_field_1=None, join_field_2=None, discard_orphans=True):
         """
         Joins this getter to another by indexing on a field
         and applying a mapping function to generate new outputs
         discard_orphans :   do we discard elements in one that
                             don't match the other?
         """
-        if join_field != 'id':
-            getter_by_join_field = {element[join_field]: element for element in self.fields}
-            other_by_join_field = {element[join_field]: element for element in other_getter.fields}
+        if join_field != 'id' or join_field_1 or join_field_2:
+            join_field_1 = join_field_1 or join_field
+            join_field_2 = join_field_2 or join_field
+            getter_by_join_field = {element[join_field_1]: element for element in self.fields}
+            other_by_join_field = {element[join_field_2]: element for element in other_getter.fields}
         else:
             getter_by_join_field = self._fields_by_id
             other_by_join_field = other_getter._fields_by_id

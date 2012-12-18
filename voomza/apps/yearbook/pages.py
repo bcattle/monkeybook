@@ -1,5 +1,6 @@
 import logging
 from itertools import chain
+import dateutil.parser
 from voomza.apps.account.models import FacebookUser
 from voomza.apps.backend.models import Yearbook, FacebookPhoto
 from voomza.apps.backend.settings import *
@@ -19,17 +20,18 @@ class YearbookPage(object):
         if template:
             self.template = template
 
-    def set_user(self, user):
-        self.user = user
-        # Get the user's PhotoRankings
-        self.yearbook = Yearbook.objects.get(rankings__user=user)
+#    def set_user(self, user):
+#        self.user = user
+#        # Get the user's PhotoRankings
+#        self.yearbook = Yearbook.objects.get(rankings__user=user)
 
-    def get_page_content(self, user):
+#    def get_page_content(self, user):
+    def get_page_content(self):
         """
         If the page raises an exception, kill it
         Any exception other than PageInvalidError, log
         """
-        self.set_user(user)
+#        self.set_user(user)
 #        try:
         page_content = self.page_content()
 #        except PageInvalidError:
@@ -161,7 +163,7 @@ class TopFriendNamePage(PhotoPage):
                 friend = FacebookUser.objects.get(facebook_id=friend_id)
                 friend_stat = getattr(self.yearbook, self.stat_field)
                 return {
-                    'name': friend.name,
+                    'name': friend.first_name,
                     'pic': friend.pic_square,
                     'friend_stat': friend_stat,
                 }
@@ -305,6 +307,8 @@ class TopStatusPage(FieldPage):
 
     def page_content(self):
         top_post = self.yearbook.top_post
+        # Parse the date into a datetime
+        top_post['created_time'] = dateutil.parser.parse(top_post['created_time'])
         # Resolve the user ids of the poster and the people who commented
         poster = None
         if 'actor_id' in top_post:
@@ -371,78 +375,95 @@ class FriendsCollagePage(YearbookPage):
             query = self.user.friends.all()[:halfway]
         else:
             query = self.user.friends.all()[halfway:max_faces]
-        facepile_friend_pics = query.values_list('facebook_user__pic_square', flat=True)
+#        facepile_friend_pics = query.values_list('facebook_user__pic_square', flat=True)
+        facepile_friends = query.values('facebook_user__pic_square', 'facebook_user__name')
 
         return {
-            'pics': facepile_friend_pics
+#            'pics': facepile_friend_pics
+            'friends': facepile_friends
         }
 
 
 class YearbookPageFactory(object):
-    _pages = [
-#        FieldPage(            page=3,  field_name='owner.first_name'),
-        StaticPage(           page=3,  template='page3.html'),
-        # Top photos
-        StaticPage(           page=4),
-        PhotoPage(            page=5,  ranking_name='top_photos',             field_name='top_photo_1',         force_landscape=True),
-        PhotoWithCommentPage( page=6,  ranking_name='top_photos',             field_name='top_photo_2'),
-        PhotoWithCommentPage( page=7,  ranking_name='top_photos',             field_name='top_photo_3'),
-        StaticPage(           page=8),
-        PhotoPage(            page=9,  ranking_name='top_photos_first_half',  field_name='first_half_photo_1',  force_landscape=True),
-        PhotoPageDoublePort(  page=10, ranking_name='top_photos_first_half',  field_name='first_half_photo_2',  field_name_2='first_half_photo_4'),
-        PhotoPageDoublePort(  page=11, ranking_name='top_photos_first_half',  field_name='first_half_photo_3',  field_name_2='first_half_photo_5'),
-        StaticPage(           page=12),
-        PhotoPage(            page=13, ranking_name='top_photos_second_half', field_name='second_half_photo_1', force_landscape=True),
-        PhotoPageDoublePort(  page=14, ranking_name='top_photos_second_half', field_name='second_half_photo_2', field_name_2='second_half_photo_4'),
-        PhotoPageDoublePort(  page=15, ranking_name='top_photos_second_half', field_name='second_half_photo_3', field_name_2='second_half_photo_5'),
-        # Group photos
-        StaticPage(           page=16),
-        PhotoPage(            page=17, ranking_name='group_shots',            field_name='group_photo_1',       force_landscape=True),
-        PhotoWithCommentPage( page=18, ranking_name='group_shots',            field_name='group_photo_2'),
-        PhotoWithCommentPage( page=19, ranking_name='group_shots',            field_name='group_photo_3'),
-        StaticPage(           page=20),
-        AlbumPage(            page=21, ranking_name='top_albums',    field_prefix='top_album_1.top_album_1', max_photos=ALBUM_PHOTOS_TO_SHOW, template='album_page_1.html'),
-        AlbumPage(            page=22, ranking_name='top_albums',    field_prefix='top_album_2.top_album_2', max_photos=ALBUM_PHOTOS_TO_SHOW, template='album_page_2.html'),
-        AlbumPage(            page=23, ranking_name='top_albums',    field_prefix='top_album_3.top_album_3', max_photos=ALBUM_PHOTOS_TO_SHOW, template='album_page_3.html'),
-        StaticPage(           page=24),
-        StaticPage(           page=25),
-        StaticPage(           page=26),
-        # Top status message
-        TopStatusPage(        page=27),
 
-        # Birthday comments
-        # really a two-page spread
-        BirthdayPage(         page=28, first_half=True,     template='birthday_left.html'),
-        BirthdayPage(         page=29, first_half=False,    template='birthday_right.html'),
+    def __init__(self, hash=None, user=None):
+        assert hash or user
 
-        # Top photos back in time
-        # really a two-page spread
-        MultiAlbumPage(       page=30, ranking_name='back_in_time', field_prefix='back_in_time', max_photos=1, max_albums=NUM_PREV_YEARS,   template='back_in_time_left.html'),
-        MultiAlbumPage(       page=31, ranking_name='back_in_time', field_prefix='back_in_time', max_photos=1, max_albums=NUM_PREV_YEARS,   template='back_in_time_right.html'),
-        StaticPage(           page=32),
-        StaticPage(           page=33),
-        TopFriendNamePage(    page=34, ranking_name='top_friends', field_name='top_friend_1',      stat_field='top_friend_1_stat'),
-        AlbumPage(            page=35, ranking_name='top_friends', field_prefix='top_friend_1.top_friend_1', max_photos=TOP_FRIEND_PHOTOS_TO_SHOW,  template='lands_sq_port_dbl_port_full_bleed.html', get_album_name=False),
-        TopFriendNamePage(    page=36, ranking_name='top_friends', field_name='top_friend_2',      stat_field='top_friend_2_stat'),
-        AlbumPage(            page=37, ranking_name='top_friends', field_prefix='top_friend_1.top_friend_1', max_photos=TOP_FRIEND_PHOTOS_TO_SHOW,  template='lands_sq_port_dbl_port_full_bleed.html', get_album_name=False),
-        TopFriendNamePage(    page=38, ranking_name='top_friends', field_name='top_friend_3',      stat_field='top_friend_3_stat'),
-        AlbumPage(            page=39, ranking_name='top_friends', field_prefix='top_friend_1.top_friend_1', max_photos=TOP_FRIEND_PHOTOS_TO_SHOW,  template='lands_sq_port_dbl_port_full_bleed.html', get_album_name=False),
-        TopFriendNamePage(    page=40, ranking_name='top_friends', field_name='top_friend_4',      stat_field='top_friend_4_stat'),
-        AlbumPage(            page=41, ranking_name='top_friends', field_prefix='top_friend_1.top_friend_1', max_photos=TOP_FRIEND_PHOTOS_TO_SHOW,  template='lands_sq_port_dbl_port_full_bleed.html', get_album_name=False),
-        TopFriendNamePage(    page=42, ranking_name='top_friends', field_name='top_friend_5',      stat_field='top_friend_5_stat'),
-        AlbumPage(            page=43, ranking_name='top_friends', field_prefix='top_friend_1.top_friend_1', max_photos=TOP_FRIEND_PHOTOS_TO_SHOW,  template='lands_sq_port_dbl_port_full_bleed.html', get_album_name=False),
+        self._pages = [
+    #        FieldPage(            page=3,  field_name='owner.first_name'),
+            StaticPage(           page=3,  template='page3.html'),
+            # Top photos
+            StaticPage(           page=4),
+            PhotoPage(            page=5,  ranking_name='top_photos',             field_name='top_photo_1',         force_landscape=True),
+            PhotoWithCommentPage( page=6,  ranking_name='top_photos',             field_name='top_photo_2'),
+            PhotoWithCommentPage( page=7,  ranking_name='top_photos',             field_name='top_photo_3'),
+            StaticPage(           page=8),
+            PhotoPage(            page=9,  ranking_name='top_photos_first_half',  field_name='first_half_photo_1',  force_landscape=True),
+            PhotoPageDoublePort(  page=10, ranking_name='top_photos_first_half',  field_name='first_half_photo_2',  field_name_2='first_half_photo_4'),
+            PhotoPageDoublePort(  page=11, ranking_name='top_photos_first_half',  field_name='first_half_photo_3',  field_name_2='first_half_photo_5'),
+            StaticPage(           page=12),
+            PhotoPage(            page=13, ranking_name='top_photos_second_half', field_name='second_half_photo_1', force_landscape=True),
+            PhotoPageDoublePort(  page=14, ranking_name='top_photos_second_half', field_name='second_half_photo_2', field_name_2='second_half_photo_4'),
+            PhotoPageDoublePort(  page=15, ranking_name='top_photos_second_half', field_name='second_half_photo_3', field_name_2='second_half_photo_5'),
+            # Group photos
+            StaticPage(           page=16),
+            PhotoPage(            page=17, ranking_name='group_shots',            field_name='group_photo_1',       force_landscape=True),
+            PhotoWithCommentPage( page=18, ranking_name='group_shots',            field_name='group_photo_2'),
+            PhotoWithCommentPage( page=19, ranking_name='group_shots',            field_name='group_photo_3'),
+            StaticPage(           page=20),
+            AlbumPage(            page=21, ranking_name='top_albums',    field_prefix='top_album_1.top_album_1', max_photos=ALBUM_PHOTOS_TO_SHOW, template='album_page_1.html'),
+            AlbumPage(            page=22, ranking_name='top_albums',    field_prefix='top_album_2.top_album_2', max_photos=ALBUM_PHOTOS_TO_SHOW, template='album_page_2.html'),
+            AlbumPage(            page=23, ranking_name='top_albums',    field_prefix='top_album_3.top_album_3', max_photos=ALBUM_PHOTOS_TO_SHOW, template='album_page_3.html'),
+            StaticPage(           page=24),
+            StaticPage(           page=25),
+            StaticPage(           page=26),
+            # Top status message
+            TopStatusPage(        page=27),
 
-        # Friends collage
-        # really a two-page spread
-        FriendsCollagePage(   page=44, first_half=True,     template='friends_collage_left.html'),
-        FriendsCollagePage(   page=45, first_half=False,    template='friends_collage_right.html'),
-        
-        # Yearbook signs
-        StaticPage(           page=46),
-        StaticPage(           page=47),
-        StaticPage(           page=48),
-        StaticPage(           page=49),
-    ]
+            # Birthday comments
+            # really a two-page spread
+            BirthdayPage(         page=28, first_half=True,     template='birthday_left.html'),
+            BirthdayPage(         page=29, first_half=False,    template='birthday_right.html'),
+
+            # Top photos back in time
+            # really a two-page spread
+            MultiAlbumPage(       page=30, ranking_name='back_in_time', field_prefix='back_in_time', max_photos=1, max_albums=NUM_PREV_YEARS,   template='back_in_time_left.html'),
+            MultiAlbumPage(       page=31, ranking_name='back_in_time', field_prefix='back_in_time', max_photos=1, max_albums=NUM_PREV_YEARS,   template='back_in_time_right.html'),
+            StaticPage(           page=32),
+            StaticPage(           page=33),
+            TopFriendNamePage(    page=34, ranking_name='top_friends', field_name='top_friend_1',      stat_field='top_friend_1_stat'),
+            AlbumPage(            page=35, ranking_name='top_friends', field_prefix='top_friend_1.top_friend_1', max_photos=TOP_FRIEND_PHOTOS_TO_SHOW,  template='lands_sq_port_dbl_port_full_bleed.html', get_album_name=False),
+            TopFriendNamePage(    page=36, ranking_name='top_friends', field_name='top_friend_2',      stat_field='top_friend_2_stat'),
+            AlbumPage(            page=37, ranking_name='top_friends', field_prefix='top_friend_2.top_friend_2', max_photos=TOP_FRIEND_PHOTOS_TO_SHOW,  template='lands_sq_port_dbl_port_full_bleed.html', get_album_name=False),
+            TopFriendNamePage(    page=38, ranking_name='top_friends', field_name='top_friend_3',      stat_field='top_friend_3_stat'),
+            AlbumPage(            page=39, ranking_name='top_friends', field_prefix='top_friend_3.top_friend_3', max_photos=TOP_FRIEND_PHOTOS_TO_SHOW,  template='lands_sq_port_dbl_port_full_bleed.html', get_album_name=False),
+            TopFriendNamePage(    page=40, ranking_name='top_friends', field_name='top_friend_4',      stat_field='top_friend_4_stat'),
+            AlbumPage(            page=41, ranking_name='top_friends', field_prefix='top_friend_4.top_friend_4', max_photos=TOP_FRIEND_PHOTOS_TO_SHOW,  template='lands_sq_port_dbl_port_full_bleed.html', get_album_name=False),
+            TopFriendNamePage(    page=42, ranking_name='top_friends', field_name='top_friend_5',      stat_field='top_friend_5_stat'),
+            AlbumPage(            page=43, ranking_name='top_friends', field_prefix='top_friend_5.top_friend_5', max_photos=TOP_FRIEND_PHOTOS_TO_SHOW,  template='lands_sq_port_dbl_port_full_bleed.html', get_album_name=False),
+
+            # Friends collage
+            # really a two-page spread
+            FriendsCollagePage(   page=44, first_half=True,     template='friends_collage_left.html'),
+            FriendsCollagePage(   page=45, first_half=False,    template='friends_collage_right.html'),
+
+            # Yearbook signs
+            StaticPage(           page=46),
+            StaticPage(           page=47),
+            StaticPage(           page=48),
+            StaticPage(           page=49),
+
+            StaticPage(           page=50),
+        ]
+        # Set the user and yearbook on eack Page instance
+        if hash:
+            yearbook = Yearbook.objects.get(hash=hash)
+            user = yearbook.rankings.user
+        else:
+            yearbook = Yearbook.objects.filter(rankings__user=user)[0]
+        for page in self._pages:
+            page.user = user
+            page.yearbook = yearbook
 
     def pages(self):
         return self._pages

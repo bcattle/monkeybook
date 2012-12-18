@@ -34,7 +34,7 @@ FAMILY_STAT             = u'Family'
 COMMENT_I_LIKE_POINTS   = 10
 COMMENT_LIKE_POINTS     = 1
 
-NUM_FRIENDS_IN_FACEPILE = 84
+NUM_FRIENDS_IN_FACEPILE = 90
 NUM_BIRTHDAY_POSTS      = 24
 
 LOWEST_SQUARE_ASPECT_RATIO  = 0.9        # How low can the aspect ratio be for a photo to be considered "square"?

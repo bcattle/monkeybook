@@ -16,7 +16,7 @@
         <div class="photo p246" style="background-image:url({{ photos.0.url }});"></div>
     </div>
 {% else %}
-    <div class="photo full_bleed"></div>
+    <div class="photo full_bleed" style="background-image:url({{ photos.0.url }});"></div>
 {% endif %}
 
 {% include 'pages/next_prev_buttons.html' %}

@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.conf.urls import url
 from django.template.context import RequestContext
 from django.template.loader import render_to_string
@@ -6,11 +7,10 @@ from tastypie.bundle import Bundle
 from tastypie.exceptions import NotFound
 from tastypie.http import HttpNotFound
 from tastypie.resources import Resource
-from tastypie.authorization import Authorization
-from tastypie.authentication import SessionAuthentication
+from tastypie.authorization import ReadOnlyAuthorization
+from tastypie.authentication import Authentication
 from tastypie.api import Api
 from tastypie.utils.urls import trailing_slash
-#from voomza.apps.backend.serializers import DjangoTemplateSerializer
 from voomza.apps.yearbook.pages import *
 
 
@@ -18,26 +18,33 @@ class PageResource(Resource):
     page = fields.IntegerField(attribute='page', readonly=True)
     page_content = fields.CharField(readonly=True)
 
-    factory = YearbookPageFactory()
-
     class Meta:
         resource_name = 'yearbookpage'
         object_class = YearbookPage
-        limit = 5
+        limit = 2
         list_allowed_methods = ['get']
         detail_allowed_methods = ['get']
-        authentication = SessionAuthentication()
-        authorization = Authorization()
-#        serializer = DjangoTemplateSerializer()
+        authentication = Authentication()       # open to the world!
+        authorization = ReadOnlyAuthorization()
+        detail_uri_name = 'page'
 
     def prepend_urls(self):
         # Add a url for the `next` method
         return [
-            url(r"^(?P<resource_name>%s)/(?P<%s>\w[\w/-]*)/next/(?P<next_index>[\d]+)%s$"
-                % (self._meta.resource_name, self._meta.detail_uri_name, trailing_slash()),
+            url(r"^(?P<resource_name>%s)/(?P<hash>[a-fA-F0-9]{%d})%s$"
+                % (self._meta.resource_name, settings.YEARBOOK_HASH_LENGTH, trailing_slash()),
+                    self.wrap_view('dispatch_list'), name="api_dispatch_list"),
+
+            url(r"^(?P<resource_name>%s)/(?P<hash>[a-fA-F0-9]{%d})/(?P<%s>\w[\w/-]*)%s$"
+                % (self._meta.resource_name, settings.YEARBOOK_HASH_LENGTH, self._meta.detail_uri_name, trailing_slash()),
+                self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
+
+            url(r"^(?P<resource_name>%s)/(?P<hash>[a-fA-F0-9]{%d})/(?P<%s>\w[\w/-]*)/next/(?P<next_index>[\d]+)%s$"
+                % (self._meta.resource_name, settings.YEARBOOK_HASH_LENGTH, self._meta.detail_uri_name, trailing_slash()),
                 self.wrap_view('get_next'), name="api_get_next"),
-            url(r"^(?P<resource_name>%s)/(?P<%s>\w[\w/-]*)/next/(?P<next_index>[\d]+)/(?P<photo_index>[\d]+)%s$"
-                % (self._meta.resource_name, self._meta.detail_uri_name, trailing_slash()),
+
+            url(r"^(?P<resource_name>%s)/(?P<hash>[a-fA-F0-9]{%d})/(?P<%s>\w[\w/-]*)/next/(?P<next_index>[\d]+)/(?P<photo_index>[\d]+)%s$"
+                % (self._meta.resource_name, settings.YEARBOOK_HASH_LENGTH, self._meta.detail_uri_name, trailing_slash()),
                     self.wrap_view('get_next'), name="api_get_next_photo"),
         ]
 
@@ -48,9 +55,11 @@ class PageResource(Resource):
         """
         kwargs = {}
         if isinstance(bundle_or_obj, Bundle):
-            kwargs['pk'] = bundle_or_obj.obj.page
+            kwargs[self.Meta.detail_uri_name] = bundle_or_obj.obj.page
+            kwargs['hash'] = bundle_or_obj.obj.yearbook.hash
         else:
-            kwargs['pk'] = bundle_or_obj.page
+            kwargs[self.Meta.detail_uri_name] = bundle_or_obj.page
+            kwargs['hash'] = bundle_or_obj.yearbook.hash
         return kwargs
 
     def obj_get_list(self, request=None, **kwargs):
@@ -64,7 +73,8 @@ class PageResource(Resource):
         Runs after filters
         """
         # Return the pages
-        return self.factory.pages()
+        factory = YearbookPageFactory(user=request.user)
+        return factory.pages()
 
     
     def obj_get(self, request=None, **kwargs):
@@ -72,18 +82,20 @@ class PageResource(Resource):
         Fetches an individual object on the resource.
         If the object can not be found this should raise a NotFound exception
         """
+        factory = YearbookPageFactory(hash=kwargs['hash'])
         page = None
         try:
-            page = self.factory.get_page(int(kwargs['pk']))
+            page = factory.get_page(int(kwargs[self.Meta.detail_uri_name]))
         except ValueError: pass
         if not page:
-            raise NotFound("Couldn't find an instance of '%s' which matched page='%s'." % (self.__class__.__name__, kwargs['pk']))
+            raise NotFound("Couldn't find an instance of '%s' which matched page='%s'." % (self.__class__.__name__, kwargs[self.Meta.detail_uri_name]))
         return page
 
 
     def dehydrate(self, bundle):
-        user = bundle.request.user
-        context = bundle.obj.get_page_content(user)
+#        user = bundle.request.user
+#        context = bundle.obj.get_page_content(user)
+        context = bundle.obj.get_page_content()
         # Render the template
         template = PAGE_TEMPLATE_DIR + bundle.obj.template
         bundle.data['page_content'] = render_to_string(template, context, RequestContext(bundle.request)).strip()
