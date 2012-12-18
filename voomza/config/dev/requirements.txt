@@ -17,3 +17,5 @@ django_compressor
 dateutil
 # Celery monitoring
 flower
+boto
+django-storages

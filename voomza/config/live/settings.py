@@ -45,6 +45,13 @@ BROKER_URL = 'redis://localhost:6379/0'
 CELERY_RESULT_BACKEND = BROKER_URL
 
 
+## S3 storage
+
+AWS_STORAGE_BUCKET_NAME = 'yearbook-allstar'
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
+STATICFILES_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
+
+
 ## Static files storage
 
 # Path for uploaded files
@@ -52,15 +59,14 @@ MEDIA_ROOT = os.path.join(ROOT_PATH, 'media')
 
 # URL prefix for media (uploaded) files
 MEDIA_URL = '/media/'
-#MEDIA_URL = '//s3.amazonaws.com/%s/' % AWS_STORAGE_BUCKET_NAME
 
 # Needed for compressor's local cache?
 STATIC_ROOT = '/home/ubuntu/src/voomza_static/'
 COMPRESS_ROOT = STATIC_ROOT
 
 # URL prefix for static files.
-STATIC_URL = '/static/'
-#STATIC_URL = '//s3.amazonaws.com/%s/' % STATICFILES_AWS_STORAGE_BUCKET_NAME
+#STATIC_URL = '/static/'
+STATIC_URL = '//s3.amazonaws.com/%s/' % AWS_STORAGE_BUCKET_NAME
 COMPRESS_URL = STATIC_URL
 
 
@@ -70,6 +76,13 @@ ROOT_URLCONF = 'voomza.config.live.urls'
 
 # Python dotted path to the WSGI application used by Django's runserver.
 WSGI_APPLICATION = 'voomza.config.live.wsgi.application'
+
+
+## Raven / Sentry configuration
+
+#RAVEN_CONFIG = {
+#    'dsn': 'https://0212e4c55eaa40379c1ba782c8137510:96e96df4f883498d83a130c86e965db0@sentry.voomza.com/2',
+#}
 
 
 ## Logging
