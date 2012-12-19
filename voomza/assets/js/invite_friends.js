@@ -51,9 +51,8 @@ function addCheckboxClickCallback(el) {
 
 function onGetFriendsError(jqXHR, textStatus, errorThrown) {
     if (!loaded) {
-        // Only run if the first call timed out
-        console.log('ajax error');
-        //TODO: show an error message
+        // If there was an error, just redirect to the next page
+        top.location.href = nextUrl;
     }
 }
 

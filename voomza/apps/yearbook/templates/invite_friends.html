@@ -4,7 +4,6 @@
 
 {% block style %}
     <link href="{% static 'css/invite_friends.css' %}" rel="stylesheet">
-    {% include 'invite_friends_fonts.html' %}
 {% endblock %}
 
 {% block page_header %}
@@ -13,7 +12,7 @@
             <img class="booklogo" src="{% static 'img/allstar_logo_120.png' %}">
             <div class="booktopright">
                 <div class="progress progress-striped bookprogress">
-                    <div class="bar" style="width: 60%;"></div>
+                    <div class="bar" style="width: 80%;"></div>
                 </div>
                 <h5 style="float:right; margin-top:-10px">Click 3 of 4</h5>
             </div>
@@ -34,9 +33,7 @@
 {# -- PAGES -- #}
 
 {% block page_1 %}
-{#    <div class="signatures_container">#}
-{#        <p class="friendsign2">I always had a crush on you.<br> -guess who???</p>#}
-{#    </div>#}
+
 {% endblock %}
 
 {% block page_2 %}
@@ -61,7 +58,7 @@
                 <button id="submit" class="btn btn-primary btn_extralarge">Select Friends!</button>
             </div>
             <div class="skiplink_container">
-                <a class="skiplink" href="{% url 'sign_friends' %}">skip</a>
+                <a class="skiplink" href="{% url next_view %}">skip</a>
             </div>
             <div style="clear:both;"></div>
         </div>
