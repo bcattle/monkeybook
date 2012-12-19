@@ -975,3 +975,22 @@ body {
     bottom:17%;
 }
 
+/* EDIT BUTTONS */
+
+.edit_row {
+    position:absolute;
+    left:5px;
+    top:5px;
+}
+
+.options_none {
+    border: solid 1px white;
+    background-color:black;
+    color:white;
+    padding-left:4px;
+    padding-right:4px;
+    -webkit-border-radius: 2px;
+    -moz-border-radius: 2px;
+    border-radius: 2px;
+}
+

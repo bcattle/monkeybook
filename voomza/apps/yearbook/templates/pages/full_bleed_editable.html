@@ -1,6 +1,6 @@
+{% load edit_row %}
+
 {# Single background image with edit button #}
-
 <div class="photo full_bleed" style="background-image:url({{ photo.url }});">
+    {% edit_row page %}
 </div>
-
-{% include 'pages/next_prev_buttons.html' %}

@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.conf.urls import url
+from django.shortcuts import render
 from django.template.context import RequestContext
 from django.template.loader import render_to_string
 from tastypie import fields
@@ -35,17 +36,18 @@ class PageResource(Resource):
                 % (self._meta.resource_name, settings.YEARBOOK_HASH_LENGTH, trailing_slash()),
                     self.wrap_view('dispatch_list'), name="api_dispatch_list"),
 
-            url(r"^(?P<resource_name>%s)/(?P<hash>[a-fA-F0-9]{%d})/(?P<%s>\w[\w/-]*)%s$"
-                % (self._meta.resource_name, settings.YEARBOOK_HASH_LENGTH, self._meta.detail_uri_name, trailing_slash()),
-                self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
-
             url(r"^(?P<resource_name>%s)/(?P<hash>[a-fA-F0-9]{%d})/(?P<%s>\w[\w/-]*)/next/(?P<next_index>[\d]+)%s$"
                 % (self._meta.resource_name, settings.YEARBOOK_HASH_LENGTH, self._meta.detail_uri_name, trailing_slash()),
-                self.wrap_view('get_next'), name="api_get_next"),
+                    self.wrap_view('get_next'), name="api_get_next"),
 
             url(r"^(?P<resource_name>%s)/(?P<hash>[a-fA-F0-9]{%d})/(?P<%s>\w[\w/-]*)/next/(?P<next_index>[\d]+)/(?P<photo_index>[\d]+)%s$"
                 % (self._meta.resource_name, settings.YEARBOOK_HASH_LENGTH, self._meta.detail_uri_name, trailing_slash()),
                     self.wrap_view('get_next'), name="api_get_next_photo"),
+
+            url(r"^(?P<resource_name>%s)/(?P<hash>[a-fA-F0-9]{%d})/(?P<%s>\w[\w/-]*)%s$"
+            % (self._meta.resource_name, settings.YEARBOOK_HASH_LENGTH, self._meta.detail_uri_name, trailing_slash()),
+                self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
+
         ]
 
     def detail_uri_kwargs(self, bundle_or_obj):
@@ -93,12 +95,10 @@ class PageResource(Resource):
 
 
     def dehydrate(self, bundle):
-#        user = bundle.request.user
-#        context = bundle.obj.get_page_content(user)
         context = bundle.obj.get_page_content()
         # Render the template
         template = PAGE_TEMPLATE_DIR + bundle.obj.template
-        bundle.data['page_content'] = render_to_string(template, context, RequestContext(bundle.request)).strip()
+        bundle.data['page_content'] = render(bundle.request, template, context).strip()
         return bundle
 
 
@@ -109,17 +109,18 @@ class PageResource(Resource):
         self.throttle_check(request)
 
         page = self.obj_get(**kwargs)
-        page.set_user(request.user)
         if hasattr(page, 'get_next_image'):
             try:
                 if photo_index:
+                    # These return full template context including the new image
                     # urls start counting at 1
-                    next_data = page.get_next_image(int(next_index) - 1, int(photo_index) - 1)
+                    next_data = page.get_next_data(int(next_index) - 1, int(photo_index) - 1)
                 else:
-                    next_data = page.get_next_image(int(next_index) - 1)
+                    next_data = page.get_next_data(int(next_index) - 1)
 
+                template = PAGE_TEMPLATE_DIR + page.template
                 data = {
-                    'objects': next_data,
+                    'page_content': render(request, template, next_data).strip()
                 }
 
                 self.log_throttled_access(request)

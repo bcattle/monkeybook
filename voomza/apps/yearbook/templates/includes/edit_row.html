@@ -1,0 +1,5 @@
+<div class="edit_row" {% if not user_can_edit %}style="display:none"{% endif %}>
+    <btn class="btn btn-mini btn-primary disabled" data-page="{{ page }}" data-index="{{ index }}">Previous</btn>
+    <btn class="btn btn-mini btn-primary"          data-page="{{ page }}" data-index="{{ index }}">Next</btn>
+    <h6 class="options_none">No more available options for this photo.</h6>
+</div>

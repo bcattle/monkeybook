@@ -40,10 +40,8 @@ class YearbookPage(object):
 #        except Exception:
             # Some other error happened, log it
 #            logger.error()
+        page_content['page'] = self.page
         return page_content
-
-    def get_next_content(self, user):
-        raise NotImplementedError
 
 
 class StaticPage(YearbookPage):
@@ -86,12 +84,22 @@ class PhotoPage(YearbookPage):
 
     def get_next_image(self, next_index):
         # De-reference the field and get the next unallocated image
+        import ipdb
+        ipdb.set_trace()
+
         next_photo_index = self.yearbook.get_next_unused_photo(
             self.ranking_table_name, self.index_field_name, unused_index=next_index, force_landscape=self.force_landscape
         )
-        next_photo = getattr(self.yearbook.rankings, self.ranking_table_name)[next_photo_index]
-        next_photo_db = FacebookPhoto.objects.get(facebook_id=next_photo['id'])
-        return self.get_photo_content(next_photo_db)
+        if not next_photo_index:
+            return None
+        else:
+            next_photo = getattr(self.yearbook.rankings, self.ranking_table_name)[next_photo_index]
+            next_photo_db = FacebookPhoto.objects.get(facebook_id=next_photo['id'])
+            return next_photo_db
+
+    def get_next_data(self, next_index):
+        photo = self.get_next_image(next_index)
+        return self.get_photo_content(photo)
 
     def page_content(self):
         # De-reference the field and return pic url
