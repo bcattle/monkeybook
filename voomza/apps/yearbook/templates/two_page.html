@@ -1,10 +1,15 @@
 {% extends 'base.html' %}
 {% load staticfiles %}
+{% load compress %}
 
 {% block style_0 %}
-    <link href='{% static 'css/bootstrap.css' %}' rel='stylesheet' type='text/css'>
-    {% include 'open_sans_font.html' %}
-    <link href="{% static 'css/two_page.css' %}" rel="stylesheet">
+    {% compress css %}
+        <link href='{% static 'css/bootstrap.css' %}' rel='stylesheet' type='text/css'>
+    {% endcompress %}
+    {% compress css %}
+        <link href="{% static 'css/open_sans.css' %}" rel="stylesheet">
+        <link href="{% static 'css/two_page.css' %}" rel="stylesheet">
+    {% endcompress %}
 {% endblock %}
 
 {% block body %}
@@ -31,24 +36,27 @@
 {% endblock %}
 
 {% block script_0 %}
-    <script type="text/javascript" src="{% static 'js/yepnope.1.5.4-min.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/jquery-1.7.2.min.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/jquery.cookie.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/mustache.js' %}"></script>
-    <script type="text/javascript">
-        var csrftoken = $.cookie('csrftoken');
-        function csrfSafeMethod(method) {
-            // these HTTP methods do not require CSRF protection
-            return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
-        }
+    {% compress js %}
+        <script type="text/javascript" src="{% static 'js/yepnope.1.5.4-min.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/jquery.cookie.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/mustache.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/underscore-min.js' %}"></script>
+        <script type="text/javascript">
+            var csrftoken = $.cookie('csrftoken');
+            function csrfSafeMethod(method) {
+                // these HTTP methods do not require CSRF protection
+                return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+            }
 
-        $(document).ready(function (){
-            Mustache.tags = ['[[', ']]'];
-            // Load json2.js if we need it
-            yepnope({
-                test: window.JSON,
-                nope: '{% static 'js/json2.js' %}'
+            $(document).ready(function (){
+                Mustache.tags = ['[[', ']]'];
+                // Load json2.js if we need it
+                yepnope({
+                    test: window.JSON,
+                    nope: '{% static 'js/json2.js' %}'
+                });
             });
-        });
-    </script>
+        </script>
+    {% endcompress %}
 {% endblock %}

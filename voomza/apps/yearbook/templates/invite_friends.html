@@ -1,6 +1,7 @@
 {% extends 'two_page.html' %}
 {% load staticfiles %}
 {% load url from future %}
+{% load compress %}
 
 {% block style %}
     <link href="{% static 'css/invite_friends.css' %}" rel="stylesheet">
@@ -72,8 +73,6 @@
 
 {% block script %}
     {# yepnope, jQuery and Mustache loaded in two_page.html   #}
-    <script type="text/javascript" src="{% static 'js/jquery.imagesloaded.min.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/underscore-min.js' %}"></script>
     <script type="text/html" id="friend_template">
         <div data-id="[[ facebook_id ]]">    {# NOTE: this gets the class "friend" once its image has loaded #}
             <div class="friend_checkbox">
@@ -89,6 +88,9 @@
         var nextUrl = "{% url next_view %}";
         var invitesSentUrl = "{% url 'api_dispatch_list' api_name='v1' resource_name='invitesent' %}";
     </script>
-    <script type="text/javascript" src="{% static 'js/invite_friends.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/typeahead.js' %}"></script>
+    {% compress js %}
+        <script type="text/javascript" src="{% static 'js/jquery.imagesloaded.min.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/invite_friends.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/typeahead.js' %}"></script>
+    {% endcompress %}
 {% endblock %}

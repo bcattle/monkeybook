@@ -301,8 +301,8 @@ def process_photo_results(results, scoring_fxn=None, add_to_fields=None, commit=
     getter_results = len(getter)
     if fb_results != getter_results:
         logger.warning('Facebook returned %d results, our getter only produced %d' % (fb_results, getter_results))
-    else:
-        logger.info('Pulled %d photos' % getter_results)
+#    else:
+#        logger.info('Pulled %d photos' % getter_results)
     if commit:
         FacebookPhoto.objects.from_getter(getter)
     return getter

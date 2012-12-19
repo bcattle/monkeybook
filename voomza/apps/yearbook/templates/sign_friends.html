@@ -117,10 +117,6 @@
     </script>
 
     {# yepnope, jQuery and Mustache loaded in two_page.html   #}
-    <script type="text/javascript" src="{% static 'js/jquery.imagesloaded.min.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/underscore-min.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/jquery.scrollTo.min.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/jquery.modal.min.js' %}"></script>
     <script type="text/html" id="sign_template">
         <div class="friend_sign_unit">
             <div class="friend_sign_photo">
@@ -172,27 +168,32 @@
             </div>
         </div>
     </script>
-    <script type="text/javascript">
-        var signsUrl = "{% url 'api_dispatch_list' api_name='v1' resource_name='yearbooksign' %}";
-        var nextSignsUrl = signsUrl;
-        var yearbooksUrl = "{% url 'api_dispatch_list' api_name='v1' resource_name='yearbooktosign' %}";
-        var signedYearbooksUrl = "{% url 'api_dispatch_list' api_name='v1' resource_name='signedyearbook' %}";
-        var unSignedYearbooksUrl = "{% url 'api_dispatch_list' api_name='v1' resource_name='unsignedyearbook' %}";
-        var nextYearbooksUrl = yearbooksUrl;
-        var STACY_DATA = {
-            'from_facebook_user': {
-                'name': 'Stacy, Yearbook Captain',
-                'pic_square': '{% static 'img/yearbook_stacy.png' %}'
-            },
-            'can_sign': false,
-            'resource_uri': 'stacy',
-            'text': ['Hey! Congratuations on getting your yearbook. ',
-                'You invited your friends to sign, soon this ',
-                'area will start to fill up with their messages. ',
-                'Come back to check on who\'s signed and Happy New Year! ',
-                '- Stacy'].join('')
-        };
-    </script>
-    <script type="text/javascript" src="{% static 'js/sign_friends.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/typeahead_yearbooks.js' %}"></script>
+    {% compress js %}
+        <script type="text/javascript" src="{% static 'js/jquery.imagesloaded.min.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/jquery.scrollTo.min.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/jquery.modal.min.js' %}"></script>
+        <script type="text/javascript">
+            var signsUrl = "{% url 'api_dispatch_list' api_name='v1' resource_name='yearbooksign' %}";
+            var nextSignsUrl = signsUrl;
+            var yearbooksUrl = "{% url 'api_dispatch_list' api_name='v1' resource_name='yearbooktosign' %}";
+            var signedYearbooksUrl = "{% url 'api_dispatch_list' api_name='v1' resource_name='signedyearbook' %}";
+            var unSignedYearbooksUrl = "{% url 'api_dispatch_list' api_name='v1' resource_name='unsignedyearbook' %}";
+            var nextYearbooksUrl = yearbooksUrl;
+            var STACY_DATA = {
+                'from_facebook_user': {
+                    'name': 'Stacy, Yearbook Captain',
+                    'pic_square': '{% static 'img/yearbook_stacy.png' %}'
+                },
+                'can_sign': false,
+                'resource_uri': 'stacy',
+                'text': ['Hey! Congratuations on getting your yearbook. ',
+                    'You invited your friends to sign, soon this ',
+                    'area will start to fill up with their messages. ',
+                    'Come back to check on who\'s signed and Happy New Year! ',
+                    '- Stacy'].join('')
+            };
+        </script>
+        <script type="text/javascript" src="{% static 'js/sign_friends.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/typeahead_yearbooks.js' %}"></script>
+    {% endcompress %}
 {% endblock %}

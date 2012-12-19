@@ -3,6 +3,7 @@ from voomza.config.common_settings import *
 DEBUG = True
 #DEBUG = False
 TEMPLATE_DEBUG = DEBUG
+COMPRESS_ENABLED = True
 
 ## Facebook
 
@@ -63,12 +64,12 @@ MEDIA_URL = '/media/'
 
 # Needed for compressor's local cache?
 STATIC_ROOT = '/home/ubuntu/src/voomza_static/'
-COMPRESS_ROOT = STATIC_ROOT
+#COMPRESS_ROOT = STATIC_ROOT
 
 # URL prefix for static files.
 #STATIC_URL = '/static/'
 STATIC_URL = '//s3-us-west-2.amazonaws.com/%s/' % AWS_STORAGE_BUCKET_NAME
-COMPRESS_URL = STATIC_URL
+#COMPRESS_URL = STATIC_URL
 
 
 ## Django settings
