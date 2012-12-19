@@ -14,7 +14,7 @@ gevent
 django-jsonfield
 # pip install --index-url https://code.stripe.com --upgrade stripe
 django_compressor
-dateutil
+python-dateutil
 # Celery monitoring
 flower
 boto

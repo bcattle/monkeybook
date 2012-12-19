@@ -30,66 +30,77 @@ body {
 
 .sj-book .p8 {
     background-color:white;
-    background-image:url(../img/pages/page_8_940.jpg) !important;
+    background-image:url(../img/pages/page_6_7_940.jpg) !important;
 }
 
 .sj-book .p9 {
-    background-color:black;
-
+    background-color:white;
+    background-image:url(../img/pages/page_6_7_940.jpg) !important;
+    background-position:456px 0;
 }
 
 .sj-book .p10 {
     background-color:white;
-    background-image:url(../img/pages/page_10_11_940.jpg) !important;
+    background-image:url(../img/pages/page_8_940.jpg) !important;
 }
 
 .sj-book .p11 {
+    background-color:black;
+
+}
+
+.sj-book .p12 {
+    background-color:white;
+    background-image:url(../img/pages/page_10_11_940.jpg) !important;
+}
+
+.sj-book .p13 {
     background-color:white;
     background-image:url(../img/pages/page_10_11_940.jpg) !important;
     background-position:456px 0;
 }
 
-.sj-book .p12 {
+.sj-book .p14 {
     background-color:black;
     background-image:url(../img/pages/page_12_940.jpg) !important;
 }
 
-.sj-book .p13 {
+.sj-book .p15 {
     background-color:black;
 
-}
-
-.sj-book .p14 {
-    background-color:white;
-    background-image:url(../img/pages/page_14_15_940.jpg) !important;
-}
-
-.sj-book .p15 {
-    background-color:white;
-    background-image:url(../img/pages/page_14_15_940.jpg) !important;
-    background-position:456px 0;
 }
 
 .sj-book .p16 {
     background-color:white;
-    background-image:url(../img/pages/page_16_940.jpg) !important;
+    background-image:url(../img/pages/page_14_15_940.jpg) !important;
 }
 
 .sj-book .p17 {
-    background-color:black;
-
+    background-color:white;
+    background-image:url(../img/pages/page_14_15_940.jpg) !important;
+    background-position:456px 0;
 }
 
 .sj-book .p18 {
     background-color:white;
-    background-image:url(../img/pages/page_18_19_940.jpg) !important;
+    background-image:url(../img/pages/page_16_940.jpg) !important;
 }
 
 .sj-book .p19 {
-    background-color:white;
-    background-image:url(../img/pages/page_18_19_940.jpg) !important;
-    background-position:456px 0;
+    background-color:black;
+
 }
+
+/*.sj-book .p18 {*/
+    /*background-color:white;*/
+    /*background-image:url(../img/pages/page_18_19_940.jpg) !important;*/
+/*}*/
+
+/*.sj-book .p19 {*/
+    /*background-color:white;*/
+    /*background-image:url(../img/pages/page_18_19_940.jpg) !important;*/
+    /*background-position:456px 0;*/
+/*}*/
 
 .sj-book .p20 {
     background-color:white;
