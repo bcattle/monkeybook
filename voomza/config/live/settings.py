@@ -1,13 +1,17 @@
 from voomza.config.common_settings import *
 
-DEBUG = False
+DEBUG = True
+#DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
 ## Facebook
 
-FACEBOOK_APP_ID = '524135734282912'
-FACEBOOK_APP_SECRET = 'dc7bf6738d5ed766c8f780705c43fc8f'
-FACEBOOK_CANVAS_PAGE = 'http://apps.facebook.com/yearbook/'
+FACEBOOK_APP_ID = '111183162379123'
+FACEBOOK_APP_SECRET = 'd9afe8c407fd0577883312f8b8b23204'
+
+#FACEBOOK_APP_ID = '524135734282912'
+#FACEBOOK_APP_SECRET = 'dc7bf6738d5ed766c8f780705c43fc8f'
+FACEBOOK_CANVAS_PAGE = 'http://apps.facebook.com'
 
 ## Stripe
 
@@ -21,10 +25,10 @@ STRIPE_PUBLISHABLE_KEY  = 'pk_test_e32OejkBMZNS4Ow59szBFYNu'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'yearbook_dev',
+        'NAME': 'yearbook_live',
         'USER': 'yearbook',
         'PASSWORD': '8jmrnBsP',
-        'HOST': 'rds-my-yearbook.cnqssbbdxaki.us-west-2.rds.amazonaws.com',
+        'HOST': 'yearbook-live.cnqssbbdxaki.us-west-2.rds.amazonaws.com',
         'PORT': '3306',
         }
 }
@@ -49,7 +53,7 @@ CELERY_RESULT_BACKEND = BROKER_URL
 
 AWS_STORAGE_BUCKET_NAME = 'yearbook-allstar'
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
-STATICFILES_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
+STATICFILES_STORAGE = DEFAULT_FILE_STORAGE
 
 
 ## Static files storage
@@ -66,7 +70,7 @@ COMPRESS_ROOT = STATIC_ROOT
 
 # URL prefix for static files.
 #STATIC_URL = '/static/'
-STATIC_URL = '//s3.amazonaws.com/%s/' % AWS_STORAGE_BUCKET_NAME
+STATIC_URL = '//s3-us-west-2.amazonaws.com/%s/' % AWS_STORAGE_BUCKET_NAME
 COMPRESS_URL = STATIC_URL
 
 

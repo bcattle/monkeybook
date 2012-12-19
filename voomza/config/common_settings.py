@@ -74,8 +74,8 @@ FACEBOOK_CELERY_TOKEN_EXTEND = True
 AWS_ACCESS_KEY_ID = 'AKIAJNKCFRLQ6NGG44AQ'
 AWS_SECRET_ACCESS_KEY = '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'
 
-from boto.s3.connection import OrdinaryCallingFormat
-AWS_S3_CALLING_FORMAT = OrdinaryCallingFormat()
+#from boto.s3.connection import OrdinaryCallingFormat
+#AWS_S3_CALLING_FORMAT = OrdinaryCallingFormat()
 AWS_QUERYSTRING_AUTH = False
 
 
@@ -108,9 +108,8 @@ STATICFILES_DIRS = (
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-#    'django.contrib.staticfiles.finders.DefaultStorageFinder',
+    'django.contrib.staticfiles.finders.DefaultStorageFinder',
     'compressor.finders.CompressorFinder',
-#    'dajaxice.finders.DajaxiceFinder',
 )
 
 
