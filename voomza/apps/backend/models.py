@@ -203,14 +203,14 @@ class Yearbook(models.Model):
 
     # Really, should use this data structure to autogenerate the model
     lists_to_fields = {
-        'top_photos': ['top_photo_1', 'top_photo_2', 'top_photo_3'],
+        'top_photos': ['top_photo_1', 'top_photo_2', 'top_photo_3', 'top_photo_4', 'top_photo_5'],
         'top_photos_first_half': [
             'first_half_photo_1', 'first_half_photo_2', 'first_half_photo_3', 'first_half_photo_4', 'first_half_photo_5'
         ],
         'top_photos_second_half': [
             'second_half_photo_1', 'second_half_photo_2', 'second_half_photo_3', 'second_half_photo_4', 'second_half_photo_5'
         ],
-        'group_shots': ['group_photo_1', 'group_photo_2', 'group_photo_3'],
+        'group_shots': ['group_photo_1',],
         'top_friends': [
             'top_friend_1.top_friend_1_photo_1', 'top_friend_1.top_friend_1_photo_2',
             'top_friend_2.top_friend_2_photo_1', 'top_friend_2.top_friend_2_photo_2',

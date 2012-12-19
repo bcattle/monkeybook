@@ -10,47 +10,36 @@
 {% block page_header %}
     <div class="book_topsection">
         <div class="book_topsection_upper">
-            <img class="booklogo" src="{% static 'img/logo2_white.png' %}">
+            <img class="booklogo" src="{% static 'img/allstar_logo_120.png' %}">
             <div class="booktopright">
                 <div class="progress progress-striped bookprogress">
                     <div class="bar" style="width: 60%;"></div>
                 </div>
+                <h5 style="float:right; margin-top:-10px">Click 3 of 4</h5>
             </div>
         </div>
         <div style="clear:both;"></div>
-        <h1 class="regularfont googlefont bookheader">1. Invite your friends to sign your yearbook.</h1>
+        <h1 class="regularfont googlefont bookheader">Invite your friends to sign your yearbook</h1>
     </div>
+
+    <div class="owl_advice_1">
+        <img src="{% static 'img/stacy.jpg' %}" style="float:left; height:116px;">
+        <p class="stacy_text">After you click "select," you'll be able to approve
+            the message that is sent to your friends.
+            <br>-xoxo Stacy, Yearbook Chair</p>
+    </div>
+
 {% endblock %}
 
 {# -- PAGES -- #}
 
 {% block page_1 %}
-    <div class="signatures_container">
-        {% ifequal user.profile.gender 'f' %}
-            <br>
-            <p class="friendsign1">Did somebody say mimosa?? <br>-Sandy</p>
-            <br>
-            <p class="friendsign2">I always had a crush on you.<br> -hunk from 3rd period</p>
-            <br><br><br>
-            <p class="friendsign3">I still remember sleepovers in kindergarten!
-                <br> Best friends for life!!<br> Love, Jess</p>
-        {% else %}
-            <br>
-            <p class="friendsign1">Did somebody say mimosa?? <br>-Sandy</p>
-            <br>
-            <p class="friendsign2">I always had a crush on you.<br> -hunk from 3rd period</p>
-            <br><br><br>
-            <p class="friendsign3">I still remember sleepovers in kindergarten!
-                <br> Best friends for life!!<br> Love, Jess</p>
-        {% endifequal %}
-    </div>
+{#    <div class="signatures_container">#}
+{#        <p class="friendsign2">I always had a crush on you.<br> -guess who???</p>#}
+{#    </div>#}
 {% endblock %}
 
 {% block page_2 %}
-    <div class="owl_advice_1">
-        <img src="{% static 'img/yearbook_staff_100.jpg' %}">
-    </div>
-
     <div class="page_pane">
         <div class="page_pane_header">
             <div class="floatright">
@@ -69,10 +58,10 @@
         </div>
         <div class="inviteboxfooter">
             <div class="floatright">
-                <button id="submit" class="btn btn-primary btn_extralarge">Invite Friends!</button>
+                <button id="submit" class="btn btn-primary btn_extralarge">Select Friends!</button>
             </div>
             <div class="skiplink_container">
-                <a class="skiplink">skip</a>
+                <a class="skiplink" href="{% url 'sign_friends' %}">skip</a>
             </div>
             <div style="clear:both;"></div>
         </div>
