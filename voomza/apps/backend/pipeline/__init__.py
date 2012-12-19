@@ -1,5 +1,5 @@
+import re, types, logging, time
 from django.contrib.auth.models import User
-import re, types, logging
 from celery import task
 from django_facebook.api import FacebookUserConverter
 from voomza.apps.backend.getter import ResultGetter
@@ -55,7 +55,10 @@ class FqlTaskPipeline(TaskPipeline):
                 for index, query in enumerate(task.fql):
                     queries['%s_%d' % (task.name, index)] = merge_spaces(query)
         # Run the queries
+        queries_start = time.time()
         fql_results = self.facebook.open_facebook.batch_fql(queries)
+        queries_elapsed = time.time() - queries_start
+        logger.info('FQL query in class %s ran, took %.2f secs' % (self.__class__.__name__, queries_elapsed))
         # The idea is that all the queries can run together
         # but the `on_results` functions need to go in a particular order
         # Start by adding any tasks that came in as kwargs to "already ran"
