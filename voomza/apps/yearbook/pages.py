@@ -397,19 +397,19 @@ class YearbookPageFactory(object):
             PhotoPage(            page=5,  ranking_name='top_photos',             field_name='top_photo_1',         force_landscape=True),
             PhotoWithCommentPage( page=6,  ranking_name='top_photos',             field_name='top_photo_2'),
             PhotoWithCommentPage( page=7,  ranking_name='top_photos',             field_name='top_photo_3'),
-            StaticPage(           page=8),
-            PhotoPage(            page=9,  ranking_name='top_photos_first_half',  field_name='first_half_photo_1',  force_landscape=True),
-            PhotoPageDoublePort(  page=10, ranking_name='top_photos_first_half',  field_name='first_half_photo_2',  field_name_2='first_half_photo_4'),
-            PhotoPageDoublePort(  page=11, ranking_name='top_photos_first_half',  field_name='first_half_photo_3',  field_name_2='first_half_photo_5'),
-            StaticPage(           page=12),
-            PhotoPage(            page=13, ranking_name='top_photos_second_half', field_name='second_half_photo_1', force_landscape=True),
-            PhotoPageDoublePort(  page=14, ranking_name='top_photos_second_half', field_name='second_half_photo_2', field_name_2='second_half_photo_4'),
-            PhotoPageDoublePort(  page=15, ranking_name='top_photos_second_half', field_name='second_half_photo_3', field_name_2='second_half_photo_5'),
+            PhotoWithCommentPage( page=8,  ranking_name='top_photos',             field_name='top_photo_3'),
+            PhotoWithCommentPage( page=9,  ranking_name='top_photos',             field_name='top_photo_3'),
+            StaticPage(           page=10),
+            PhotoPage(            page=11, ranking_name='top_photos_first_half',  field_name='first_half_photo_1',  force_landscape=True),
+            PhotoPageDoublePort(  page=12, ranking_name='top_photos_first_half',  field_name='first_half_photo_2',  field_name_2='first_half_photo_4'),
+            PhotoPageDoublePort(  page=13, ranking_name='top_photos_first_half',  field_name='first_half_photo_3',  field_name_2='first_half_photo_5'),
+            StaticPage(           page=14),
+            PhotoPage(            page=15, ranking_name='top_photos_second_half', field_name='second_half_photo_1', force_landscape=True),
+            PhotoPageDoublePort(  page=16, ranking_name='top_photos_second_half', field_name='second_half_photo_2', field_name_2='second_half_photo_4'),
+            PhotoPageDoublePort(  page=17, ranking_name='top_photos_second_half', field_name='second_half_photo_3', field_name_2='second_half_photo_5'),
             # Group photos
-            StaticPage(           page=16),
-            PhotoPage(            page=17, ranking_name='group_shots',            field_name='group_photo_1',       force_landscape=True),
-            PhotoWithCommentPage( page=18, ranking_name='group_shots',            field_name='group_photo_2'),
-            PhotoWithCommentPage( page=19, ranking_name='group_shots',            field_name='group_photo_3'),
+            StaticPage(           page=18),
+            PhotoPage(            page=19, ranking_name='group_shots',            field_name='group_photo_1',       force_landscape=True),
             StaticPage(           page=20),
             AlbumPage(            page=21, ranking_name='top_albums',    field_prefix='top_album_1.top_album_1', max_photos=ALBUM_PHOTOS_TO_SHOW, template='album_page_1.html'),
             AlbumPage(            page=22, ranking_name='top_albums',    field_prefix='top_album_2.top_album_2', max_photos=ALBUM_PHOTOS_TO_SHOW, template='album_page_2.html'),
@@ -455,7 +455,7 @@ class YearbookPageFactory(object):
 
             StaticPage(           page=50),
         ]
-        # Set the user and yearbook on eack Page instance
+        # Set the user and yearbook on each Page instance
         if hash:
             yearbook = Yearbook.objects.get(hash=hash)
             user = yearbook.rankings.user

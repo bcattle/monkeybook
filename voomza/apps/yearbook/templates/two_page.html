@@ -32,9 +32,9 @@
 
 {% block script_0 %}
     <script type="text/javascript" src="{% static 'js/yepnope.1.5.4-min.js' %}"></script>
-    <script src="{% static 'js/jquery-1.7.2.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/jquery-1.7.2.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/jquery.cookie.js' %}"></script>
-    <script src="{% static 'js/mustache.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/mustache.js' %}"></script>
     <script type="text/javascript">
         var csrftoken = $.cookie('csrftoken');
         function csrfSafeMethod(method) {

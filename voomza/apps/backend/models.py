@@ -97,6 +97,8 @@ class Yearbook(models.Model):
     top_photo_1 = models.PositiveSmallIntegerField(null=True)
     top_photo_2 = models.PositiveSmallIntegerField(null=True)
     top_photo_3 = models.PositiveSmallIntegerField(null=True)
+    top_photo_4 = models.PositiveSmallIntegerField(null=True)
+    top_photo_5 = models.PositiveSmallIntegerField(null=True)
 
     first_half_photo_1 = models.PositiveSmallIntegerField(null=True)
     first_half_photo_2 = models.PositiveSmallIntegerField(null=True)
@@ -112,8 +114,8 @@ class Yearbook(models.Model):
     second_half_photo_5 = models.PositiveSmallIntegerField(null=True)
 
     group_photo_1 = models.PositiveSmallIntegerField(null=True)
-    group_photo_2 = models.PositiveSmallIntegerField(null=True)
-    group_photo_3 = models.PositiveSmallIntegerField(null=True)
+#    group_photo_2 = models.PositiveSmallIntegerField(null=True)
+#    group_photo_3 = models.PositiveSmallIntegerField(null=True)
 
     top_friend_1 = models.PositiveSmallIntegerField(null=True)
     top_friend_1_stat = models.CharField(max_length=100, blank=True)

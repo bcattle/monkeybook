@@ -360,6 +360,8 @@ def run_yearbook(user):
     yb.top_photo_1 = yb.get_first_unused_photo_landscape(rankings.top_photos)           # landscape
     yb.top_photo_2 = yb.get_first_unused_photo(rankings.top_photos)
     yb.top_photo_3 = yb.get_first_unused_photo(rankings.top_photos)
+    yb.top_photo_4 = yb.get_first_unused_photo(rankings.top_photos)
+    yb.top_photo_5 = yb.get_first_unused_photo(rankings.top_photos)
     yb.first_half_photo_1 = yb.get_first_unused_photo_landscape(rankings.top_photos_first_half)     # landscape
     yb.first_half_photo_2, fh_photo_2_id = yb.get_first_unused_photo(rankings.top_photos_first_half, return_id=True)
     yb.first_half_photo_3, fh_photo_3_id = yb.get_first_unused_photo(rankings.top_photos_first_half, return_id=True)
@@ -397,8 +399,8 @@ def run_yearbook(user):
     except FacebookPhoto.DoesNotExist: pass
 
     yb.group_photo_1 = yb.get_first_unused_photo_landscape(rankings.group_shots)            # landscape
-    yb.group_photo_2 = yb.get_first_unused_photo(rankings.group_shots)
-    yb.group_photo_3 = yb.get_first_unused_photo(rankings.group_shots)
+#    yb.group_photo_2 = yb.get_first_unused_photo(rankings.group_shots)
+#    yb.group_photo_3 = yb.get_first_unused_photo(rankings.group_shots)
 
     # Top friends
     save_top_friends_unused_photos(user, yb, results['most_tagged'])
