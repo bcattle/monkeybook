@@ -6,11 +6,6 @@ from voomza.apps.backend.settings import *
 logger = logging.getLogger(__name__)
 
 
-class TopFriendsFastPipeline(FqlTaskPipeline):
-    class Meta:
-        tasks = [GetFriendsTask(), TaggedWithMeTask()]
-
-
 class GetFriendsTask(FQLTask):
     """
     Pulls all of the user's friends
@@ -55,3 +50,8 @@ class TaggedWithMeTask(FQLTask):
             timestamps=['created'],
         )
         return getter
+
+
+class TopFriendsFastPipeline(FQLTask):
+    class Meta:
+        tasks = [GetFriendsTask(), TaggedWithMeTask()]

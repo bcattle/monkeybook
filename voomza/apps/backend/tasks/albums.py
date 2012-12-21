@@ -18,9 +18,8 @@ class AlbumPhotosTask(FQLTask):
     def on_results(self, results):
         # Results is an array of results for each query
         return [
-        process_photo_results(
-            query_results,
-            scoring_fxn=lambda photo: _photo_score(photo, self.photos_i_like.ids)
-        )
-        for query_results in results
+            process_photo_results(
+                query_results,
+            )
+            for query_results in results
         ]

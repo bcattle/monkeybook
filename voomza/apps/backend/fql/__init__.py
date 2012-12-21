@@ -63,7 +63,6 @@ class FqlTaskPipeline(TaskPipeline):
         # but the `on_results` functions need to go in a particular order
         # Start by adding any tasks that came in as kwargs to "already ran"
         tasks_that_ran = tasks_from_kwargs
-#        tasks_that_ran = set()
         while tasks:
             task = tasks.pop(0)
             # Does the task have dependencies that still need to run?
@@ -88,7 +87,8 @@ class FqlTaskPipeline(TaskPipeline):
                             continue
                         else:
                             kwargs[dependency] = self._results[dependency]
-                self._results[task.name] = task.on_results(task_results, **kwargs)
+                    self._results[task.name] = task.on_results(task_results, **kwargs)
+                self._results[task.name] = task.on_results(task_results)
                 tasks_that_ran.add(task.name)
         return self._results
 

@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 class FacebookPhoto(models.Model):
     facebook_id = models.BigIntegerField(primary_key=True)
     created = models.DateTimeField(null=True)
+    people_in_photo = models.PositiveSmallIntegerField(default=0, help_text='Total, i.e. including me')
     height = models.PositiveIntegerField(default=0)
     width = models.PositiveIntegerField(default=0)
     fb_url = models.CharField(max_length=200)

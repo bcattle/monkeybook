@@ -3,14 +3,16 @@ from django.db import transaction
 from voomza.apps.core import bulk
 from voomza.apps.core.utils import timeit
 from voomza.apps.account.models import FacebookUser, FacebookFriend
+from voomza.apps.backend.models import Yearbook
 from voomza.apps.backend.fql.top_friends_fast import TopFriendsFastPipeline
 from voomza.apps.backend.getter import FreqDistResultGetter
+from backend.tasks import run_yearbook
 
 
 @timeit
 @task.task()
 @transaction.commit_manually
-def top_friends_fast(user):
+def top_friends_fast(user, request=None):
     """
     Pulls all friends and all tags,
     combines them to get `top_friends_score`
@@ -57,5 +59,14 @@ def top_friends_fast(user):
     # Insert is faster, we don't care about preserving other fields
     bulk.insert_or_update_many(FacebookFriend, facebook_friends, keys=['owner', 'facebook_user'])
     transaction.commit()
+
+    # Check request to see if user has a yearbook
+    if 'run_yearbook_async' not in request.session:
+#        try:
+#            yearbook = Yearbook(owner=request.user)
+#        except Yearbook.DoesNotExist:
+        yearbook_async = run_yearbook.delay(request.user)
+        request.session['run_yearbook_async'] = yearbook_async
+        results['run_yearbook_async'] = yearbook_async
 
     return results

@@ -12,13 +12,9 @@ class PhotosOfMeTask(FQLTask):
                 (SELECT object_id FROM photo_tag WHERE subject=me())
     ''' % PHOTO_FIELDS
 
-    depends_on = ['photos_i_like']
-
-    def on_results(self, results, photos_i_like):
-        from voomza.apps.backend.tasks.score import photo_score
+    def on_results(self, results):
         getter = process_photo_results(
             results,
-            scoring_fxn=lambda photo: photo_score(photo, photos_i_like.ids),
             add_to_fields=['album_object_id'],
         )
         return getter

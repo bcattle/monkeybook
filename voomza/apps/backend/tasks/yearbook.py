@@ -1,66 +1,82 @@
 import logging
-from celery import task, group
+from celery import task
 from backend.tasks.fql import run_task as rt
+from voomza.apps.backend.fql import FqlTaskPipeline
 from voomza.apps.backend.fql.photos import PhotosOfMeTask, CommentsOnPhotosOfMeTask
 from voomza.apps.backend.fql.posts import OwnerPostsFromYearTask, OthersPostsFromYearTask
+from voomza.apps.backend.fql.profile import ProfileFieldsTask, FamilyTask
 from voomza.apps.backend.models import PhotoRankings
-from voomza.apps.core.utils import timeit, merge_dicts
+from voomza.apps.core.utils import timeit
 
 logger = logging.getLogger(__name__)
+
+## OLD
+#    job = group([
+#            rt.subtask(kwargs={'task_cls': PhotosOfMeTask, 'user_id': user.id}),
+#            rt.subtask(kwargs={'task_cls': CommentsOnPhotosOfMeTask, 'user_id': user.id}),
+#            rt.subtask(kwargs={'task_cls': OwnerPostsFromYearTask, 'user_id': user.id}),
+#            rt.subtask(kwargs={'task_cls': OthersPostsFromYearTask, 'user_id': user.id}),
+#        ])
+# Run
+#    job_async = job.apply_async()
+#    job_results = job_async.get()
+# TODO: fix this so it doesn't choke if something returns None or an exception is thrown
+#    results = merge_dicts(results, *job_results)
+
 
 
 @timeit
 @task.task()
 def run_yearbook(user, results):
+    profile_task = ProfileFieldsTask()
+    family_task = FamilyTask()
+
+    class YearbookPipeline(FqlTaskPipeline):
+        class Meta:
+            tasks = [
+                PhotosOfMeTask(),
+                CommentsOnPhotosOfMeTask(),
+                OwnerPostsFromYearTask(),
+                OthersPostsFromYearTask(),
+                profile_task,
+                family_task
+            ]
+
+    pipeline = YearbookPipeline(user)
+    results = pipeline.run()
+
+    # Save optional fields
+    profile_task.save_profile_fields(results['profile_fields'])
+
+    # Save family
+    family_task.save_family(results['family'])
+
     # Results contains
-    #   'get_friends'       all frends
-    #   'tagged_with_me'    `subject, object_id, created` from tags from a photo I too am in
-    job = group([
-            rt.subtask(kwargs={'task_cls': PhotosOfMeTask, 'user_id': user.id}),
-            rt.subtask(kwargs={'task_cls': CommentsOnPhotosOfMeTask, 'user_id': user.id}),
-            rt.subtask(kwargs={'task_cls': OwnerPostsFromYearTask, 'user_id': user.id}),
-            rt.subtask(kwargs={'task_cls': OthersPostsFromYearTask, 'user_id': user.id}),
-        ])
+    #   'get_friends'       all friends     (already saved to db)
 
-    # Run
-    job_async = job.apply_async()
-    job_results = job_async.get()
-
-    results = merge_dicts(results, *job_results)
-
-    import ipdb
-    ipdb.set_trace()
-
-    # Find the top post
-    # Get it
+    #   'tagged_with_me'    `subject, object_id, created` from tags of photos I am in
+    #   'comments_on_photos_of_me'
+    #   'others_posts_from_year'
+    #   'owner_posts_from_year'
+    #   'photos_of_me'
 
     # Calculate top friends and top photos
 
 
 
+    import ipdb
+    ipdb.set_trace()
 
-#    job = group([
-#        group([
-#            rt.subtask(kwargs={'task_cls': PhotosILikeTask, 'user_id': user.id}) |
-#            rt.subtask(kwargs={'task_cls': PhotosOfMeTask, 'user_id': user.id}),
-#            rt.subtask(kwargs={'task_cls': TaggedWithMeTask, 'user_id': user.id}) |
-#            get_most_tagged.subtask(),
-#            rt.subtask(kwargs={'task_cls': TopPostersFromYearTask, 'user_id': user.id}),
-#            ]) | get_top_friends_and_groups.subtask((user,)),
-#
-#        rt.subtask(kwargs={'task_cls': PostsFromYearTask, 'user_id': user.id}) |
-#        get_top_post_of_year.subtask((user, )),
-#
-#        rt.subtask(kwargs={'task_cls': BirthdayPostsTask, 'user_id': user.id,
-#                           'init_args': {'birthday': user.profile.date_of_birth}}),
-#        get_photo_comments.subtask((user,)),
-#        ])
 
-    # TODO: fix this so it doesn't choke if something returns None or an exception is thrown
-    results = merge_dicts(*results)
-    # Wait for the album photos subtask to finish
-    subtask_results = results['on_photos_of_me_async'].get()
-    results = merge_dicts(results, *subtask_results)
+
+    # Find the top post
+    # Get it
+
+
+    pass
+
+
+
 
     # Save fields to the PhotoRankings class
     rankings = PhotoRankings(user=user)
@@ -68,8 +84,6 @@ def run_yearbook(user, results):
 
     # TODO prob want to fail gracefully if a key doesn't exist
     rankings.top_photos = results['photos_of_me_this_year']
-    rankings.top_photos_first_half = results['top_photos_of_me_first_half']
-    rankings.top_photos_second_half = results['top_photos_of_me_second_half']
 
     rankings.group_shots = results['group_shots']
     rankings.top_friends = results['top_friends']

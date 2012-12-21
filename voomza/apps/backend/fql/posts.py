@@ -13,7 +13,7 @@ class OwnerPostsFromYearTask(FQLTask):
     fql = '''
         SELECT post_id, actor_id, comments, likes FROM stream
             WHERE source_id = me() AND filter_key='owner' AND created_time > %s LIMIT 500
-    '''
+    ''' % unix_this_year
 
     def on_results(self, results):
         getter = ResultGetter(
@@ -23,7 +23,6 @@ class OwnerPostsFromYearTask(FQLTask):
             fields=['actor_id', 'comments.count', 'likes.count'],
             field_names={'comments.count': 'comment_count', 'likes.count': 'like_count'},
             defaults={'comments.count': 0, 'likes.count':0 },
-            extra_fields={'score': post_score},
         )
         return getter
 
@@ -32,7 +31,7 @@ class OthersPostsFromYearTask(OwnerPostsFromYearTask):
     fql = '''
         SELECT post_id, actor_id, comments, likes FROM stream
             WHERE source_id = me() AND filter_key='others' AND created_time > %s LIMIT 500
-    '''
+    ''' % unix_this_year
 
 
 class GetPostTask(FQLTask):
