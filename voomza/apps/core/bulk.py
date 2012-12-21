@@ -8,6 +8,7 @@ Originally from http://people.iola.dk/olau/python/bulkops.py
 '''
 from itertools import repeat
 from django.db import models, connections, transaction
+from voomza.apps.core.utils import timeit
 
 
 def _model_fields(model):
@@ -125,9 +126,10 @@ def _filter_objects(con, objects, key_fields):
         yield o
 
 
+@timeit
 def insert_or_update_many(model, objects, keys=None,
                           update_fields=None, exclude_fields=None, using="default"):
-    '''
+    """
     Bulk insert or update a list of Django objects. This works by
     first selecting each object's keys from the database. If an
     object's keys already exist, update, otherwise insert.
@@ -139,7 +141,7 @@ def insert_or_update_many(model, objects, keys=None,
     :param keys: A list of field names to update on.
     :param using: Database to use.
 
-    '''
+    """
     if not objects:
         return
 

@@ -23,18 +23,28 @@ class Migration(SchemaMigration):
             ('raw_data', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
             ('facebook_open_graph', self.gf('django.db.models.fields.BooleanField')(default=True)),
             ('user', self.gf('django.db.models.fields.related.OneToOneField')(related_name='profile', unique=True, to=orm['auth.User'])),
-            ('facebook_user', self.gf('django.db.models.fields.related.ForeignKey')(related_name='profile', null=True, to=orm['account.FacebookUser'])),
-            ('first_name', self.gf('django.db.models.fields.CharField')(max_length=40, blank=True)),
+            ('facebook_user', self.gf('django.db.models.fields.related.OneToOneField')(related_name='profile', unique=True, null=True, to=orm['account.FacebookUser'])),
             ('locale', self.gf('django.db.models.fields.CharField')(max_length=10, blank=True)),
-            ('pic_square', self.gf('django.db.models.fields.CharField')(max_length=200, blank=True)),
+            ('relationship_status', self.gf('django.db.models.fields.CharField')(max_length=40, blank=True)),
+            ('significant_other_id', self.gf('django.db.models.fields.BigIntegerField')(null=True)),
             ('current_page', self.gf('django.db.models.fields.CharField')(default='invite_friends_to_sign', max_length=40)),
         ))
         db.send_create_signal('account', ['UserProfile'])
 
+        # Adding model 'FamilyConnection'
+        db.create_table('account_familyconnection', (
+            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('owner', self.gf('django.db.models.fields.related.ForeignKey')(related_name='family', to=orm['auth.User'])),
+            ('facebook_id', self.gf('django.db.models.fields.BigIntegerField')()),
+            ('relationship', self.gf('django.db.models.fields.CharField')(max_length=40, blank=True)),
+        ))
+        db.send_create_signal('account', ['FamilyConnection'])
+
         # Adding model 'FacebookUser'
         db.create_table('account_facebookuser', (
             ('facebook_id', self.gf('django.db.models.fields.BigIntegerField')(primary_key=True, db_index=True)),
-            ('name', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
+            ('name', self.gf('django.db.models.fields.CharField')(max_length=100, null=True, blank=True)),
+            ('first_name', self.gf('django.db.models.fields.CharField')(max_length=50, null=True, blank=True)),
             ('gender', self.gf('django.db.models.fields.CharField')(max_length=1, null=True, blank=True)),
             ('pic_square', self.gf('django.db.models.fields.CharField')(max_length=200, blank=True)),
         ))
@@ -60,6 +70,9 @@ class Migration(SchemaMigration):
         # Deleting model 'UserProfile'
         db.delete_table('account_userprofile')
 
+        # Deleting model 'FamilyConnection'
+        db.delete_table('account_familyconnection')
+
         # Deleting model 'FacebookUser'
         db.delete_table('account_facebookuser')
 
@@ -76,11 +89,19 @@ class Migration(SchemaMigration):
             'top_friends_order': ('django.db.models.fields.PositiveSmallIntegerField', [], {'default': '0', 'db_index': 'True'})
         },
         'account.facebookuser': {
-            'Meta': {'object_name': 'FacebookUser'},
+            'Meta': {'ordering': "['-friend_of__top_friends_order']", 'object_name': 'FacebookUser'},
             'facebook_id': ('django.db.models.fields.BigIntegerField', [], {'primary_key': 'True', 'db_index': 'True'}),
+            'first_name': ('django.db.models.fields.CharField', [], {'max_length': '50', 'null': 'True', 'blank': 'True'}),
             'gender': ('django.db.models.fields.CharField', [], {'max_length': '1', 'null': 'True', 'blank': 'True'}),
-            'name': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
             'pic_square': ('django.db.models.fields.CharField', [], {'max_length': '200', 'blank': 'True'})
+        },
+        'account.familyconnection': {
+            'Meta': {'object_name': 'FamilyConnection'},
+            'facebook_id': ('django.db.models.fields.BigIntegerField', [], {}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'owner': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'family'", 'to': "orm['auth.User']"}),
+            'relationship': ('django.db.models.fields.CharField', [], {'max_length': '40', 'blank': 'True'})
         },
         'account.userprofile': {
             'Meta': {'object_name': 'UserProfile'},
@@ -93,13 +114,13 @@ class Migration(SchemaMigration):
             'facebook_name': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
             'facebook_open_graph': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
             'facebook_profile_url': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'facebook_user': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'profile'", 'null': 'True', 'to': "orm['account.FacebookUser']"}),
-            'first_name': ('django.db.models.fields.CharField', [], {'max_length': '40', 'blank': 'True'}),
+            'facebook_user': ('django.db.models.fields.related.OneToOneField', [], {'related_name': "'profile'", 'unique': 'True', 'null': 'True', 'to': "orm['account.FacebookUser']"}),
             'gender': ('django.db.models.fields.CharField', [], {'max_length': '1', 'null': 'True', 'blank': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'locale': ('django.db.models.fields.CharField', [], {'max_length': '10', 'blank': 'True'}),
-            'pic_square': ('django.db.models.fields.CharField', [], {'max_length': '200', 'blank': 'True'}),
             'raw_data': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
+            'relationship_status': ('django.db.models.fields.CharField', [], {'max_length': '40', 'blank': 'True'}),
+            'significant_other_id': ('django.db.models.fields.BigIntegerField', [], {'null': 'True'}),
             'user': ('django.db.models.fields.related.OneToOneField', [], {'related_name': "'profile'", 'unique': 'True', 'to': "orm['auth.User']"}),
             'website_url': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'})
         },

@@ -4,11 +4,10 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django_facebook.api import require_persistent_graph
 from django_facebook.decorators import facebook_required_lazy
-from voomza.apps.account.models import FacebookUser
 from voomza.apps.backend.models import Yearbook
 from voomza.apps.yearbook.api import YearbookFacebookUserConverter
 from account.tasks import get_and_store_optional_profile_fields
-from backend.tasks import run_yearbook
+from backend.tasks import top_friends_fast, run_yearbook
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +22,8 @@ def invite_friends_to_sign(request,
     User invites people to sgn their yearbook
     """
     # Start pulling the user's top friends (fast)
-    FacebookUser.objects.get_friends_for_user(request, return_async=True)
+    pull_friends_async = top_friends_fast.delay((request.user, ))
+    request.session['pull_friends_async'] = pull_friends_async
 
     # If this is our first time here, pull the optional fields
     # This creates a FacebookUser for the person
@@ -47,7 +47,6 @@ def invite_friends_to_sign(request,
     context = {
         'next_view': next_view
     }
-#    return render_to_response(template_name, context, RequestContext(request))
     return render(request, template_name, context)
 
 

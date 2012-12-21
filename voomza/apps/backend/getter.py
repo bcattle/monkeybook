@@ -131,8 +131,8 @@ class ResultGetter(object):
     def __len__(self):
             return len(self.ids)
 
-    #    def __iter__(self):
-    #        return self.fields.__iter__()
+    def __iter__(self):
+        return self.fields.__iter__()
 
     def __init__(self, results, id_field='object_id', auto_id_field=False, id_is_int=True,
                  fields=None, field_names=None, defaults=None, optional_fields=None, timestamps=None,
