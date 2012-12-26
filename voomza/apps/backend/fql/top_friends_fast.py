@@ -1,5 +1,5 @@
 import logging
-from voomza.apps.backend.fql import FQLTask, FqlTaskPipeline
+from voomza.apps.backend.fql.base import FQLTask, FqlTaskPipeline
 from voomza.apps.backend.getter import ResultGetter
 from voomza.apps.backend.settings import *
 
@@ -52,6 +52,6 @@ class TaggedWithMeTask(FQLTask):
         return getter
 
 
-class TopFriendsFastPipeline(FQLTask):
+class TopFriendsFastPipeline(FqlTaskPipeline):
     class Meta:
         tasks = [GetFriendsTask(), TaggedWithMeTask()]

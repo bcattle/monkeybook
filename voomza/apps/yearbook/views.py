@@ -5,9 +5,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from django_facebook.api import require_persistent_graph
 from django_facebook.decorators import facebook_required_lazy
 from voomza.apps.backend.models import Yearbook
-from voomza.apps.yearbook.api import YearbookFacebookUserConverter
-from account.tasks import get_and_store_optional_profile_fields
-from backend.tasks import top_friends_fast, run_yearbook
+from backend.tasks import run_yearbook, top_friends_fast
 
 logger = logging.getLogger(__name__)
 

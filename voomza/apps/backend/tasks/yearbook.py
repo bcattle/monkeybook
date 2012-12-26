@@ -1,32 +1,36 @@
-import logging
+import logging, itertools
+from collections import defaultdict
 from celery import task
+from django.db import transaction
+from voomza.apps.backend.tasks.albums import pull_album_photos
+from voomza.apps.core import bulk
+from voomza.apps.core.utils import timeit, merge_dicts
+from voomza.apps.backend.fql import FqlTaskPipeline, PhotosOfMeTask, \
+    CommentsOnPhotosOfMeTask, OwnerPostsFromYearTask, OthersPostsFromYearTask, \
+    ProfileFieldsTask, FamilyTask
+from voomza.apps.backend.getter import FreqDistResultGetter, ResultGetter
+from voomza.apps.backend.models import PhotoRankings, FacebookPhoto, Yearbook
+from voomza.apps.backend.settings import *
 from backend.tasks.fql import run_task as rt
-from voomza.apps.backend.fql import FqlTaskPipeline
-from voomza.apps.backend.fql.photos import PhotosOfMeTask, CommentsOnPhotosOfMeTask
-from voomza.apps.backend.fql.posts import OwnerPostsFromYearTask, OthersPostsFromYearTask
-from voomza.apps.backend.fql.profile import ProfileFieldsTask, FamilyTask
-from voomza.apps.backend.models import PhotoRankings
-from voomza.apps.core.utils import timeit
 
 logger = logging.getLogger(__name__)
 
-## OLD
-#    job = group([
-#            rt.subtask(kwargs={'task_cls': PhotosOfMeTask, 'user_id': user.id}),
-#            rt.subtask(kwargs={'task_cls': CommentsOnPhotosOfMeTask, 'user_id': user.id}),
-#            rt.subtask(kwargs={'task_cls': OwnerPostsFromYearTask, 'user_id': user.id}),
-#            rt.subtask(kwargs={'task_cls': OthersPostsFromYearTask, 'user_id': user.id}),
-#        ])
-# Run
-#    job_async = job.apply_async()
-#    job_results = job_async.get()
-# TODO: fix this so it doesn't choke if something returns None or an exception is thrown
-#    results = merge_dicts(results, *job_results)
+
+@task.task(ignore_result=True)
+@transaction.commit_manually
+def save_to_db(user, profile_task, profile_fields, family_task, family, photos_of_me):
+    profile_task.save_profile_fields(user, profile_fields)
+    transaction.commit()
+
+    family_task.save_family(user, family)
+    transaction.commit()
+
+    bulk.insert_or_update_many(FacebookPhoto, photos_of_me)
+    transaction.commit()
 
 
-
-@timeit
 @task.task()
+@timeit
 def run_yearbook(user, results):
     profile_task = ProfileFieldsTask()
     family_task = FamilyTask()
@@ -43,68 +47,214 @@ def run_yearbook(user, results):
             ]
 
     pipeline = YearbookPipeline(user)
-    results = pipeline.run()
+    pipe_results = pipeline.run()
+    results = merge_dicts(results, pipe_results)
 
-    # Save optional fields
-    profile_task.save_profile_fields(results['profile_fields'])
-
-    # Save family
-    family_task.save_family(results['family'])
-
-    # Results contains
-    #   'get_friends'       all friends     (already saved to db)
-
-    #   'tagged_with_me'    `subject, object_id, created` from tags of photos I am in
+    ## Results contains
+    #   'get_friends'               all friends     (already saved to db)
+    #   'tagged_with_me'            `subject, object_id, created` from tags of photos I am in
     #   'comments_on_photos_of_me'
     #   'others_posts_from_year'
     #   'owner_posts_from_year'
     #   'photos_of_me'
 
-    # Calculate top friends and top photos
+    # Get number of people in each photo
+    num_tags_by_photo_id = FreqDistResultGetter(results['tagged_with_me'], id_field='object_id')
+
+    comments_by_photo_id = defaultdict(list)
+    for comment in results['comments_on_photos_of_me'].fields:
+        comments_by_photo_id[comment['object_id']].append(comment)
+
+    # Save the photos to the database
+    photos_of_me = []
+    for photo in results['photos_of_me']:
+        photo_db = FacebookPhoto(
+            facebook_id     = photo['id'],
+            created         = photo['created'],
+            people_in_photo = num_tags_by_photo_id.fields_by_id[photo['id']]['count'] + 1 \
+                                if photo['id'] in num_tags_by_photo_id.ids else 0,
+            height          = photo['height'],
+            width           = photo['width'],
+            fb_url          = photo['fb_url'],
+            comments        = comments_by_photo_id[photo['id']],    # it's a defaultdict
+            caption         = photo['caption']
+        )
+        photos_of_me.append(photo_db)
+
+    # Save photos, profile fields, and family to db
+    save_to_db.delay(user, profile_task, results['profile_fields'],
+                     family_task, results['family'], photos_of_me)
+
+    ## Calculate top friends
+
+    # Get the number of commments by each user, discounted by year
+    comments_score_by_user_id = defaultdict(lambda: 0)
+    for comment in results['comments_on_photos_of_me']:
+        comments_score_by_user_id[comment['fromid']] += \
+            TOP_FRIEND_POINTS_FOR_PHOTO_COMMENT / (2012 - comment['time'].year + 1.0)
+
+    # Combine the lists of posts
+    all_posts_this_year = ResultGetter.from_fields(itertools.chain(
+        results['others_posts_from_year'],
+        results['owner_posts_from_year'],
+    ))
+
+    # Strip posts that have an attachment that is a photo?
+#    .filter(lambda x: 'attachment' in x and 'fb_object_type' in x['attachment'] and x['attachment'])
+
+    posts_score_by_user_id = defaultdict(lambda: 0)
+    for post in all_posts_this_year:
+        posts_score_by_user_id[post['actor_id']] += TOP_FRIEND_POINTS_FOR_POST
+
+    # Calculate photo score for each user, discounted by year
+    tags_by_user_id = defaultdict(list)
+    for tag in results['tagged_with_me']:
+        tags_by_user_id[tag['subject']].append(tag)
+
+    photos_score_by_user_id = defaultdict(lambda: 0)
+    for friend_id, tag_list in tags_by_user_id.items():
+        for tag in tag_list:
+            photo_id = tag['object_id']
+            peeps_in_photo = num_tags_by_photo_id.fields_by_id[photo_id]['count'] + 1   # num tags + me
+            photo = results['photos_of_me'].fields_by_id[photo_id]
+            photo_age = 2012 - photo['created'].year + 1.0
+            if peeps_in_photo == 2:
+                photos_score_by_user_id[friend_id] += TOP_FRIEND_POINTS_FOR_PHOTO_OF_2 / photo_age
+            elif peeps_in_photo == 3:
+                photos_score_by_user_id[friend_id] += TOP_FRIEND_POINTS_FOR_PHOTO_OF_3 / photo_age
+            elif peeps_in_photo >= 4:
+                photos_score_by_user_id[friend_id] += TOP_FRIEND_POINTS_FOR_PHOTO_OF_4 / photo_age
+
+    # Add em up
+    top_friend_ids = (set(comments_score_by_user_id.keys()) | set(posts_score_by_user_id.keys())
+        | set(photos_score_by_user_id))
+    top_friend_ids.remove(user.profile.facebook_id)
+    top_friend_score_by_id = {
+        friend_id: comments_score_by_user_id[friend_id] + posts_score_by_user_id[friend_id] +\
+                   photos_score_by_user_id[friend_id]
+        for friend_id in top_friend_ids
+    }
+    top_20_friends_score_by_id = dict(sorted(top_friend_score_by_id.items(), key=lambda x: x[1], reverse=True)[:20])
+
+    ## Calculate top photos
+
+    # For each photo, get the number of top friends in the photo
+    num_top_friends_by_photo_id = defaultdict(lambda: 0)
+    for tag in results['tagged_with_me']:
+        if tag['subject'] in top_friend_ids:
+            points = 1
+            # Double points if the user in top-20
+            if tag['subject'] in top_20_friends_score_by_id:
+                points += 1
+            num_top_friends_by_photo_id[tag['object_id']] += points
+
+    # Photos of all time
+    top_photo_score_by_id = {}
+    for photo in results['photos_of_me']:
+        # How many comments by friends of mine?
+        comments_from_friends = 0
+        for comment in comments_by_photo_id[photo['id']]:
+            if comment['fromid'] in results['get_friends'].ids:
+                comments_from_friends += 1
+
+        score = ((TOP_PHOTO_POINTS_FOR_TOP_FRIENDS * num_top_friends_by_photo_id[photo['id']] +
+                  TOP_PHOTO_POINTS_FOR_COMMENT * comments_from_friends +
+                  TOP_PHOTO_POINTS_FOR_LIKE * photo['like_count']) /
+                      max(num_tags_by_photo_id.fields_by_id[photo['id']]['count'] - 3.0, 1.0)
+                          if photo['id'] in num_tags_by_photo_id.fields_by_id else 1)
+
+        top_photo_score_by_id[photo['id']] = photo['score'] = score
 
 
+    ## Calculate top group photos
+    group_photos = results['photos_of_me'] \
+        .filter(lambda x: x['id'] in num_tags_by_photo_id.fields_by_id) \
+        .filter(lambda x: num_tags_by_photo_id.fields_by_id[x['id']]['count'] >= GROUP_PHOTO_IS)
+
+    group_photo_score_by_id = {}
+    for photo in group_photos:
+        score = GROUP_PHOTO_POINTS_FOR_TOP_FRIENDS * num_top_friends_by_photo_id[photo['id']] +\
+                GROUP_PHOTO_POINTS_FOR_COMMENT * photo['comment_count'] +\
+                GROUP_PHOTO_POINTS_FOR_LIKE * photo['like_count']
+        group_photo_score_by_id[photo['id']] = score
+
+    ## Calculate top albums
+    album_score_and_date_by_id = defaultdict(lambda: {'score': 0, 'created': None})
+    for photo in results['photos_of_me']:
+        album_score_and_date_by_id[photo['album_object_id']]['score'] += photo['score']
+        # Also tag with the date
+        album_score_and_date_by_id[photo['album_object_id']]['created'] = photo['created']
+
+    # Start pulling album names, photos
+    # Can't pickle defaultdict? so just call it here, wouldn't save us much time anyway
+#    pull_albums_async = pull_album_photos.delay(user, album_score_and_date_by_id)
+#    album_photos_by_score, albums_ranked = pull_albums_async.get()
+    album_photos_by_score, albums_ranked = pull_album_photos(user, album_score_and_date_by_id)
+
+    ## Calculate top post
+    for post in all_posts_this_year:
+        top_friend_comments = 0
+        for comment in post['comments']['comment_list']:
+            if comment['fromid'] in top_friend_ids:
+                top_friend_comments += 1
+        post['score'] = \
+            (COMMENT_POINTS_FOR_MADE_BY_ME * 1 if post['actor_id'] == user.profile.facebook_id else 0) +\
+            COMMENT_POINTS_FOR_COMMENT * top_friend_comments + \
+            COMMENT_POINTS_FOR_LIKE * post['like_count']
+
+    ## Pull out birthday posts
+    birthday_posts = []
+    if user.profile.date_of_birth:
+        birthday = user.profile.date_of_birth
+        birthday_this_year = datetime.datetime(datetime.date.today().year, birthday.month, birthday.day, 0, 0, 0, tzinfo=utc)
+        start_time = birthday_this_year - datetime.timedelta(days=1)
+        end_time = birthday_this_year + datetime.timedelta(days=3)
+        birthday_posts = all_posts_this_year.filter(
+            lambda x: start_time < x['created_time'] < end_time and x['message']
+        )
+
+
+    ## Save fields to the PhotoRankings class
+    rankings = PhotoRankings(user=user)
+#    rankings, created = PhotoRankings.objects.get_or_create(user=user)
+
+    rankings.top_photos = [k for k,v in sorted(top_photo_score_by_id.items(), key=lambda x: x[1], reverse=True)]
+    rankings.group_shots = [k for k,v in sorted(group_photo_score_by_id.items(), key=lambda x: x[1], reverse=True)]
+    rankings.top_albums_photos = album_photos_by_score
+    rankings.top_albums_ranked = albums_ranked
+
+    # Back in time
+    max_year, photos_of_me_by_year = results['photos_of_me'].bucket_by_year()
+    years = list(sorted(photos_of_me_by_year.keys(), reverse=True))
+    back_in_time = []
+    for index, year in enumerate(years[1:NUM_PREV_YEARS + 1]):
+        year_photo_ids = []
+        for photo in photos_of_me_by_year[year].order_by('score'):
+            year_photo_ids.append(photo['id'])
+        back_in_time.append(year_photo_ids)
+    rankings.back_in_time = back_in_time
 
     import ipdb
     ipdb.set_trace()
 
-
-
-    # Find the top post
-    # Get it
-
-
-    pass
-
-
-
-
-    # Save fields to the PhotoRankings class
-    rankings = PhotoRankings(user=user)
-    #    rankings, created = PhotoRankings.objects.get_or_create(user=user)
-
-    # TODO prob want to fail gracefully if a key doesn't exist
-    rankings.top_photos = results['photos_of_me_this_year']
-
-    rankings.group_shots = results['group_shots']
-    rankings.top_friends = results['top_friends']
-    rankings.top_albums = results['top_albums_photos']
-    rankings.top_albums_info = results['top_albums']
-    rankings.back_in_time = results['back_in_time']
-
-    rankings.save()
-
-
-    # All fields in PhotoRankings are filled.
-    # Assign photos to the Yearbook, avoiding duplicates
+    ## Assign photos to the Yearbook, avoiding duplicates
     #    try:
     #        old_yb = Yearbook.objects.get(rankings=rankings)
     #        old_yb.delete()
     #    except Yearbook.DoesNotExist: pass
     yb = Yearbook(rankings=rankings)
-
-    # Grab top_post and birthday_posts from results
     yb.top_post = results['top_post']
-    yb.birthday_posts = results['birthday_posts']
+    yb.birthday_posts = birthday_posts
+
+
+    ## Do this after we assign the top photos and top group photos
+
+    # Store the photos the top 10 friends are tagged in, in order of score
+    rankings.top_friends = [k for k,v in sorted(top_friend_score_by_id.items(), key=lambda x: x[1], reverse=True)]
+
+    rankings.save()
+
+
 
     # We go through the fields and assign the first unused photo to each field
     yb.top_photo_1 = yb.get_first_unused_photo_landscape(rankings.top_photos)           # landscape

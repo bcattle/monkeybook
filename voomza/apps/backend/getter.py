@@ -1,6 +1,7 @@
-import logging
-from datetime import datetime
+from collections import defaultdict
+import logging, datetime
 from pytz import utc
+from django.conf import settings
 from voomza.apps.backend.models import FacebookPhoto
 from voomza.apps.backend.settings import *
 from voomza.apps.core.utils import merge_dicts
@@ -144,7 +145,10 @@ class ResultGetter(object):
                         extra_fields={'likes_and_comments': lambda x: x['like_count'] + x['comment_count']}
         """
         self._ids = None
-        self._fields_by_id = {}
+        if settings.DEBUG:
+            self._fields_by_id = {}
+        else:
+            self._fields_by_id = defaultdict(lambda: '')
         self._ordered = {}
 
         fields = fields or []
@@ -187,7 +191,7 @@ class ResultGetter(object):
                             raise
                     if len(f) == 1:
                         if f[0] in timestamps:
-                            val = datetime.utcfromtimestamp(field1_val).replace(tzinfo=utc)
+                            val = datetime.datetime.utcfromtimestamp(field1_val).replace(tzinfo=utc)
                         elif f[0] in integer_fields:
                             try:
                                 val = int(field1_val)
@@ -211,7 +215,7 @@ class ResultGetter(object):
                         try:
                             if f[1] in timestamps:
                                 # Assuming fb timestamps come in as UTC
-                                val = datetime.fromtimestamp(field1_val[f[1]]).replace(tzinfo=utc)    # fail loudly!
+                                val = datetime.datetime.fromtimestamp(field1_val[f[1]]).replace(tzinfo=utc)    # fail loudly!
                             elif f[0] in integer_fields:
                                 val = int(field1_val[f[1]])
                             else:

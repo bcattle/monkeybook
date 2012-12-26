@@ -83,7 +83,7 @@ class FacebookConnection(object):
         request the given url and parse it as json
         urllib2 raises errors on different status codes so use a try except
         '''
-#        logger.info('requesting url %s with post data %s', url, post_data)
+        logger.info('requesting url %s with post data %s', url, post_data)
         post_request = (post_data is not None or 'method=post' in url)
 
         if post_request and facebook_settings.FACEBOOK_READ_ONLY:

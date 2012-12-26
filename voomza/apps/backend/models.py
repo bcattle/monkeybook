@@ -20,6 +20,7 @@ class FacebookPhoto(models.Model):
     width = models.PositiveIntegerField(default=0)
     fb_url = models.CharField(max_length=200)
     local_url = models.CharField(max_length=200, default='')
+    caption = models.CharField(max_length=1000, default='')
     comments = JSONField(default="[]", max_length=100000)
 
     def url(self):
@@ -77,14 +78,12 @@ class PhotoRankings(models.Model):
     user = models.ForeignKey('auth.User', related_name='photo_rankings')
     # Lists of photos for each category
     top_photos = JSONField(default="[]", max_length=100000)
-    top_photos_first_half = JSONField(default="[]", max_length=100000)
-    top_photos_second_half = JSONField(default="[]", max_length=100000)
     group_shots = JSONField(default="[]", max_length=100000)
-    # Top few will be gf/bf or family, if any
-    top_friends = JSONField(default="[]", max_length=100000)
-    top_albums = JSONField(default="[]", max_length=100000)
-    top_albums_info = JSONField(default="[]", max_length=100000)
+    top_albums_photos = JSONField(default="[]", max_length=100000)
+    top_albums_ranked = JSONField(default="[]", max_length=100000)
     back_in_time = JSONField(default="[]", max_length=100000)
+    top_friends = JSONField(default="[]", max_length=100000)
+    top_posts = JSONField(default="[]", max_length=100000)
 
 
 class Yearbook(models.Model):
@@ -101,22 +100,20 @@ class Yearbook(models.Model):
     top_photo_4 = models.PositiveSmallIntegerField(null=True)
     top_photo_5 = models.PositiveSmallIntegerField(null=True)
 
-    first_half_photo_1 = models.PositiveSmallIntegerField(null=True)
-    first_half_photo_2 = models.PositiveSmallIntegerField(null=True)
-    first_half_photo_3 = models.PositiveSmallIntegerField(null=True)
-    # If 2 or 3 were portrait, respectively
-    first_half_photo_4 = models.PositiveSmallIntegerField(null=True)
-    first_half_photo_5 = models.PositiveSmallIntegerField(null=True)
-    second_half_photo_1 = models.PositiveSmallIntegerField(null=True)
-    second_half_photo_2 = models.PositiveSmallIntegerField(null=True)
-    second_half_photo_3 = models.PositiveSmallIntegerField(null=True)
-    # If 2 or 3 were portrait, respectively
-    second_half_photo_4 = models.PositiveSmallIntegerField(null=True)
-    second_half_photo_5 = models.PositiveSmallIntegerField(null=True)
-
     group_photo_1 = models.PositiveSmallIntegerField(null=True)
-#    group_photo_2 = models.PositiveSmallIntegerField(null=True)
-#    group_photo_3 = models.PositiveSmallIntegerField(null=True)
+    group_photo_2 = models.PositiveSmallIntegerField(null=True)
+    group_photo_3 = models.PositiveSmallIntegerField(null=True)
+
+    year_photo_1 = models.PositiveSmallIntegerField(null=True)
+    year_photo_2 = models.PositiveSmallIntegerField(null=True)
+    year_photo_3 = models.PositiveSmallIntegerField(null=True)
+    year_photo_4 = models.PositiveSmallIntegerField(null=True)
+    year_photo_5 = models.PositiveSmallIntegerField(null=True)
+    # If 2, 3, 4 or 5 were portrait, respectively
+    year_photo_6 = models.PositiveSmallIntegerField(null=True)
+    year_photo_7 = models.PositiveSmallIntegerField(null=True)
+    year_photo_8 = models.PositiveSmallIntegerField(null=True)
+    year_photo_9 = models.PositiveSmallIntegerField(null=True)
 
     top_friend_1 = models.PositiveSmallIntegerField(null=True)
     top_friend_1_stat = models.CharField(max_length=100, blank=True)
@@ -178,7 +175,7 @@ class Yearbook(models.Model):
     back_in_time_7_photo_1  = models.PositiveSmallIntegerField(null=True)
 
     # Posts
-    top_post = JSONField(default="[]", max_length=100000)
+    top_post = models.PositiveSmallIntegerField(null=True)
     birthday_posts = JSONField(default="[]", max_length=100000)
 
     _all_used_ids = None
@@ -204,14 +201,12 @@ class Yearbook(models.Model):
 
     # Really, should use this data structure to autogenerate the model
     lists_to_fields = {
-        'top_photos': ['top_photo_1', 'top_photo_2', 'top_photo_3', 'top_photo_4', 'top_photo_5'],
-        'top_photos_first_half': [
-            'first_half_photo_1', 'first_half_photo_2', 'first_half_photo_3', 'first_half_photo_4', 'first_half_photo_5'
-        ],
-        'top_photos_second_half': [
-            'second_half_photo_1', 'second_half_photo_2', 'second_half_photo_3', 'second_half_photo_4', 'second_half_photo_5'
-        ],
-        'group_shots': ['group_photo_1',],
+        'top_photos': [
+            'top_photo_1', 'top_photo_2', 'top_photo_3', 'top_photo_4', 'top_photo_5',
+            'year_photo_1', 'year_photo_2', 'year_photo_3', 'year_photo_4', 'year_photo_5',
+            'year_photo_6', 'year_photo_7', 'year_photo_8', 'year_photo_9',
+            ],
+        'group_shots': ['group_photo_1', 'group_photo_2', 'group_photo_3',],
         'top_friends': [
             'top_friend_1.top_friend_1_photo_1', 'top_friend_1.top_friend_1_photo_2',
             'top_friend_2.top_friend_2_photo_1', 'top_friend_2.top_friend_2_photo_2',
