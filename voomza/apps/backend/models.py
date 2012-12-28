@@ -82,7 +82,8 @@ class PhotoRankings(models.Model):
     top_albums_photos = JSONField(default="[]", max_length=100000)
     top_albums_ranked = JSONField(default="[]", max_length=100000)
     back_in_time = JSONField(default="[]", max_length=100000)
-    top_friends = JSONField(default="[]", max_length=100000)
+    top_friends_ids = JSONField(default="[]", max_length=100000)
+    top_friends_photos = JSONField(default="[]", max_length=100000)
     top_posts = JSONField(default="[]", max_length=100000)
 
 
@@ -207,14 +208,14 @@ class Yearbook(models.Model):
             'year_photo_6', 'year_photo_7', 'year_photo_8', 'year_photo_9',
             ],
         'group_shots': ['group_photo_1', 'group_photo_2', 'group_photo_3',],
-        'top_friends': [
+        'top_friends_photos': [
             'top_friend_1.top_friend_1_photo_1', 'top_friend_1.top_friend_1_photo_2',
             'top_friend_2.top_friend_2_photo_1', 'top_friend_2.top_friend_2_photo_2',
             'top_friend_3.top_friend_3_photo_1', 'top_friend_3.top_friend_3_photo_2',
             'top_friend_4.top_friend_4_photo_1', 'top_friend_4.top_friend_4_photo_2',
             'top_friend_5.top_friend_5_photo_1', 'top_friend_5.top_friend_5_photo_2'
         ],
-        'top_albums': [
+        'top_albums_photos': [
             'top_album_1.top_album_1_photo_1', 'top_album_1.top_album_1_photo_2',
             'top_album_1.top_album_1_photo_3', 'top_album_1.top_album_1_photo_4',
 
@@ -234,6 +235,17 @@ class Yearbook(models.Model):
             'back_in_time_7.back_in_time_7_photo_1',
         ]
     }
+
+    def num_unused_photos(self, photos):
+        """
+        Returns the number of photos in a list
+        that are unused
+        """
+        unused = 0
+        for photo in photos:
+            if not self.photo_is_used(photo):
+                unused += 1
+        return unused
 
     def photo_is_used(self, photo, used_ids=None):
         """
@@ -286,7 +298,7 @@ class Yearbook(models.Model):
             return None, None
         return None
 
-    def get_first_unused_photo_landscape(self, list_of_photos, used_ids=None, start_index=0):
+    def get_first_unused_photo_landscape(self, list_of_photos, used_ids=None, start_index=0, return_id=False):
         """
         Loops through photos in `list_of_photos`,
         running `yearbook.photo_is_used()` until it returns False
@@ -299,6 +311,9 @@ class Yearbook(models.Model):
                 if hasattr(photo, 'keys'):
                     if photo['width'] < photo['height']:
                         continue
+                    if return_id:
+                        return index + start_index, self._get_id_from_dict_or_int(photo)
+                    return index + start_index
                 else:
                     # Bummer, just an id - look it up in the database
                     try:
@@ -307,7 +322,11 @@ class Yearbook(models.Model):
                             continue
                     except FacebookPhoto.DoesNotExist:
                         logger.warn('Attempted to look up fb photo %d, doesn\'t exist in db.' % photo)
-                return index + start_index
+                    if return_id:
+                        return index + start_index, photo_db.facebook_id
+                    return index + start_index
+        if return_id:
+            return None, None
         return None
 
 

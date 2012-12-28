@@ -29,6 +29,7 @@ COMMENT_POINTS_FOR_LIKE             = 1
 COMMENTS_TO_PULL                    = 4
 
 GROUP_PHOTO_IS              = 4     # How many people are in a group photo?
+NUM_GROUP_PHOTOS            = 3
 
 NUM_TOP_ALBUMS              = 3
 ALBUM_PHOTOS_TO_SHOW        = 4
@@ -41,7 +42,7 @@ ALBUM_POINTS_FOR_LIKE       = 1
 PICS_OF_USER_TO_PROMOTE     = 2
 
 NUM_TOP_FRIENDS             = 5
-TOP_FRIEND_MIN_PHOTOS       = 1     # If a person has fewer than this many photos, they are dsq
+TOP_FRIEND_MIN_UNUSED_PHOTOS = 1     # If a person has fewer than this many photos, they are dsq
 TOP_FRIEND_PHOTOS_TO_SHOW   = 2
 
 RECENT_IS_YEARS             = 3
