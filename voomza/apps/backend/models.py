@@ -8,6 +8,7 @@ from south.signals import post_migrate
 from voomza.apps.account.models import FacebookUser
 from voomza.apps.backend.managers import FacebookPhotoManager
 from voomza.apps.backend.settings import *
+from voomza.apps.backend.tasks.score import comment_score
 
 logger = logging.getLogger(__name__)
 
@@ -41,10 +42,10 @@ class FacebookPhoto(models.Model):
 
     def get_top_comment(self):
         if self.comments:
-            from voomza.apps.backend.pipeline.yearbook import _comment_score
+
             # Assign a score
             for comment in self.comments:
-                comment['score'] = _comment_score(comment)
+                comment['score'] = comment_score(comment)
 
             # Sort by score, then by date
             # Take the highest-scoring, earliest
@@ -284,12 +285,15 @@ class Yearbook(models.Model):
                 used_ids.append(self._get_id_from_dict_or_int(list_of_photos[unused_photo]))
         return unused_photos
 
-    def get_first_unused_photo(self, list_of_photos, used_ids=None, start_index=0, return_id=False):
+    def get_first_unused_photo(self, list_of_photos, used_ids=None, used_indices=None, start_index=0, return_id=False):
         """
         Loops through photos in `list_of_photos`,
         If no photo unused, return None
         """
+        used_indices = used_indices or []
         for index, photo in enumerate(list_of_photos[start_index:]):
+            if index in used_indices:
+                continue
             if not self.photo_is_used(photo, used_ids):
                 if return_id:
                     return index + start_index, self._get_id_from_dict_or_int(photo)
@@ -463,7 +467,7 @@ class Yearbook(models.Model):
         """
         `list_fields` -> the fields that point into the list
         """
-        MAX_PHOTOS_PER_LIST = 15
+        MAX_PHOTOS_PER_LIST = 25
         # Print the name of the ranking table
         print '%s\t(%d photos)\n%s' % (list_name, len(photo_list), '-'*(len(list_name) + 20))
         # For each entry in the list, print
@@ -481,13 +485,13 @@ class Yearbook(models.Model):
             in_use_str = ''
             if self.photo_is_used(photo):
                 in_use_str = '(U)'
-            score_str = ''
-            if 'score' in photo:
-                score_str = photo['score']
-            portrait_str = ''
-            if 'width' in photo and 'height' in photo:
-                if photo['width'] < photo['height']:
-                    portrait_str = 'Portrait'
+            score_str = portrait_str = ''
+            if hasattr(photo, 'keys'):
+                if 'score' in photo:
+                    score_str = photo['score']
+                if 'width' in photo and 'height' in photo:
+                    if photo['width'] < photo['height']:
+                        portrait_str = 'Portrait'
             photo_str = '%s %s %s %s %s' % (field_str, str(self._get_id_from_dict_or_int(photo)).ljust(18), str(score_str).ljust(3), in_use_str, portrait_str)
             print photo_str
 

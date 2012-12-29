@@ -174,16 +174,18 @@ def run_yearbook(user, results):
         tags_by_user_id[tag['subject']].append(tag)
 
     ## Calculate top group photos
+    # group_photos_this_year is only 1 for me
     group_photos = results['photos_of_me'] \
         .filter(lambda x: x['id'] in num_tags_by_photo_id.fields_by_id) \
-        .filter(lambda x: num_tags_by_photo_id.fields_by_id[x['id']]['count'] >= GROUP_PHOTO_IS)
+        .filter(lambda x: num_tags_by_photo_id.fields_by_id[x['id']]['count'] >= GROUP_PHOTO_IS)\
+        .filter(lambda x: x['created'] > GROUP_PHOTO_CUTOFF)
 
     group_photo_score_by_id = {}
     for photo in group_photos:
         score = GROUP_PHOTO_POINTS_FOR_TOP_FRIENDS * num_top_friends_by_photo_id[photo['id']] +\
                 GROUP_PHOTO_POINTS_FOR_COMMENT * photo['comment_count'] +\
                 GROUP_PHOTO_POINTS_FOR_LIKE * photo['like_count']
-        group_photo_score_by_id[photo['id']] = score
+        group_photo_score_by_id[photo['id']] = {'score': score, 'created': photo['created']}
 
     ## Calculate top albums
     album_score_and_date_by_id = defaultdict(lambda: {'score': 0, 'created': None})
@@ -221,8 +223,18 @@ def run_yearbook(user, results):
     rankings = PhotoRankings(user=user)
 #    rankings, created = PhotoRankings.objects.get_or_create(user=user)
 
-    rankings.top_photos = [k for k,v in sorted(top_photo_score_by_id.items(), key=lambda x: x[1], reverse=True)]
-    rankings.group_shots = [k for k,v in sorted(group_photo_score_by_id.items(), key=lambda x: x[1], reverse=True)]
+    top_photos_this_year = results['photos_of_me'].filter(lambda x: x['created'] > THIS_YEAR)\
+        .order_by('score')
+
+    rankings.top_photos = top_photos_this_year
+    rankings.group_shots = [
+        k for k,v in sorted(
+            group_photo_score_by_id.items(),
+            # Sort by year, score
+            key=lambda x: (x[1]['created'].year, x[1]['score']),
+            reverse=True
+        )
+    ]
     rankings.top_posts = all_posts_this_year.order_by('score')[:10]
 
     # Back in time
@@ -243,7 +255,7 @@ def run_yearbook(user, results):
     #    except Yearbook.DoesNotExist: pass
     yb = Yearbook(rankings=rankings)
     yb.top_post = 0
-    yb.birthday_posts = birthday_posts
+    yb.birthday_posts = birthday_posts.fields
 
     yb.top_photo_1 = yb.get_first_unused_photo_landscape(rankings.top_photos)           # landscape
     yb.top_photo_2 = yb.get_first_unused_photo(rankings.top_photos)
@@ -332,26 +344,27 @@ def run_yearbook(user, results):
         curr_album = all_top_albums.pop(0)
         curr_album_index += 1
         photos_to_show = []
-        reached_end = False
-        for photo_num in range(ALBUM_PHOTOS_TO_SHOW):
-            if photo_num < PICS_OF_USER_TO_PROMOTE and not reached_end:
+        no_more_pics_of_user = False
+        while True:
+            if len(photos_to_show) < PICS_OF_USER_TO_PROMOTE and not no_more_pics_of_user:
                 # Want a pic of the user, loop through album photos looking for one
                 photo_of_user = get_next_unused_photo_of_user(
                     yb,
                     curr_album,
-                    results['photos_of_me']
+                    results['photos_of_me'],
+                    used_indices=photos_to_show
                 )
                 if photo_of_user:
                     photos_to_show.append(photo_of_user)
                 else:
-                    reached_end = True
-                break
+                    # No more pics of user, just take the next highest unused photo
+                    no_more_pics_of_user = True
             else:
-                # No more pics of user, just take the next highest unused photo
-                next_photo = yb.get_first_unused_photo(curr_album)
-                if next_photo:
+                next_photo = yb.get_first_unused_photo(curr_album, used_indices=photos_to_show)
+                if next_photo is not None:
                     photos_to_show.append(next_photo)
                 else:
+                    # No photos left, break
                     break
             if len(photos_to_show) >= ALBUM_PHOTOS_TO_SHOW:
                 break
@@ -365,24 +378,19 @@ def run_yearbook(user, results):
         for field_num in range(len(photos_to_show)):
             setattr(yb, album_str + '_photo_%d' % (field_num + 1), photos_to_show[field_num])
         albums_assigned += 1
-
-
-    import ipdb
-    ipdb.set_trace()
-
+        if albums_assigned >= NUM_TOP_ALBUMS:
+            break
 
     ## Throughout the year photos
 
     yb.year_photo_1 = yb.get_first_unused_photo_landscape(rankings.top_photos)
     yb.year_photo_2 = yb.get_first_unused_photo(rankings.top_photos)
-    yb.year_photo_3 = yb.get_first_unused_photo(rankings.top_photos)
-    yb.year_photo_4 = yb.get_first_unused_photo(rankings.top_photos)
-    yb.year_photo_5 = yb.get_first_unused_photo(rankings.top_photos)
-
-    # If 2-5 were portrait, grab another
     yb.year_photo_6 = get_unused_if_portrait(yb.year_photo_2, rankings.top_photos, yb, results['photos_of_me'])
+    yb.year_photo_3 = yb.get_first_unused_photo(rankings.top_photos)
     yb.year_photo_7 = get_unused_if_portrait(yb.year_photo_3, rankings.top_photos, yb, results['photos_of_me'])
+    yb.year_photo_4 = yb.get_first_unused_photo(rankings.top_photos)
     yb.year_photo_8 = get_unused_if_portrait(yb.year_photo_4, rankings.top_photos, yb, results['photos_of_me'])
+    yb.year_photo_5 = yb.get_first_unused_photo(rankings.top_photos)
     yb.year_photo_9 = get_unused_if_portrait(yb.year_photo_5, rankings.top_photos, yb, results['photos_of_me'])
 
     ## Back in time photos
@@ -409,25 +417,33 @@ def run_yearbook(user, results):
         setattr(yb, field_str, years_to_show[year_num]['year_index'])
         setattr(yb, field_str + '_photo_1', years_to_show[year_num]['photo_index'])
 
-
     # Save everything
     rankings.save()
+    yb.rankings = rankings
     yb.save()
 
     # Initiate a task to start downloading user's yearbook photos?
     return yb
 
 
-def get_unused_if_portrait(photo_index, list, yearbook, photos_of_me):
-    photo = photos_of_me.fields_by_id[list[photo_index]]
+def get_unused_if_portrait(photo_index, photo_list, yearbook, photos_of_me):
+    photo_id = yearbook._get_id_from_dict_or_int(photo_list[photo_index])
+    photo = photos_of_me.fields_by_id[photo_id]
     if photo['width'] / float(photo['height']) < HIGHEST_SQUARE_ASPECT_RATIO:
-        return yearbook.get_first_unused_photo(list)
+        return yearbook.get_first_unused_photo(photo_list)
     return None
 
 
-def get_next_unused_photo_of_user(yearbook, photo_list, photos_of_me):
-    for photo, photo_index in enumerate(photo_list):
-        if not yearbook.photo_is_used(photo) and photo['id'] in photos_of_me.ids:
+def get_next_unused_photo_of_user(yearbook, photo_list, photos_of_me, used_indices=None):
+    used_indices = used_indices or []
+    list_to_loop = photo_list.items() if hasattr(photo_list, 'items') else photo_list
+    for photo_index, photo in enumerate(list_to_loop):
+        if photo_index in used_indices:
+            continue
+        photo_id = photo['id'] if hasattr(photo, 'keys') else photo
+        is_used = yearbook.photo_is_used(photo)
+        of_me = photo_id in photos_of_me.ids
+        if not is_used and of_me:
             return photo_index
     return None
 
@@ -455,5 +471,4 @@ def assign_group_photos(yearbook, rankings, photos_of_me, do_unique_albums=False
             # We have enough or no unused photo, roll on
             break
     return assigned_group_photos
-
 
