@@ -1,0 +1,200 @@
+.navbar_f_logo {
+    padding-top:-1px;
+    margin-bottom:3px;
+    margin-right:4px;
+}
+
+h1, h2, h3, h5,p {
+    font-family: 'Open Sans', sans-serif;
+    font-weight:normal;
+    text-align:center;
+}
+
+p {
+    font-size:.8em;
+    color:gray;
+    text-align:center;
+    line-height:1.4em;
+}
+
+h4 {
+    color:gray;
+    text-align:center;
+}
+
+.white {
+    color:white;
+}
+
+.gray {
+    color:gray;
+}
+
+
+.page_divider {
+    height:28px;
+    width:100%;
+    float:left;
+    border-top:solid 1px lightgray;
+    border-bottom:solid 1px lightgray;
+    background-image: url('../img/divider_texture.png');
+    margin-top:40px;
+}
+
+.footer_background {
+    height:100px;
+    width:100%;
+    float:left;
+    padding-top:5px;
+    border:solid 1px lightgray;
+    background-image: url(../img/divider_texture.png);
+}
+
+.body_lower {
+    background-color:white;
+    padding-left:100px;
+    margin-left:-100px;
+    padding-right:200px;
+    margin-right:-200px;
+}
+
+.process_photo_wrapper {
+    text-align:center;
+    width:170px;
+    height:120px;
+    margin: 0 auto;
+
+}
+
+.process_details {
+    background-color:whitesmoke;
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+    padding:8px;
+    margin-bottom:0;
+}
+
+.algo_photo_right {
+    padding-top:10px;
+    transform:rotate(210deg);
+    -ms-transform:rotate(210deg);
+    -moz-transform:rotate(210deg);
+    -webkit-transform:rotate(210deg);
+    -o-transform:rotate(210deg);
+}
+
+.margin_right {
+    margin-right:15px;
+}
+
+.process_wrapper {
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+    padding-top:15px;
+}
+
+.product_large {
+    height:441px;
+    background-image: url(../img/gift_book.jpg);
+    background-position:0px 0px;
+    background-repeat:no-repeat;
+}
+
+.product_small {
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+    margin-bottom:20px;
+    text-align:center;
+}
+
+.product_small >img {
+    float:left;
+    margin-left:5px;
+    margin-top:2px;
+    -webkit-box-shadow: 1px 3px 3px 1px rgba(0, 0, 0, .4);
+    box-shadow: 1px 3px 3px 1px rgba(0, 0, 0, .4);
+    -webkit-border-radius: 12px;
+    -moz-border-radius: 12px;
+    border-radius: 12px;
+}
+
+.product_photo_wrapper {
+    text-align:center;
+    width:200px;
+    height:145px;
+    margin: 0 auto;
+
+}
+
+.product_specs {
+    background-color:whitesmoke;
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+    padding:8px;
+    margin-bottom:0;
+    text-align:center;
+}
+
+.textured_background {
+    background-image:url(../img/body_texture.png);
+    width:100%;
+    float:left;
+    padding-top:30px;
+    padding-bottom:40px;
+}
+
+#brand_small {
+    padding-top:6px;
+    padding-bottom:4px;
+}
+
+.inner_small_right {
+    padding-right:0;
+}
+
+#special_nav_link {
+    padding-left:-2px;
+    padding-right:-2px;
+}
+
+
+.footer_column {
+    width:100px;
+    float:left;
+    text-align:left;
+    margin-right:40px;
+    color:gray;
+}
+
+.footer_column>h6{
+    font-size:8pt;
+    padding-bottom:1px;
+    line-height: 10px
+}
+
+.footer_bottom {
+    float:left;
+    font-size:8pt;
+    text-align:left;
+    margin-top:5px;
+    color:lightgray;
+    font-family: 'Open Sans', sans-serif;
+}
+
+.product_specs_list {
+    font-family:'open sans', sans-serif;
+    font-size:8.5pt;
+    color:gray;
+    text-align:left;
+    margin-left:20px;
+    margin-bottom:10px;
+}
+
+.product_specs_list >li {
+    line-height:12pt;
+}
+
