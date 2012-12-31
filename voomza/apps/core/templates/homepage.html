@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load staticfiles %}
+{% load url from future %}
 {% load compress %}
 
 {% block style_0 %}
@@ -7,10 +8,10 @@
 {% endblock %}
 
 {% block style %}
-    <link href="{% static 'css/home.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'css/facebook.css' %}" type="text/css" rel="stylesheet" media="all" />
     <link href="{% static 'css/cabin_fjalla.css' %}" rel="stylesheet" type="text/css">
     <link href="{% static 'css/open_sans.css' %}" rel="stylesheet" type="text/css">
-    <link href="{% static 'css/facebook.css' %}" type="text/css" rel="stylesheet" media="all" />
+    <link href="{% static 'css/home.css' %}" rel="stylesheet" type="text/css">
 {% endblock %}
 
 {% block head %}
@@ -46,28 +47,11 @@
 
 
     <div class="container">
-        <div class="navbar" style="margin-top:5px">
-            <div class="navbar-inner inner_small_right">
-                <a class="brand" id="brand_small" href="#"><img src="{% static 'img/logo_new1.png' %}" width="90px"></a>
-                <ul class="nav" style="float:left">
-                    <li class="active"><a href="#">Preview</a></li>
-                    <li class="divider-vertical"></li>
-                    <li ><a href="#editions" data-target="#editions">Editions </a></li>
-                    <li class="divider-vertical"></li>
-                    <li><a href="#howitworks" data-target="#howitworks">How It Works</a></li>
-                    <li class="divider-vertical"></li>
-                </ul>
-                <ul class="nav" style="float:right">
-                    <li><a href="#" class="facebook-login">
-                        <img class="navbar_f_logo" src="{% static 'img/f_logo.png' %}" width="18px">Create Free Version
-                    </a></li>
-                </ul>
-            </div>
-        </div>
+        {% include 'navbar__preview_editions_how_it_works.html' %}
 
-        <h1>Your Photomatic 2012 Yearbook</h1>
-        <h3 class="gray" style="font-family:'open sans'; font-weight:normal; margin-bottom:20px">
-            Instant, effortless, sharable, and all about you.</h3>
+        <h1 class="home_header">Your Photomatic 2012 Yearbook</h1>
+        <h3 class="home_header gray" style="font-family:'open sans'; font-weight:normal;
+            margin-bottom:20px">Instant, effortless, sharable, and all about you.</h3>
     </div>
 
 
@@ -88,26 +72,24 @@
             <img src="{% static 'img/left_arrow.jpg' %}" width="30px" style="float:left;opacity:100">
             <img src="{% static 'img/right_arrow.jpg' %}" width="30px" style="float:right;opacity:100">
         </div>
+
     </div>
 
 
     <div class="container">
-        <div class="row" style="margin-top:20px; border-top:solid 1px lightgray; padding-top:20px">
-
+        <div class="row" style="margin-top:20px;border-top:solid 1px lightgray;padding-top:20px;">
             <div class="span12 product_large" id="editions" >
-                <h1 style="color:black; text-align:right">Create yours in 4 clicks.</h1>
-                <h3 style="color:gray; text-align:right"> Basic edition is free through Jan 31.</h3>
-                <a class="btn btn-large btn-primary facebook-login" style="float:right">
-                    <img class="navbar_f_logo" src="{% static 'img/f_logo.png' %}" width="18px">
-                    Create My Yearbook
-                </a>
+                <h1 class="home_header"style="color:black; text-align:right">Create yours in 4 clicks.</h1>
+                <h3 class="home_header"style="color:gray; text-align:right"> Basic edition is free through Jan 31.</h3>
+                <a class="btn btn-large btn-primary" style="float:right">
+                    <img class="navbar_f_logo" src="{% static 'img/f_logo.png' %}" width="18px">Create My Yearbook</a>
             </div>
 
             <div class="span12" style="border-bottom:solid 1px whitesmoke">
             </div>
 
             <div class="span4 product_small">
-                <h5>Basic<br>Free</h5>
+                <h5 class="home_header">Basic<br>Free</h5>
 
                 <div class="product_photo_wrapper">
                     <img src="{% static 'img/book_icon.png' %}" width="120px">
@@ -123,10 +105,12 @@
                     </div>
                     <a class="btn btn-mini btn-primary facebook-login">Create (Free)</a>
                 </div>
+
             </div>
 
             <div class="span4">
-                <h5>Standard<br>$4.99</h5>
+
+                <h5 class="home_header">Standard<br>$4.99</h5>
 
                 <div class="product_photo_wrapper">
                     <div style="position: relative; left: 0; right:0; top: 0; ">
@@ -145,10 +129,12 @@
                     </div>
                     <a class="btn btn-mini btn-primary facebook-login">Create (Free)</a>
                 </div>
+
+
             </div>
 
             <div class="span4">
-                <h5>8X11 Hardcover<br>$39.99 - $99.99</h5>
+                <h5 class="home_header">8X11 Hardcover<br>$39.99 - $99.99</h5>
                 <div class="product_photo_wrapper">
                     <img style="margin:auto"src="{% static 'img/hardcover_photobook.jpg' %}" width="180px">
                 </div>
@@ -165,21 +151,17 @@
             </div>
         </div>
 
-
         <div class="page_divider">
         </div>
 
-
         <div class="textured_background">
             <div class="container">
-
                 <div class="row">
                     <img style="float:left"src="{% static 'img/vintage_player.gif' %}" width="360px">
-                    <h1 style="text-align:right" id="howitworks">Inside the Photomatic Yearbook </h1>
-                    <h3 class="gray" style="margin-bottom:50px; text-align:right">How we create 50 pages about you in 4 clicks.</h3>
+                    <h1 class="home_header"style="text-align:right" id="howitworks">Inside the Photomatic Yearbook </h1>
+                    <h3 class="home_header gray" style="margin-bottom:50px; text-align:right">How we create 50 pages about you in 4 clicks.</h3>
 
                     <div class="span3 offset1 process_wrapper">
-
                         <div class="process_photo_wrapper">
                             <img class="margin_right"src="{% static 'img/comment_icon.png' %}" width="60px">
                             <img src="{% static 'img/f_logo.png' %}" width="45px">
@@ -187,8 +169,9 @@
                         </div>
 
                         <h4>Facebook Photos</h4>
-                        <p class="process_details">Once you get started, we'll ask for your permission to use your Facebook photos and your comments. We use your pre-existing photos so you never have to upload a single photo.</p>
-
+                        <p class="home_paragraph process_details">Once you get started, we'll ask for your permission
+                            to use your Facebook photos and your comments. We use your pre-existing photos so you never
+                            have to upload a single photo.</p>
                     </div>
 
 
@@ -199,41 +182,20 @@
                         </div>
 
                         <h4>Algorithmic Logic </h4>
-                        <p class="process_details">We use a series of ranking algorithms to determine the relevance and importance of your Facebook photos. Then we select your top photos and distribute them across 50 pages of unique design layouts.</p>
-
+                        <p class="home_paragraph process_details">We use a series of ranking algorithms to determine the
+                            relevance and importance of your Facebook photos. Then we select your top photos and distribute
+                            them across 50 pages of unique design layouts.</p>
                     </div>
                 </div>
             </div>
         </div>
 
+        {% include 'footer.html' %}
 
-        <div class="footer_background">
-            <div class="container">
-                <div class="row">
-                    <div class="span12">
-                        <img src="{% static 'img/logo_new1.png' %}" width="120px" style="float:right; margin-top:10px">
-
-                        <div class="footer_column">
-                            <h6 class="headerfont"><a style="color:lightblue">About</a></h6>
-                            <h6 class="headerfont"><a style="color:lightblue">How it Works</a></h6>
-                            <h6 class="headerfont"><a style="color:lightblue">Contact Us</a></h6>
-                        </div>
-
-
-                        <div class="footer_bottom">
-                            <p>&copy; 2012 Voomza, Inc., All Rights Reserved</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
-
 
 </form>
 
 
-
 {% endblock %}
-
 
