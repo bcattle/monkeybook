@@ -1,17 +1,4 @@
-function addPage(page, book) {
-    var id, pages = book.turn('pages');
-    if (!book.turn('hasPage', page)) {
-        var element = $('<div />',
-            {'class': 'own-size',
-                css: {width: 456, height: 333}
-            }).
-            html('<div class="loader"></div>');
-
-        if (book.turn('addPage', element, page)) {
-            getPage(page);
-        }
-    }
-}
+// Adds pages to the yearbook by making calls to an API
 
 function getPage(page) {
     // Load pages from our API
