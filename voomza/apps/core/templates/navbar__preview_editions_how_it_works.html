@@ -1,0 +1,19 @@
+{% load staticfiles %}
+{% load url from future %}
+
+<div class="navbar" style="margin-top:5px">
+    <div class="navbar-inner inner_small_right">
+        <a class="brand" id="brand_small" href="{% url 'homepage' %}"><img src="{% static 'img/logo_new1.png' %}" width="90"></a>
+        <ul class="nav" style="float:left">
+            <li><a href="{% url 'homepage' %}#page/2">Preview</a></li>
+            <li class="divider-vertical"></li>
+            <li><a href="{% url 'homepage' %}#edns">Editions </a></li>
+            <li class="divider-vertical"></li>
+            <li><a href="{% url 'homepage' %}#howworks">How It Works</a></li>
+            <li class="divider-vertical"></li>
+        </ul>
+        <ul class="nav" style="float:right">
+            <li><a href="#" class="facebook-login"><img class="navbar_f_logo" src="{% static 'img/f_logo.png' %}" width="18">Create Yours, Free!</a></li>
+        </ul>
+    </div>
+</div>

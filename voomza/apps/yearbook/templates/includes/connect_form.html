@@ -1,0 +1,5 @@
+{% load url from future %}
+
+<form id="facebook-login-form" action="{% url 'facebook_connect' %}?facebook_login=1" method="post">
+    <input type="hidden" value="{{ request.path }}" name="next" />
+</form>

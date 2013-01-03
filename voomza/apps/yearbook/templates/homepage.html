@@ -1,0 +1,211 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% load url from future %}
+{% load compress %}
+
+{% block style_0 %}
+    <link href="{% static 'css/bootstrap.css' %}" rel="stylesheet" type="text/css">
+{% endblock %}
+
+{% block style %}
+    <link href="{% static 'css/facebook.css' %}" type="text/css" rel="stylesheet" media="all" />
+    <link href="{% static 'css/cabin_fjalla.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'css/open_sans.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'css/footer.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'css/home.css' %}" rel="stylesheet" type="text/css">
+{% endblock %}
+
+{% block head %}
+    {% include 'django_facebook/_facebook_js.html' %}
+{% endblock %}
+
+{% block script %}
+    <script type="text/javascript" src="{% static 'js/jquery-1.7.2.min.js' %}"></script>
+    {% compress js %}
+        <script type="text/javascript" src="{% static 'js/jquery-ui-1.8.20.custom.min.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/jquery.mousewheel.min.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/modernizr.2.5.3.min.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/hash.js' %}"></script>
+    {% endcompress %}
+    {% compress js %}
+        <script type="text/javascript" src="{% static 'js/addpage-files.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/yearbook-ux.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/yearbook.js' %}"></script>
+        <script type="text/javascript">
+            var staticUrl = '{{ STATIC_URL }}';
+
+            // Hide canvas
+            $('#canvas').css({visibility: 'hidden'});
+
+            // Load turn.js
+            yepnope({
+                test : Modernizr.csstransforms,
+                yep: ["{% static 'js/turn.min.js' %}"],
+                nope: ["{% static 'js/turn.html4.min.js' %}", "{% static 'css/jquery.ui.html4.css' %}", "{% static 'css/steve-jobs-html4.css' %}"],
+                both: ["{% static 'css/jquery.ui.css' %}", "{% static 'css/steve-jobs.css' %}"],
+                complete: loadApp
+            });
+
+            $(document).ready(function(){
+                $('.facebook-login').click(function(){
+                    F.connect($('#facebook-login-form'));
+                });
+            });
+        </script>
+    {% endcompress %}
+{% endblock %}
+
+
+{% block body %}
+
+{% include 'includes/connect_form.html' %}
+
+<div class="container">
+    {% include 'navbar__preview_editions_how_it_works.html' %}
+
+    <h1 class="home_header">Your Photomatic 2012 Yearbook</h1>
+    <h3 class="home_header gray" style="font-family:'open sans'; font-weight:normal;
+        margin-bottom:20px">Instant, effortless, sharable, and all about you.</h3>
+</div>
+
+
+<div id="canvas">
+    <div id="book-zoom">
+        <div class="sj-book">
+            <div depth="5" class="hard"><div class="side"></div></div>
+            <div depth="5" class="hard front-side"><div class="depth"></div></div>
+            <div class="hard fixed back-side p51"><div class="depth"></div></div>
+            <div class="hard p52"></div>
+        </div>
+    </div>
+    <div id="slider-bar" class="turnjs-slider">
+        <div id="slider"></div>
+    </div>
+
+    <div class="arrow_tray" style="width:600px;position:relative;bottom:40px;left:168px;opacity:.7">
+        <img src="{% static 'img/left_arrow.jpg' %}" width="30" style="float:left;opacity:100">
+        <img src="{% static 'img/right_arrow.jpg' %}" width="30" style="float:right;opacity:100">
+    </div>
+</div>
+
+
+<div class="container">
+    <div class="row" style="margin-top:20px;border-top:solid 1px lightgray;padding-top:20px;">
+        <div class="span12 product_large" id="editions">
+            <h1 class="home_header"style="color:black; text-align:right">Create yours in 4 clicks.</h1>
+            <h3 class="home_header"style="color:gray; text-align:right"> Basic edition is free through Jan 31.</h3>
+            <a class="btn btn-large btn-primary facebook-login" style="float:right">
+                <img class="navbar_f_logo" src="{% static 'img/f_logo.png' %}" width="18">Create My Yearbook</a>
+        </div>
+
+        <div class="span12" style="border-bottom:solid 1px whitesmoke">
+        </div>
+
+        <a name="edns"></a>
+        <div class="span4 product_small">
+            <h5 class="home_header">Basic<br>Free</h5>
+
+            <div class="product_photo_wrapper">
+                <img src="{% static 'img/book_icon.png' %}" width="120">
+            </div>
+
+            <div class="product_specs">
+                <div style="margin:auto;width:230px">
+                    <ul class="product_specs_list">
+                        <li>50 pages personalized about you</li>
+                        <li>Viewable any time from your account</li>
+                        <li>Share your yearbook with friends</li>
+                    </ul>
+                </div>
+                <a class="btn btn-mini btn-primary facebook-login">Create (Free)</a>
+            </div>
+
+        </div>
+
+        <div class="span4">
+            <h5 class="home_header">Standard<br>$4.99</h5>
+            <div class="product_photo_wrapper">
+                <div style="position: relative; left: 0; right:0; top: 0; ">
+                    <img src="{% static 'img/book_icon.png' %}" width="120"style="position: relative; top: 0; left: 0;"/>
+                    <img src="{% static 'img/cloud_upload.png' %}" width="160" style="position: absolute; top:40px; left: 20px;"/>
+                </div>
+            </div>
+
+            <div class="product_specs">
+                <div style="margin:auto;width:230px">
+                    <ul class="product_specs_list">
+                        <li>Includes all of the basic features</li>
+                        <li>Edit your photos to make the perfect book</li>
+                        <li>Store your yearbook on our cloud server</li>
+                    </ul>
+                </div>
+                <a class="btn btn-mini btn-primary facebook-login">Create (Free)</a>
+            </div>
+
+
+        </div>
+
+        <div class="span4">
+            <h5 class="home_header">8X11 Hardcover<br>$39.99 - $99.99</h5>
+            <div class="product_photo_wrapper">
+                <img style="margin:auto"src="{% static 'img/hardcover_photobook.jpg' %}" width="180">
+            </div>
+            <div class="product_specs">
+                <div style="margin:auto;width:230px">
+                    <ul class="product_specs_list">
+                        <li>Includes all basic and standard features</li>
+                        <li>Standard hardcover includes all pages</li>
+                        <li>Abridged version includes top 25 pages </li>
+                    </ul>
+                </div>
+                <a class="btn btn-mini btn-primary facebook-login">Create (Free)</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="page_divider">
+    </div>
+
+    <div class="textured_background">
+        <div class="container">
+            <div class="row">
+                <a name="howworks"></a>
+                <img style="float:left"src="{% static 'img/vintage_player.gif' %}" width="360">
+                <h1 class="home_header"style="text-align:right" id="howitworks">Inside the Photomatic Yearbook </h1>
+                <h3 class="home_header gray" style="margin-bottom:50px; text-align:right">How we create 50 pages about you in 4 clicks.</h3>
+
+                <div class="span3 offset1 process_wrapper">
+                    <div class="process_photo_wrapper">
+                        <img class="margin_right"src="{% static 'img/comment_icon.png' %}" width="60">
+                        <img src="{% static 'img/f_logo.png' %}" width="45">
+                        <img src="{% static 'img/photo_icon.png' %}" width="65">
+                    </div>
+
+                    <h4>Facebook Photos</h4>
+                    <p class="home_paragraph process_details">Once you get started, we'll ask for your permission
+                        to use your Facebook photos and your comments. We use your pre-existing photos so you never
+                        have to upload a single photo.</p>
+                </div>
+
+
+                <div class="span3 process_wrapper">
+
+                    <div class="process_photo_wrapper">
+                        <img src="{% static 'img/algo_2.png' %}">
+                    </div>
+
+                    <h4>Algorithmic Logic </h4>
+                    <p class="home_paragraph process_details">We use a series of ranking algorithms to determine the
+                        relevance and importance of your Facebook photos. Then we select your top photos and distribute
+                        them across 50 pages of unique design layouts.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% include 'footer.html' %}
+
+</div>
+
+{% endblock %}
+

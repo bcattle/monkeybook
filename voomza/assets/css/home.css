@@ -30,24 +30,14 @@ h4 {
     color:gray;
 }
 
-
 .page_divider {
     height:28px;
     width:100%;
     float:left;
     border-top:solid 1px lightgray;
     border-bottom:solid 1px lightgray;
-    background-image: url('../img/divider_texture.png');
-    margin-top:40px;
-}
-
-.footer_background {
-    height:100px;
-    width:100%;
-    float:left;
-    padding-top:5px;
-    border:solid 1px lightgray;
     background-image: url(../img/divider_texture.png);
+    margin-top:40px;
 }
 
 .body_lower {

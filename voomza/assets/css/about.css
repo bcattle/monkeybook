@@ -1,0 +1,14 @@
+
+.top_section {
+	background-image:url(../img/about_background.jpg);
+	min-height:700px;
+}
+
+.contact_us_div {
+    background-color: whitesmoke;
+    padding-left: 5px;
+    width: 168px;
+    -webkit-border-radius: 6px;
+    -moz-border-radius: 6px;
+    border-radius: 6px;
+}

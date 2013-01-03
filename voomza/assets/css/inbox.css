@@ -1,0 +1,226 @@
+
+.friend_sign_unit {
+	width:100%;
+	height:80px;
+    padding: 6px;
+    background-color:whitesmoke;
+    border:solid 1px #F2F5F5;
+    border-radius: 2px;
+    -webkit-border-radius: 2px;
+    -moz-border-radius: 2px;
+}
+
+.friend_sign_photo {
+    float:left;
+    height: 32px;
+    width: 32px;
+	margin-left:2px;
+	margin-right:3px;
+}
+
+.yearbook {
+    border-radius: 2px;
+    -webkit-border-radius: 2px;
+    -moz-border-radius: 2px;
+	width:100%;
+	height:100%;
+	margin-bottom:10px;
+	background-color:whitesmoke;
+
+}
+
+.yearbook_status_message {
+    font-family: 'Open Sans', sans-serif;
+    font-style: italic;
+    background-color: #FAFAFA;
+    padding-left: 5px;
+}
+
+.yearbook_sending_message {
+    display:none;
+}
+
+.yearbook_sent_message {
+    display:none;
+}
+
+.sent_image {
+    width: 14px;
+    padding-bottom: 4px;
+}
+
+.yearbook_content {
+    padding: 4px;
+    background-color:#FAFAFA;
+	
+}
+
+.yearbook_photo {
+    float:left;
+    width:35px;
+    height:35px;
+	margin-right:4px;
+}
+
+.yearbook_input_container {
+    float:left;
+    margin-left: 0;
+}
+
+.yearbook_name {
+    font-size: 13px;
+    font-style: italic;
+    display: none;
+	margin-top:0;
+	margin-bottom:6px;
+}
+
+.yearbook_input {
+    width: 80%;
+	height:40px;
+	font-size:9pt;
+}
+
+.submitted {
+    overflow-y: hidden;
+}
+
+.yearbook_footer {
+    padding: 5px;
+    display: none;
+	background-color:whitesmoke;
+}
+
+.signYearbookButton {
+    float:right;
+}
+
+.signed_yearbook_result {
+    font-size: 12px;
+}
+
+
+.minispecial {
+	padding:0 3px;
+	float:right;
+	margin-right:2px;
+}
+
+.message_sender {
+	width:180px;
+	margin-top:-3px;
+	margin-bottom:20px;
+	margin-left:2px;
+	overflow:hidden;
+
+}
+
+.message_btns {
+	width:70px;
+	float:right;
+	margin-top:2px;
+	margin-left:2px;
+}
+
+.friend_message {
+	font-size:9pt;
+	color:gray;
+	background-color:white;
+	line-height:12pt;
+	border-radius: 2px;
+    -webkit-border-radius: 2px;
+    -moz-border-radius: 2px;
+	margin-top:5px;
+	padding:5px;
+	width:96%;
+}
+
+.inbox_product {
+	width:100%;
+	height:100%;
+	text-align:center;
+	margin-bottom:30px;
+}
+
+.inbox_product_header {
+	font-family: 'Open Sans', sans-serif; 
+	text-align:center;
+	font-weight:normal
+}
+
+.inbox_products_wrapper {
+	border: solid 1px whitesmoke;
+	-webkit-border-radius: 4px;
+	-moz-border-radius: 4px;
+	border-radius: 4px;
+}
+
+.product_div_header {
+	color:gray; 
+	text-align:center;
+	background-color:whitesmoke;
+	margin-top:0;
+	padding-top:3px;
+	padding-bottom:3px;
+	margin-bottom:15px;
+}
+
+.inbox_wrapper {
+	border: solid 1px whitesmoke;
+	-webkit-border-radius: 4px;
+	-moz-border-radius: 4px;
+	border-radius: 4px;
+}
+
+.inbox_header {
+	color:gray; 
+	text-align:left;
+	margin-top:0;
+	padding-top:3px;
+	padding-bottom:3px;
+	padding-left:2px;
+	font-family: 'Open Sans', sans-serif;
+	margin-bottom:0;
+}
+
+.inbox_top_header {
+	font-family: 'Open Sans', sans-serif; 
+	font-weight:normal;
+	margin-bottom:20px;
+}
+
+.friend_sign_container {
+	width:96%;
+	height:100%;
+	background-color:#FAFAFA;
+	padding:5px;
+}
+
+.inbox_footer {
+	width:96%;
+	height:24px;
+	text-align:right;
+	background-color:whitesmoke;
+	padding:5px;
+}
+
+.headerfont {
+	font-family: 'Open Sans', sans-serif;
+	font-weight:normal;
+}
+
+.transfer_steps {
+    font-family: 'Open Sans', sans-serif;
+}
+
+.transfer_steps_end {
+    font-family: 'Open Sans', sans-serif;
+    margin-bottom:20px;
+}
+
+.transfer_header {
+    font-family: 'Open Sans', sans-serif;
+    margin-bottom:20px;
+
+}
+

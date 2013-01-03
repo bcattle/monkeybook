@@ -1,0 +1,28 @@
+{% load staticfiles %}
+{% load url from future %}
+
+{#<div class="footer_background" style="margin-top:40px">#}
+<div class="footer_background">
+    <div class="container">
+        <div class="row">
+            <div class="span12">
+                <img src="{% static 'img/logo_new1.png' %}" width="120" style="float:right; margin-top:10px">
+
+                <div class="footer_column">
+                    <h6 class="headerfont"><a style="color:lightblue" href="{% url 'about_us' %}">About</a></h6>
+                    <h6 class="headerfont"><a style="color:lightblue" href="{% url 'homepage' %}#howworks">How it Works</a></h6>
+                    <h6 class="headerfont"><a style="color:lightblue" href="{% url 'contact' %}">Contact Us</a></h6>
+                    <h6 class="headerfont"><a style="color:lightblue" href="{% url 'privacy' %}">Privacy Policy</a></h6>
+                    <h6 class="headerfont"><a style="color:lightblue" href="{% url 'terms' %}">Terms of Service</a></h6>
+                </div>
+
+                <div class="footer_bottom">
+                    <p>&copy; 2012 Voomza, Inc., All Rights Reserved</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div style="clear:both;"></div>
+</div>
+
+

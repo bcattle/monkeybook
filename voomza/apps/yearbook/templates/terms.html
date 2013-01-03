@@ -1,0 +1,25 @@
+{% extends 'static_informational.html' %}
+{% load staticfiles %}
+{% load url from future %}
+
+{% block pills %}
+    <ul class="nav nav-pills">
+        <li><a href="{% url 'about_us' %}">Our Mission</a></li>
+        <li><a href="{% url 'contact' %}">Contact Us</a></li>
+        <li><a href="{% url 'privacy' %}">Privacy</a></li>
+        <li class="active"><a href="{% url 'terms' %}">Terms</a></li>
+    </ul>
+{% endblock %}
+
+{% block content %}
+
+{# TERMS #}
+
+<div>
+    <h3 style="text-align:left">Terms of Use</h3>
+    <p style="background-color:whitesmoke; text-align:left; padding:10px">
+        {% include 'includes/terms.html' %}
+    </p>
+</div>
+
+{% endblock %}
