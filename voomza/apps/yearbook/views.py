@@ -7,7 +7,7 @@ from django_facebook.api import require_persistent_graph
 from django_facebook.decorators import facebook_required_lazy
 from django_facebook.utils import CanvasRedirect
 from voomza.apps.backend.models import Yearbook
-from backend.tasks import run_yearbook, top_friends_fast
+from backend.tasks import run_yearbook, top_friends_fast, pull_user_profile
 
 logger = logging.getLogger(__name__)
 
@@ -42,8 +42,18 @@ def invite_friends_to_sign(request,
     # Start pulling the user's top friends (fast)
     # ** This also fires off the run_yearbook task **
     run_yearbook = 'run_yearbook_async' not in request.session
-    pull_friends_async = top_friends_fast.apply_async(kwargs={'user': request.user, 'run_yearbook': run_yearbook})
-    request.session['pull_friends_async'] = pull_friends_async
+    if 'pull_friends_async' not in request.session:
+        pull_friends_async = top_friends_fast.apply_async(kwargs={'user': request.user, 'run_yearbook': run_yearbook})
+        request.session['pull_friends_async'] = pull_friends_async
+
+    # We also need their optional profile fields,
+    # fire that off as well
+    if 'optional_fields_async' not in request.session:
+        optional_fields_async = pull_user_profile.apply_async(kwargs={'user': request.user})
+        request.session['optional_fields_async'] = optional_fields_async
+
+#    import ipdb
+#    ipdb.set_trace()
 
     context = {
         'next_view': next_view

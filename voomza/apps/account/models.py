@@ -4,6 +4,7 @@ from django.db.models.signals import post_save
 from django.dispatch.dispatcher import receiver
 from django.contrib.auth.models import User
 from django_facebook.models import BaseFacebookProfileModel
+from django.shortcuts import redirect
 from voomza.apps.account.managers import FacebookUserManager
 
 logger = logging.getLogger(name=__name__)
@@ -20,6 +21,12 @@ class UserProfile(BaseFacebookProfileModel):
     significant_other_id = models.BigIntegerField(null=True)
 
     current_page = models.CharField(max_length=40, default='invite_friends_to_sign')
+
+    def post_facebook_registration(self, request):
+        """
+        Behavior after registering with facebook
+        """
+        return redirect(self.current_page)
 
 
 class FamilyConnection(models.Model):

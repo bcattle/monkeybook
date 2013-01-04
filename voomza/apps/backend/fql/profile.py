@@ -1,5 +1,5 @@
 from django.db import transaction
-from voomza.apps.account.models import FamilyConnection
+from voomza.apps.account.models import FamilyConnection, FacebookUser
 from voomza.apps.backend.fql.base import FQLTask, FqlTaskPipeline
 from voomza.apps.backend.getter import ResultGetter
 from voomza.apps.core import bulk
@@ -16,12 +16,23 @@ class ProfileFieldsTask(FQLTask):
         return results[0]
 
     def save_profile_fields(self, user, profile_fields):
+        # Create a FacebookUser
+        fbu = FacebookUser(
+            facebook_id = profile_fields['uid'],
+            name = user.profile.facebook_name,
+            first_name = profile_fields['first_name'],
+            pic_square = profile_fields['pic_square'],
+        )
+        fbu.save()
+
         user.profile.first_name = profile_fields['first_name']
         user.profile.locale = profile_fields['locale']
         user.profile.pic_square = profile_fields['pic_square']
         user.profile.significant_other_id = profile_fields['significant_other_id']
         user.profile.facebook_id = profile_fields['uid']
+        user.profile.facebook_user = fbu
         user.profile.save()
+
 
 
 class FamilyTask(FQLTask):

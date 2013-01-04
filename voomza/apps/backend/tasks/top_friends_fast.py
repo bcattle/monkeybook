@@ -1,3 +1,5 @@
+import datetime
+from collections import defaultdict
 from celery import task
 from voomza.apps.core import bulk
 from voomza.apps.core.utils import timeit, flush_transaction
@@ -8,7 +10,7 @@ from voomza.apps.backend.getter import FreqDistResultGetter
 
 @task.task()
 @timeit
-def top_friends_fast(user, request=None):
+def top_friends_fast(user, run_yearbook=False):
     """
     Pulls all friends and all tags,
     combines them to get `top_friends_score`
@@ -20,12 +22,19 @@ def top_friends_fast(user, request=None):
     all_friends = results['get_friends']
     tagged_with_me = results['tagged_with_me']
 
-    # Get the most-tagged
-    most_tagged = FreqDistResultGetter(tagged_with_me, id_field='subject')
+    # Collapse the tags by user_id, discount by age
+    tag_score_by_user_id = defaultdict(lambda: 0.0)
+    for tag in tagged_with_me.fields:
+        tag_age = datetime.date.today().year - tag['created'].year + 1.0
+        tag_score_by_user_id[tag['subject']] += 1 / tag_age
+
+    # Sort
+    user_ids_in_order = sorted(tag_score_by_user_id.items(), key=lambda x: x[1], reverse=True)
+
     # Reversing them means the index corresponds to top friends order
     top_friends_order_by_id = {}
-    for top_friends_order, u in enumerate(most_tagged.order_by('count')):
-        top_friends_order_by_id[u['id']] = top_friends_order
+    for top_friends_order, u in enumerate(user_ids_in_order):
+        top_friends_order_by_id[u[0]] = top_friends_order + 1   # 0 is not a valid value
 
     facebook_users = []
     facebook_friends = []
@@ -56,17 +65,13 @@ def top_friends_fast(user, request=None):
     bulk.insert_or_update_many(FacebookFriend, facebook_friends, keys=['owner', 'facebook_user'])
     flush_transaction()
 
-    # Check request for pending job
-    if request and 'run_yearbook_async' in request.session:
-        return results
-    # See if user has a yearbook
-#    try:
-#        yearbook = Yearbook(owner=request.user)
-#    except Yearbook.DoesNotExist:
-    from backend.tasks import run_yearbook
-    yearbook_async = run_yearbook.delay(user, results)
-    if request:
-        request.session['run_yearbook_async'] = yearbook_async
-    results['run_yearbook_async'] = yearbook_async
+    if run_yearbook:
+        # See if user has a yearbook
+#        try:
+#            yearbook = Yearbook(owner=user)
+#        except Yearbook.DoesNotExist:
+        from backend.tasks import run_yearbook
+        yearbook_async = run_yearbook.delay(user, results)
+        results['run_yearbook_async'] = yearbook_async
 
     return results

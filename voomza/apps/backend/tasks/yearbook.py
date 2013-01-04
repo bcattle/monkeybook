@@ -17,11 +17,15 @@ logger = logging.getLogger(__name__)
 
 
 @task.task(ignore_result=True)
-@transaction.commit_manually
-def save_to_db(user, profile_task, profile_fields, family_task, family, photos_of_me):
-    profile_task.save_profile_fields(user, profile_fields)
-    transaction.commit()
+def pull_user_profile(user):
+    profile_task = ProfileFieldsTask()
+    results = profile_task.run(user)
+    profile_task.save_profile_fields(user, results['profile_fields'])
 
+
+@task.task(ignore_result=True)
+@transaction.commit_manually
+def save_to_db(user, family_task, family, photos_of_me):
     family_task.save_family(user, family)
     transaction.commit()
 
@@ -32,7 +36,7 @@ def save_to_db(user, profile_task, profile_fields, family_task, family, photos_o
 @task.task()
 @timeit
 def run_yearbook(user, results):
-    profile_task = ProfileFieldsTask()
+#    profile_task = ProfileFieldsTask()
     family_task = FamilyTask()
 
     class YearbookPipeline(FqlTaskPipeline):
@@ -42,7 +46,7 @@ def run_yearbook(user, results):
                 CommentsOnPhotosOfMeTask(),
                 OwnerPostsFromYearTask(),
                 OthersPostsFromYearTask(),
-                profile_task,
+#                profile_task,
                 family_task
             ]
 
@@ -82,8 +86,9 @@ def run_yearbook(user, results):
         photos_of_me.append(photo_db)
 
     # Save photos, profile fields, and family to db
-    save_to_db.delay(user, profile_task, results['profile_fields'],
-                     family_task, results['family'], photos_of_me)
+#    save_to_db.delay(user, profile_task, results['profile_fields'],
+#                     family_task, results['family'], photos_of_me)
+    save_to_db.delay(user, family_task, results['family'], photos_of_me)
 
     ## Calculate top friends
 
@@ -120,7 +125,8 @@ def run_yearbook(user, results):
             photo_id = tag['object_id']
             peeps_in_photo = num_tags_by_photo_id.fields_by_id[photo_id]['count'] + 1   # num tags + me
             photo = results['photos_of_me'].fields_by_id[photo_id]
-            photo_age = 2012 - photo['created'].year + 1.0
+#            photo_age = 2012 - photo['created'].year + 1.0
+            photo_age = datetime.date.today().year - photo['created'].year + 1.0
             if peeps_in_photo == 2:
                 photos_score_by_user_id[friend_id] += TOP_FRIEND_POINTS_FOR_PHOTO_OF_2 / photo_age
             elif peeps_in_photo == 3:
@@ -210,7 +216,7 @@ def run_yearbook(user, results):
     birthday_posts = []
     if user.profile.date_of_birth:
         birthday = user.profile.date_of_birth
-        birthday_this_year = datetime.datetime(datetime.date.today().year, birthday.month, birthday.day, 0, 0, 0, tzinfo=utc)
+        birthday_this_year = datetime.datetime(2012, birthday.month, birthday.day, 0, 0, 0, tzinfo=utc)
         start_time = birthday_this_year - datetime.timedelta(days=1)
         end_time = birthday_this_year + datetime.timedelta(days=3)
         birthday_posts = all_posts_this_year.filter(

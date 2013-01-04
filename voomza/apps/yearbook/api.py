@@ -11,56 +11,6 @@ logger = logging.getLogger(__name__)
 gender_map = defaultdict(lambda: '', female='F', male='M', )
 
 class YearbookFacebookUserConverter(FacebookUserConverter):
-    def get_and_store_optional_fields(self, user):
-        """
-        Pulls any additional fields we want for the user's profile
-        right now these are locale, family and significant other
-        """
-        from voomza.apps.account.models import FamilyConnection, FacebookUser
-
-        me_response = self.open_facebook.get('me', fields=[
-            'id', 'name', 'first_name', 'picture', 'gender', 'locale', 'relationship_status',
-            'significant_other'
-        ])
-        family_response = self.open_facebook.get('me/family')
-
-        # Store the info in their profile
-        user.profile.locale = me_response.get('locale', '')
-        user.profile.relationship_status = me_response.get('relationship_status', '')
-        if 'significant_other' in me_response:
-            if 'id' in me_response['significant_other']:
-                user.profile.significant_other_id = me_response['significant_other']['id']
-
-        pic_square = ''
-        if 'picture' in me_response:
-            if 'data' in me_response['picture']:
-                if 'url' in me_response['picture']['data']:
-                    pic_square = me_response['picture']['data']['url']
-
-        # Store a FacebookUser
-        if 'id' in me_response:
-            # facebook_id is pk, so this should just update db if it already exists
-            fu = FacebookUser(
-                facebook_id=me_response['id'],
-                name=me_response.get('name', ''),
-                first_name=me_response.get('first_name', ''),
-                pic_square=pic_square,
-                gender=gender_map[me_response.get('gender')]
-            )
-            fu.save()
-            user.profile.facebook_user = fu
-
-        user.profile.save()
-
-        # Store the family data, if any
-        for person in family_response.get('data'):
-            if 'id' in person:
-                fc = FamilyConnection(owner=user,
-                                      relationship=person.get('relationship', ''),
-                                      facebook_id=person['id'])
-                fc.save()
-
-
     def delete_request(self, request):
         """
         Deletes an app request, e.g. after a user
