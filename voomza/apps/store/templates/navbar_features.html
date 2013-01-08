@@ -1,0 +1,28 @@
+{% load staticfiles %}
+{% load url from future %}
+
+<div class="navbar" style="margin-top:10px">
+    <div class="navbar-inner inner_small_right">
+        <a class="brand" style="padding-top:4px;"id="brand_small" href="#"><img src="{% static 'img/logo_new1.png' %}" width="90"></a>
+        <ul class="nav" style="float:left">
+            <li class="active"><a href="#">Inbox</a></li>
+            <li class="divider-vertical"></li>
+            <li><a style="padding-left:11px;padding-right:11px" href="{% url 'hardcover_feature' %}">Hardcovers</a></li>
+            <li class="divider-vertical"></li>
+            <li><a style="padding-left:11px;padding-right:11px" href="{% url 'standard_feature' %}">Standard</a></li>
+            <li class="divider-vertical"></li>
+        </ul>
+
+        <ul class="nav" style="float:right;margin-right:0">
+
+            <li><a style="padding-left:11px;padding-right:11px" href="#">Edit</a></li>
+            <li class="divider-vertical"></li>
+            <li><a style="padding-left:11px;padding-right:11px" href="#">Share</a></li>
+            <li class="divider-vertical"></li>
+            <li><p style="font-famly:'open sans';font-size:8pt;margin-top:7px">
+                <img src="{% static 'img/ajax-loader.gif' %}"> 30 seconds</p><a style="padding-left:11px;padding-right:11px;display:none;" href="#">
+                <b>View Yearbook</b></a></li>
+
+        </ul>
+    </div>
+</div>

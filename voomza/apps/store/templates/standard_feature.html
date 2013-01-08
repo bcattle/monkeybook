@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% load url from future %}
+{% load compress %}
+
+{% block style_0 %}
+    <link href="{% static 'css/bootstrap.css' %}" rel="stylesheet" type="text/css">
+{% endblock %}
+
+{% block style %}
+    <link href="{% static 'css/home.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'css/footer.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'css/feature.css' %}" rel="stylesheet" type="text/css" />
+{% endblock %}
+
+{% block body %}
+
+    <div class="container">
+
+        {% include 'navbar_features.html' %}
+
+        <div class="row" style="margin-top:40px">
+            <div class="span12" style="margin-bottom:20px;margin-top:20px">
+                <img src="{% static 'img/cloud_upload.png' %}" width="400" style="float:left">
+                <h3 style="text-align:right">Your 2012 Standard Cloud Yearbook</h3>
+                <h4 style="text-align:right">Includes Editing and Storage</h4>
+                <h3 style="text-align:right">$4.99</h3>
+                <a style="float:right"class="btn btn-large btn-primary">Buy Now</a>
+            </div>
+
+            <div class="span4">
+                <div class="details_container">
+                    <h5 class="product_header">Editing</h5>
+                    <ul class="product_list">
+                        <li>Edit your photos to make your book perfect.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="span4">
+                <div class="details_container">
+                    <h5 class="product_header">Storage</h5>
+                    <ul class="product_list">
+                        <li>Store your book on our cloud server.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="span4">
+                <div class="details_container">
+                    <h5 class="product_header">Sharing</h5>
+                    <ul class="product_list">
+                        <li>Share your yearbook with friends and family.</li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    {% include 'footer.html' %}
+
+{% endblock %}

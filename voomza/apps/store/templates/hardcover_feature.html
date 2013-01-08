@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% load url from future %}
+{% load compress %}
+
+{% block style_0 %}
+    <link href="{% static 'css/bootstrap.css' %}" rel="stylesheet" type="text/css">
+{% endblock %}
+
+{% block style %}
+    <link href="{% static 'css/home.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'css/footer.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'css/feature.css' %}" rel="stylesheet" type="text/css" />
+{% endblock %}
+
+{% block body %}
+
+    <div class="container">
+
+        {% include 'navbar_features.html' %}
+
+        <div class="row">
+            <div class="span12" style="margin-bottom:20px;margin-top:20px">
+                <img src="{% static 'img/hardcover_photobook.jpg' %}" width="400" style="float:left">
+                <h3 style="text-align:right">Your 2012 Yearbook in 8X11 Hardcover</h3>
+                <h4 style="text-align:right">Standard Version</h4>
+                <h3 style="text-align:right">$79.99</h3>
+                <a style="float:right"class="btn btn-large btn-primary">Buy Now</a>
+            </div>
+
+            <div class="span4">
+                <div class="details_container">
+                    <h5 class="product_header">Standard Features</h5>
+                    <ul class="product_list">
+                        <li>Includes all 52 pages of your yearbook, and all notes from friends at the end.</li>
+                        <li>Printed with high-quality hardcover and pages</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="span4">
+                <div class="details_container">
+                    <h5 class="product_header">Cloud Enabled</h5>
+                    <ul class="product_list">
+                        <li>Edit your photos before we ship the printed book.</li>
+                        <li>Store online and view anytime from your account.</li>
+                        <li>Share with friends and receive yearbook notes.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="span4">
+                <div class="details_container">
+                    <h5 class="product_header">Shipping Details</h5>
+                    <ul class="product_list">
+                        <li>Your yearbook will not ship until you are done receiving notes from friends.
+                            Your yearbook will ship on the final day to receive notes, Jan 31st. </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="row" style="margin-top:40px">
+            <div class="span12" style="margin-bottom:20px;margin-top:20px">
+                <img src="{% static 'img/hardcover_abridged.jpg' %}" width="400" style="float:left">
+                <h3 style="text-align:right">Your 2012 Yearbook in 8X11 Hardcover</h3>
+                <h4 style="text-align:right">25-Page Abridged Version</h4>
+                <h3 style="text-align:right">$39.99</h3>
+                <a style="float:right"class="btn btn-large btn-primary">Buy Now</a>
+            </div>
+
+            <div class="span4">
+                <div class="details_container">
+                    <h5 class="product_header">Abridged Features</h5>
+                    <ul class="product_list">
+                        <li>Includes top 25 pages of your yearbook, including up to 5 pages of notes
+                            from friends at the end.</li>
+                        <li>Printed with high-quality hardcover and pages</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="span4">
+                <div class="details_container">
+                    <h5 class="product_header">Cloud Enabled</h5>
+                    <ul class="product_list">
+                        <li>Edit your photos before we ship the printed book.</li>
+                        <li>Store online and view anytime from your account.</li>
+                        <li>Share with friends and receive yearbook notes.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="span4">
+                <div class="details_container">
+                    <h5 class="product_header">Shipping Details</h5>
+                    <ul class="product_list">
+                        <li>Your yearbook will not ship until you are done receiving notes from
+                            friends. Your yearbook will ship on the final day to receive notes,
+                            Jan 31st. </li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    {% include 'footer.html' %}
+
+{% endblock %}

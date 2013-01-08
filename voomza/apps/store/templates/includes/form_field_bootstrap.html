@@ -1,0 +1,63 @@
+{% if field %}
+    {% if field.errors %}
+        <div class="control-group error">
+    {% else %}
+        <div class="control-group">
+    {% endif %}
+
+        {% if label_class == 'checkbox' %}
+            <div class="controls">
+        {% endif %}
+        {% if show_label %}
+            <label class="{{ label_class }}" for="{{ field.id_for_label }}">
+                {#            {% if label_first %}#}
+                {{ field.label }}
+                {% if label_class != 'checkbox' %}</label>{% endif %}
+            {#            {% endif %}#}
+        {% endif %}
+        {% if label_class != 'checkbox' %}
+            <div class="controls">
+        {% endif %}
+
+        {% if prepend_val and append_val%}
+            <div class="input-prepend input-append">
+                <span class="add-on">{{ prepend_val }}</span>{{ field }}<span class="add-on">{{ append_val }}</span>
+            </div>
+        {% elif prepend_val %}
+            <div class="input-prepend">
+                <span class="add-on">{{ prepend_val }}</span>{{ field }}
+            </div>
+        {% elif append_val %}
+            <div class="input-append">
+                {{ field }}<span class="add-on">{{ append_val }}</span>
+            </div>
+        {% else %}
+            {{ field }}
+        {% endif %}
+
+        {% if show_help_text and field.help_text %}
+            <p class="help-block">{{ field.help_text }}</p>
+        {% endif %}
+
+        {% if field.errors %}
+            {% for error in field.errors %}
+                <p class="help-inline">{{ error }}</p>
+            {% endfor %}
+        {% endif %}
+{#        {% if label_class != 'checkbox' %}#}
+{#            </div>#}
+{#        {% endif %}#}
+    </div>
+
+    {% if show_label %}
+{#            Doesn't work ---    #}
+{#            {% if not label_first %}#}
+{#                {{ field.label }}#}
+{#            {% endif %}#}
+        {% if label_class == 'checkbox' %}
+            </label>
+        {% endif %}
+    {% endif %}
+
+    </div>
+{% endif %}
