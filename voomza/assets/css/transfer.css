@@ -1,0 +1,40 @@
+
+
+.transfer_message {
+	margin:auto ;
+	text-align:center;
+	width:30%;
+	height:281px;
+	border:solid 1px lightgray;
+	padding-top:20px;
+	padding-left:10px;
+	padding-right:10px;
+	-webkit-border-radius: 4px;
+	-moz-border-radius: 4px;
+	border-radius: 4px;
+	margin-top:40px;
+}
+
+.message_footer {
+	background-image: url('../img/divider_texture.png');
+	height:50px;
+	margin-top:30px;
+	margin-right:-10px;
+	margin-left:-10px;
+}
+
+.transfer_logo {
+	width:120px;
+	margin-top:7px;
+	float:right;
+	margin-right:10px;
+}
+
+.transfer_paragraph {
+	margin-bottom:30px;
+	margin-top:10px;
+}
+
+.transfer_header {
+	margin-top:20px;
+}

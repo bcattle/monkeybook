@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% load url from future %}
+
+{% block style_0 %}
+    <link href='{% static 'css/bootstrap.css' %}' rel='stylesheet' type='text/css'>
+{% endblock %}
+
+{% block style %}
+    <link href="{% static 'css/cabin_fjalla.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'css/open_sans.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'css/jquery.modal.css' %}" type="text/css" rel="stylesheet" media="all" />
+    <link href="{% static 'css/inbox.css' %}" rel="stylesheet" type="text/css">
+    <style type="text/css">
+        .toolbar_item {
+            padding-left:11px;
+            padding-right:11px;
+        }
+
+        .bold {
+            font-weight: bold;
+        }
+
+        .share_text {
+            border:solid 1px lightgray;
+            -webkit-border-radius: 3px;
+            -moz-border-radius: 3px;
+            border-radius: 3px;
+            color:lightgray;
+            padding-left:3px;
+        }
+    </style>
+{% endblock %}
+
+{% block body_tag %}
+    <body style="background-color:black">
+{% endblock %}
+
+{% block body %}
+
+    <div class="container">
+        <div class="navbar navbar-inverse" style="margin-top:10px">
+            <div class="navbar-inner inner_small_right">
+                <a class="brand" style="padding-top:4px;"id="brand_small" href="#">
+                    <img src="{% static 'img/yearbook_allstar.png' %}" width="90"></a>
+
+                {% if is_user_yearbook %}
+                    <ul class="nav" style="float:left">
+                        <li><a href="#">Inbox</a></li>
+                        <li class="divider-vertical"></li>
+                        <li><a class="toolbar_item" href="#">Hardcover</a></li>
+                        <li class="divider-vertical"></li>
+                        <li><a class="toolbar_item" href="#">Standard</a></li>
+                        <li class="divider-vertical"></li>
+                    </ul>
+                {% endif %}
+
+                <ul class="nav" style="float:right;margin-right:0">
+                    {% if is_user_yearbook %}
+                        <li><a class="toolbar_item" href="#edit_modal" rel="modal:open">Edit</a></li>
+                        <li class="divider-vertical"></li>
+                        <li><a class="toolbar_item" href="#share_modal" rel="modal:open">Share</a></li>
+                        <li class="divider-vertical"></li>
+                        <li class="active"><a class="toolbar_item bold" href="#">View Yearbook</a></li>
+
+                    {% else %}
+                        <li class="divider-vertical"></li>
+                        <li><a class="toolbar_item bold" href="#">My Yearbook</a></li>
+
+                    {% endif %}
+
+                    {% if not is_user_yearbook %}
+                        <div class="row">
+                            <div class="span12">
+                                <h1 class="headerfont" style="color:white;float:left">{{ owner.profile.facebook_user.first_name }}'s Yearbook</h1>
+                                <div style="float:right">
+                                    <a href="#sign_modal" rel="modal:open" class="btn btn-primary">Sign {{ owner.profile.facebook_user.first_name }}'s Yearbook</a>
+                                    <a class="btn btn-primary">Create my Yearbook</a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                </ul>
+            </div>
+        </div>
+
+        <div id="canvas">
+            <div id="book-zoom">
+                <div class="sj-book">
+                    <div depth="5" class="hard"><div class="side"></div></div>
+                    <div depth="5" class="hard front-side"><div class="depth"></div></div>
+                    <div class="hard fixed back-side p51"><div class="depth"></div></div>
+                    <div class="hard p52"></div>
+                </div>
+            </div>
+            <div id="slider-bar" class="turnjs-slider">
+                <div id="slider"></div>
+            </div>
+        </div>
+
+        {% if not is_user_yearbook %}
+            <div class="yearbook_footer" style="display: block;">
+                <a class="btn btn-mini btn-primary signYearbookButton">Sign yearbook</a>
+                <div style="clear:both;"></div>
+            </div>
+            <div class="yearbook_status_message yearbook_sending_message">sending</div>
+            <div class="yearbook_status_message yearbook_sent_message">
+                <img src="./FLOW_PAGE3_files/yes-24.png" class="sent_image">saved!
+            </div>
+        {% endif %}
+
+        <div class="footer_background_black" style="margin-top:40px">
+            <div class="container">
+                <div class="row">
+                    <div class="span12">
+                        <img src="{% static 'img/yearbook_allstar.png' %}" width="120" style="float:right; margin-top:10px">
+
+                        <div class="footer_column">
+                            <h6 class="headerfont"><a style="color:lightblue">About</a></h6>
+                            <h6 class="headerfont"><a style="color:lightblue">How it Works</a></h6>
+                            <h6 class="headerfont"><a style="color:lightblue">Contact Us</a></h6>
+                        </div>
+
+                        <div class="footer_bottom">
+                            <p>&copy; 2012 Voomza, Inc., All Rights Reserved</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# MODALS #}
+
+    {% if is_user_yearbook %}
+
+
+        <div id="edit_modal" style="display:none;">
+            <p class="googlefont">To edit photos and save your yearbook permanently, please upgrade to a Standard Cloud Yearbook.</p>
+            <img src="{% static 'img/cloud_upload.png' %}" width="160" style="float:left">
+            <h4 class="inbox_product_header" style="float:right;text-align:right">Standard Cloud Yearbook<br>$4.99</h4>
+            <div style="float:right">
+                <a class="btn btn-primary">Buy Now</a>
+                <a class="btn">Learn More</a>
+            </div>
+        </div>
+
+        <div id="share_modal" style="display:none;">
+            <p class="googlefont">Share this link with others:</p>
+            <p class="share_text">this is the link text</p>
+            <p class="googlefont">Or,</p>
+            <a class="btn btn-medium btn-primary"><img src="{% static 'img/f_logo.png' %}" width="16" style="margin-bottom:2px;margin-right:4px">Share to Facebook</a>
+        </div>
+
+    {% else %}
+
+        <div id="sign_modal" style="display:none;">
+            <div class="yearbook" style="">
+                <div class="yearbook_content">
+
+                    <img class="yearbook_photo" src="{{ owner.profile.facebook_user.pic_square }}">
+                    <h4 class="yearbook_name googlefont" style="display: block;">
+                        To {{ owner.profile.facebook_user.name }}:</h4>
+                    <textarea class="yearbook_input" placeholder="Sign {{ owner.profile.facebook_user.name }}'s yearbook" style="height: 46px;"></textarea>
+
+                    <div style="clear:both;"></div>
+                </div>
+            </div>
+        </div>
+
+    {% endif %}
+
+{% endblock %}
+
+
+{% block script %}
+    <script type="text/javascript" src="{% static 'js/jquery-1.7.2.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/jquery-ui-1.8.20.custom.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/jquery.mousewheel.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/jquery.modal.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/modernizr.2.5.3.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/hash.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/underscore-min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/next_prev_buttons.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/addpage-api.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/yearbook.js' %}"></script>
+
+    <script type="text/javascript">
+        var pagesUrl = "{% url 'api_dispatch_list' api_name='v1' resource_name='yearbookpage' hash=hash %}";
+
+        // Load turn.js
+        yepnope({
+            test : Modernizr.csstransforms,
+            yep: ["{% static 'js/turn.min.js' %}"],
+            nope: ["{% static 'js/turn.html4.min.js' %}", "{% static 'css/jquery.ui.html4.css' %}", "{% static 'css/turnjs-html4.css' %}"],
+            both: ["{% static 'css/jquery.ui.css' %}", "{% static 'css/turnjs.css' %}",
+                "{% static 'css/yearbook-pages.css' %}"],
+            complete: loadApp
+        });
+    </script>
+{% endblock %}

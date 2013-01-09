@@ -1,0 +1,29 @@
+#id_full_quantity {
+    width:36px;
+    height:18px;
+    font-size:8pt;
+    margin-bottom:4px;
+}
+
+.desc {
+    float:left;
+    margin-bottom:1px;
+    margin-top:2px;
+}
+
+.price {
+    float:right;
+    margin-bottom:1px;
+    margin-top:2px;
+}
+
+.qtySelect {
+    width: 44px;
+    height: 24px;
+    font-size: 8pt;
+    margin-bottom: 4px;
+}
+
+h4 {
+    margin-top: 30px;
+}

@@ -1,7 +1,7 @@
 <div class="top_status_container">
     <div class="top_status">
         <div class="top_status_text">
-            <img class="comment_image" src="{{ poster.pic_square }}" width="22px">
+            <img class="comment_image" src="{{ poster.pic_square }}" width="22">
             <h5 class="status_name">{{ poster.name }}</h5>
             <h5 class="status_message">{{ top_post.message|truncatechars:500 }}</h5>
         </div>
@@ -25,7 +25,7 @@
     {% for comment, commentor in comments_list %}
         {% if commentor.name %}
             <div class="comment_long">
-                <img class="comment_image" src="{{ commentor.pic_square }}" width="22px">
+                <img class="comment_image" src="{{ commentor.pic_square }}" width="22">
                 <h5>{{ commentor.name }}</h5>
                 <p class="comment_long_text">{{ comment.text }}</p>
             </div>

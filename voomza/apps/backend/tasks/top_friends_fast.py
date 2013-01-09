@@ -29,7 +29,7 @@ def top_friends_fast(user, run_yearbook=False):
         tag_score_by_user_id[tag['subject']] += 1 / tag_age
 
     # Sort
-    user_ids_in_order = sorted(tag_score_by_user_id.items(), key=lambda x: x[1], reverse=True)
+    user_ids_in_order = sorted(tag_score_by_user_id.items(), key=lambda x: x[1])
 
     # Reversing them means the index corresponds to top friends order
     top_friends_order_by_id = {}

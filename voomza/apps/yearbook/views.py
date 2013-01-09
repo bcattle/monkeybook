@@ -19,12 +19,15 @@ def homepage(request):
     """
     if request.user.is_authenticated():
         # If they haven't completed the invites page, send them there
-        if request.user.profile.current_page == 'invite_friends_to_sign':
-            return CanvasRedirect(reverse(request.user.profile.current_page))
+#        if request.user.profile.current_page == 'invite_friends_to_sign':
+#            return CanvasRedirect(reverse(request.user.profile.current_page))
 
         # Otherwise show the returning-user homepage
-        else:
-            return render(request, 'return_home.html', {})
+#        else:
+        context = {
+            'show_confirm_modal': request.GET.get('c') == 'order'
+        }
+        return render(request, 'return_home.html', context)
 
     else:
         return render(request, 'homepage.html', {})
@@ -35,7 +38,7 @@ def homepage(request):
 @ensure_csrf_cookie
 def invite_friends_to_sign(request,
                            template_name='invite_friends.html',
-                           next_view='transfer_screen'):
+                           next_view='homepage'):
     """
     User invites people to sgn their yearbook
     """
@@ -52,36 +55,10 @@ def invite_friends_to_sign(request,
         optional_fields_async = pull_user_profile.apply_async(kwargs={'user': request.user})
         request.session['optional_fields_async'] = optional_fields_async
 
-#    import ipdb
-#    ipdb.set_trace()
-
     context = {
         'next_view': next_view
     }
     return render(request, template_name, context)
-
-
-@login_required
-@facebook_required_lazy(canvas=True)
-@ensure_csrf_cookie
-def transfer_screen(request,
-                    template_name='transfer_screen.html'):
-    """
-    Page that sends user out of facebook to
-    the full site
-    """
-    return render(request, template_name)
-
-
-#@login_required
-#@facebook_required_lazy(canvas=True)
-#@ensure_csrf_cookie
-#def sign_friends(request,
-#                 template_name='sign_friends.html'):
-#    """
-#    User signs friends' yearbooks
-#    """
-#    return render(request, template_name)
 
 
 # No login required

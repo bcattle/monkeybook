@@ -1,0 +1,229 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% load url from future %}
+{% load compress %}
+
+{% block style_0 %}
+    <link href="{% static 'css/bootstrap.css' %}" rel="stylesheet" type="text/css">
+{% endblock %}
+
+{% block style %}
+    <link href="{% static 'css/jquery.modal.css' %}" rel="stylesheet" type="text/css" media="screen">
+    <link href="{% static 'css/inbox.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'css/footer.css' %}" rel="stylesheet" type="text/css">
+{% endblock %}
+
+{% block script %}
+
+    {#  TEMPLATES  #}
+
+    <script type="text/html" id="yearbook_message_template">
+        <div class="friend_sign_container">
+            <img class="friend_sign_photo"src="[[ from_facebook_user.pic_square ]]">
+            <h5 class="message_sender">[[ from_facebook_user.name ]]</h5>
+            <div style="clear:both;"></div>
+            <p class="friend_message">[[ &text ]]</p>
+        </div>
+        [[#can_sign]]
+        <div class="inbox_footer">
+            <a class="btn btn-mini btn-primary friend_sign_button modalNewSignBtn"
+               data-id="[[ from_facebook_user.facebook_id ]]">Sign back!</a>
+        </div>
+        [[/can_sign]]
+    </script>
+
+    <script type="text/html" id="yearbook_template">
+        <div class="yearbook" data-id="[[ facebook_id ]]">
+            <div class="yearbook_content">
+                <img class="yearbook_photo" src="[[ pic_square ]]">
+                <h4 class="yearbook_name googlefont" style="display: block;">To [[ name ]]:</h4>
+                <textarea class="yearbook_input" placeholder="Sign [[ name ]]'s yearbook"></textarea>
+                <div style="clear:both;"></div>
+            </div>
+            <div class="yearbook_footer">
+                <button class="btn btn-mini btn-primary signYearbookButton"
+                        data-id="[[ facebook_id ]]">Sign Yearbook</button>
+                <div style="clear:both;"></div>
+            </div>
+            <div class="yearbook_status_message yearbook_sending_message">sending</div>
+            <div class="yearbook_status_message yearbook_sent_message">
+                <img src="{% static 'img/yes-24.png' %}" class="sent_image"> saved!
+            </div>
+        </div>
+    </script>
+
+    {# Shown by typeahead when you're searching for someone you already signed #}
+    <script type="text/html" id="signed_yearbook_template">
+        <div class="signed_yearbook_result">
+            <div class="yearbook_status_message">
+                <img src="{% static 'img/yes-24.png' %}" class="sent_image">
+                you signed [[ name ]]'s
+            </div>
+        </div>
+    </script>
+
+    <script type="text/javascript" src="{% static 'js/jquery-1.7.2.min.js' %}"></script>
+    {% compress js %}
+        <script type="text/javascript" src="{% static 'js/yepnope.1.5.4-min.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/jquery.cookie.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/mustache.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/underscore-min.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/jquery.imagesloaded.min.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/jquery.scrollTo.min.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/jquery.modal.min.js' %}"></script>
+        <script type="text/javascript">
+            var signsUrl = "{% url 'api_dispatch_list' api_name='v1' resource_name='yearbooksign' %}";
+            var nextSignsUrl = signsUrl;
+            var yearbooksUrl = "{% url 'api_dispatch_list' api_name='v1' resource_name='yearbooktosign' %}";
+            var signedYearbooksUrl = "{% url 'api_dispatch_list' api_name='v1' resource_name='signedyearbook' %}";
+            var unSignedYearbooksUrl = "{% url 'api_dispatch_list' api_name='v1' resource_name='unsignedyearbook' %}";
+            var nextYearbooksUrl = yearbooksUrl;
+            var STACY_DATA = {
+                'from_facebook_user': {
+                    'name': 'Stacy, Yearbook Captain',
+                    'pic_square': '{% static 'img/yearbook_stacy.png' %}'
+                },
+                'can_sign': false,
+                'resource_uri': 'stacy',
+                'text': ['Hey! Congratuations on getting your yearbook. ',
+                    'You invited your friends to sign, soon this ',
+                    'area will start to fill up with their messages. ',
+                    'Come back to check on who\'s signed and Happy New Year! ',
+                    '- Stacy'].join('')
+            };
+
+            $(document).ready(function (){
+                // Load json2.js if we need it
+                yepnope({
+                    test: window.JSON,
+                    nope: '{% static 'js/json2.js' %}'
+                });
+
+                {% if show_confirm_modal %}
+                    $('#confirmation_modal').modal();
+                {% endif %}
+            });
+        </script>
+        <script type="text/javascript" src="{% static 'js/sign_friends.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/typeahead_yearbooks.js' %}"></script>
+    {% endcompress %}
+{% endblock %}
+
+
+{% block body %}
+    <div class="container">
+        {% include 'navbar_features.html' %}
+
+        <div class="row">
+            <div class="span12">
+                <h3 class="inbox_top_header">Sign your friends' yearbooks and get notes back.</h3>
+            </div>
+
+            <div class="span9">
+                <div>
+{#                <div class="inbox_wrapper">#}
+                    <div class="row">
+                        <div class="span4">
+                            <div style="border:solid 1px whitesmoke; width:100%; padding:5px">
+                                <h5 class="inbox_header">Inbox</h5>
+                                <div class="signs_list">
+
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="span5">
+                            <div style="border:solid 1px whitesmoke;width:100%;padding:5px;">
+                                <h5 class="inbox_header">Outbox</h5>
+                                <div class="yearbooks_list">
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="span3">
+                <div class="inbox_products_wrapper">
+                    <h5 class="product_div_header">Most Popular</h5>
+                    <div class="inbox_product">
+                        <img src="{% static 'img/hardcover_abridged.jpg' %}" width="156">
+                        <h5 class="inbox_product_header">Abridged Hardcover<br>$39.99</h5>
+                        <a class="btn btn-mini btn-primary">Buy Now</a>
+                        <a class="btn btn-mini" href="{% url 'hardcover_feature' %}#abridged">Learn More</a>
+                    </div>
+                    <div class="inbox_product">
+                        <img src="{% static 'img/hardcover_photobook.jpg' %}" width="156">
+                        <h5 class="inbox_product_header">Hardcover<br>$79.99</h5>
+                        <a class="btn btn-mini btn-primary">Buy Now</a>
+                        <a class="btn btn-mini" href="{% url 'hardcover_feature' %}">Learn More</a>
+                    </div>
+                    <div class="inbox_product">
+                        <img src="{% static 'img/cloud_upload.png' %}" width="160">
+                        <h5 class="inbox_product_header">Standard Cloud Yearbook<br>$4.99</h5>
+                        <a class="btn btn-mini btn-primary">Buy Now</a>
+                        <a class="btn btn-mini" href="{% url 'standard_feature' %}">Learn More</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    {% include 'footer.html' %}
+
+    {#  MODALS  #}
+
+    <div id="edit_modal" style="display:none;">
+        <p class="googlefont">To edit photos and save your yearbook permanently, please upgrade to a Standard Cloud Yearbook.</p>
+        <img src="{% static 'img/cloud_upload.png' %}" width="160" style="float:left">
+        <h4 class="inbox_product_header" style="float:right;text-align:right">Standard Cloud Yearbook<br>$4.99</h4>
+        <div style="float:right">
+            <a class="btn btn-primary">Buy Now</a>
+            <a class="btn">Learn More</a>
+        </div>
+    </div>
+
+
+    <div id="share_modal" style="display:none;">
+        <p class="googlefont">Share this link with others:</p>
+        <p style="border:solid 1px lightgray;-webkit-border-radius: 3px;
+			-moz-border-radius: 3px;
+			border-radius: 3px;color:lightgray;padding-left:3px">this is the link text</p>
+        <p class="googlefont">Or,</p>
+        <a class="btn btn-medium btn-primary">
+            <img src="{% static 'img/f_logo.png' %}" width="16" style="margin-bottom:2px;margin-right:4px">Share to Facebook</a>
+    </div>
+
+    <div id="transfer_modal" style="display:none;">
+        <h3 class="transfer_header">Happy 2013! <br>From your dashboard, you can:</h3>
+        <p class="transfer_steps"><img src="{% static 'img/number_1.png' %}" width="30">Send and receive yearbook notes from friends</p>
+        <p class="transfer_steps"><img src="{% static 'img/number_2.png' %}" width="30">View your yearbook</p>
+        <p class="transfer_steps_end"><img src="{% static 'img/number_3.png' %}" width="30">Upgrade to edit photos or buy hardcover</p>
+
+        <img src="{% static 'img/logo_new1.png' %}" width="90">
+        <a href="#" rel="modal:close"><button class="btn btn-medium btn-primary" style="float:right">Continue</button></a>
+    </div>
+
+    <div id="referral_modal" style="display:none;">
+        <img src="pics/ethan_50_50.png" style="float:left;margin-right:10px;margin-bottom:2px" >
+        <h4 style="margin-top:0;margin-bottom:14px">Welcome! Ethan Montoya has invited you to Yearbook All-Star.</h4>
+        <p class="googlefont">To sign Ethan's yearbook and create your own, get started below! With no work from you, we'll turn your Facebook photos into 50 awesome pages all about you, and it's free!</p>
+
+        <img src="{% static 'img/logo_new1.png' %}" width="90">
+        <a href="#"><button class="btn btn-medium btn-primary" style="float:right">Create Yearbook!</button></a>
+        <a href="#" rel="modal:close"><button class="btn btn-medium " style="float:right;margin-right:4px">See Example</button></a>
+    </div>
+
+    {% if show_confirm_modal %}
+    <div id="confirmation_modal" class="modal" style="display:none;">
+        <h3 class="transfer_header">Your order is complete!</h3>
+        <p class="transfer_steps">You are now able to edit your photos and your yearbook will be saved permanently on our cloud servers.<br><br>For hardcovers, your order will be shipped on Jan 31, the last day for friends to sign. We'll email you a reminder prior to shipping day. <br><br></p>
+
+        <img src="{% static 'img/logo_new1.png' %}" width="90">
+        <a href="#"><button class="btn btn-medium btn-primary" style="float:right">Return to Dashboard</button></a>
+    </div>
+    {% endif %}
+
+{% endblock %}

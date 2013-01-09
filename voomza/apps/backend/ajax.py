@@ -9,10 +9,48 @@ from tastypie.exceptions import NotFound
 from tastypie.http import HttpNotFound
 from tastypie.resources import Resource
 from tastypie.authorization import ReadOnlyAuthorization
-from tastypie.authentication import Authentication
-from tastypie.api import Api
+from tastypie.authentication import Authentication, SessionAuthentication
 from tastypie.utils.urls import trailing_slash
+from voomza.apps.backend.progress import YearbookProgress
 from voomza.apps.yearbook.pages import *
+
+
+class YearbookProgressResource(Resource):
+    """
+    Returns the status of the user's yearbook
+    running if async in session, or done if
+    async done or model exists in db
+    """
+    status = fields.CharField(attribute='get_status', readonly=True)
+
+    class Meta:
+        resource_name = 'yearbook_progress'
+        object_class = YearbookProgress
+        list_allowed_methods = ['get']
+        detail_allowed_methods = ['get']
+        include_resource_uri = False
+        authentication = SessionAuthentication()
+        authorization = ReadOnlyAuthorization()
+
+    def obj_get_list(self, request=None, **kwargs):
+        """
+        Runs before filters
+        """
+        return self.get_object_list(request)
+
+    def get_object_list(self, request):
+        """
+        Runs after filters
+        """
+        return [self.obj_get(request=request)]
+
+    def obj_get(self, request=None, **kwargs):
+        """
+        Fetches an individual object on the resource.
+        If the object can not be found this should raise a NotFound exception
+        """
+        progress = YearbookProgress(request=request)
+        return progress
 
 
 class PageResource(Resource):
@@ -98,7 +136,8 @@ class PageResource(Resource):
         context = bundle.obj.get_page_content()
         # Render the template
         template = PAGE_TEMPLATE_DIR + bundle.obj.template
-        bundle.data['page_content'] = render(bundle.request, template, context).strip()
+#        bundle.data['page_content'] = render(bundle.request, template, context).strip()
+        bundle.data['page_content'] = render_to_string(template, context, RequestContext(bundle.request)).strip()
         return bundle
 
 
@@ -129,5 +168,7 @@ class PageResource(Resource):
         return HttpNotFound()
 
 
-v1_api = Api(api_name='v1')
-v1_api.register(PageResource())
+# API registered in yearbook/ajax.py
+#v1_api = Api(api_name='v1')
+#v1_api.register(PageResource())
+#v1_api.register(YearbookProgressResource())

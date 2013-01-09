@@ -3,11 +3,19 @@ var signsList = null;
 var yearbookTemplate = null;
 var yearbooksList = null;
 
+var csrftoken = $.cookie('csrftoken');
+function csrfSafeMethod(method) {
+    // these HTTP methods do not require CSRF protection
+    return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+}
+
 $(document).ready(function(){
+    Mustache.tags = ['[[', ']]'];
+
     signsList = $('.signs_list');
     yearbooksList = $('.yearbooks_list');
     // Load templates
-    signTemplate = $('#sign_template').html();
+    signTemplate = $('#yearbook_message_template').html();
     yearbookTemplate = $('#yearbook_template').html();
     yearbookMessageTemplate = $('#yearbook_message_template').html();
     // Pull their signs and yearbooks
@@ -62,24 +70,6 @@ function onGetSignsError(jqXHR, textStatus, errorThrown) {
 }
 
 function registerYearbookSignHandlers() {
-    $('.viewSignBtn').click(function() {
-        // Unhide the loading message
-        $('.yearbook_message_modal_loading').show();
-
-        var data_uri = $(this).data('uri');
-        if (data_uri != 'stacy') {
-            // Request message from server
-            $.ajax({
-                url: data_uri,
-                success: onViewSignRecieved,
-                error: onViewSignError
-            });
-        } else {
-            onViewSignRecieved(STACY_DATA);
-        }
-        // Show modal with loading spinner
-        $('#yearbook_message_modal').modal();
-    });
     $('.newSignBtn').click(function() {
         // Does user already have an entry in rt-hand column?
         var curr_yearbook = getExistingElementById($(this).data('id'));
@@ -96,48 +86,6 @@ function registerYearbookSignHandlers() {
             jqXHR.prepend = true;
         }
     });
-}
-
-function onViewSignRecieved(data, textStatus, jqXHR) {
-    // Called when server responds with yearbook sign message
-    // Hide the loading message
-    $('.yearbook_message_modal_loading').hide();
-    // Ditch any old message
-    var modal_body = $('.yearbook_message_modal_body');
-    modal_body.empty();
-    // Render with recvd data
-    modal_body.append(Mustache.to_html(yearbookMessageTemplate, data));
-    registerModalHandlers();
-}
-
-function registerModalHandlers() {
-    // Registers handlers to create new yearbook sign from modal
-    $('.modalNewSignBtn').click(function() {
-        // Hide the button
-        $(this).hide();
-        // Show the sign input
-        $('.message_sign_input_container').slideDown(500);
-    });
-    $('.modal_yearbook_input').focus(function(){
-        $(this).animate({height: '80px'}, 500);
-    });
-    $('.signYearbookButtonModal').click(function (){
-        var container = $(this).parents('.message_sign_input_container');
-        // Collapse the input and show the sending message
-        container.find('.modal_yearbook_content').slideUp(500);
-        container.find('.yearbook_sending_message').show();
-        // Send the yearbook sign
-        sendYearbookSign(
-            $(this).data('id'),
-            container.find('.modal_yearbook_input').val(),
-            onModalYearbookSignSent,
-            onModalYearbookSignError
-        );
-    });
-}
-
-function onViewSignError(jqXHR, textStatus, errorThrown) {
-    // TODO
 }
 
 function onModalYearbookSignSent(data, textStatus, jqXHR) {
@@ -212,7 +160,7 @@ function registerYearbookInputHandlers() {
             currInput = newInput;
             var yearbook = currInput.parents('.yearbook');
             // Show name label
-            yearbook.find('.yearbook_name').slideDown(500);
+//            yearbook.find('.yearbook_name').slideDown(500);
             // Slide open textarea
             currInput.animate({height: '122px'}, 500, 'swing', function(){
                 // Scroll to this yearbook
@@ -230,9 +178,9 @@ function closeInput(input) {
     // Slides the input element shut
     var yearbook = input.parents('.yearbook');
     // Hide name label if they haven't typed anything
-    if (!input.val().length) {
-        yearbook.find('.yearbook_name').slideUp(500);
-    }
+//    if (!input.val().length) {
+//        yearbook.find('.yearbook_name').slideUp(500);
+//    }
     // Slide back textarea
     input.animate({height: '40px'}, 500);
     input.scrollTop(0);
@@ -261,10 +209,6 @@ function onSubmitButtonClicked(e) {
         if (filterActive)
             clearFilter();
     }
-//    } else {
-//        // If there was no value, re-attach the event handler
-//        el.one('click', onSubmitButtonClicked);
-//    }
 }
 
 var lastSendYearbookData;

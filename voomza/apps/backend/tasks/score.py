@@ -18,6 +18,6 @@ def post_score(post):
 
 def comment_score(comment):
     score =\
-        COMMENT_I_LIKE_POINTS * comment['likes'] +\
-        COMMENT_LIKE_POINTS * (1 if comment['user_likes'] else 0)
+        COMMENT_POINTS_I_LIKE * comment['likes'] +\
+        COMMENT_POINTS_FOR_LIKE * (1 if comment['user_likes'] else 0)
     return score

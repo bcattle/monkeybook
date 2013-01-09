@@ -108,11 +108,11 @@
 
 .message_sender {
 	width:180px;
-	margin-top:-3px;
-	margin-bottom:20px;
+	/*margin-top:-3px;*/
+	margin-bottom:0;
 	margin-left:2px;
 	overflow:hidden;
-
+    float:left;
 }
 
 .message_btns {
@@ -224,3 +224,6 @@
 
 }
 
+.googlefont {
+    font-family: 'Open Sans', sans-serif;
+}

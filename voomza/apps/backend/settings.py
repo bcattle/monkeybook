@@ -28,6 +28,8 @@ COMMENT_POINTS_FOR_MADE_BY_ME       = 7
 COMMENT_POINTS_FOR_COMMENT          = 5
 COMMENT_POINTS_FOR_LIKE             = 1
 COMMENTS_TO_PULL                    = 4
+# Used in rendering yb
+COMMENT_POINTS_I_LIKE               = 3
 
 GROUP_PHOTO_IS              = 4     # How many people are in a group photo?
 NUM_GROUP_PHOTOS            = 3

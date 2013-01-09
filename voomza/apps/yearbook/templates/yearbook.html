@@ -7,11 +7,42 @@
 {% endblock %}
 
 {% block style_0 %}
+    <link href='{% static 'css/jquery.modal.css' %}' rel='stylesheet' type='text/css'>
     <link href='{% static 'css/bootstrap.css' %}' rel='stylesheet' type='text/css'>
+    <link href='{% static 'css/open_sans.css' %}' rel='stylesheet' type='text/css'>
+    <link href='{% static 'css/cabin_fjalla.css' %}' rel='stylesheet' type='text/css'>
+    <link href='{% static 'css/inbox.css' %}' rel='stylesheet' type='text/css'>
 {% endblock %}
 
+{% block body_tag %}
+    <body style="background-color:black; min-height:100%;">
+{% endblock %}
 
 {% block body %}
+    <div class="container">
+        <div class="navbar navbar-inverse" style="margin-top:10px">
+            <div class="navbar-inner inner_small_right">
+                <a class="brand" style="padding-top:4px;"id="brand_small" href="#"><img src="{% static 'img/yearbook_allstar.png' %}" width="90px"></a>
+                <ul class="nav" style="float:left">
+                    <li><a href="#">Inbox</a></li>
+                    <li class="divider-vertical"></li>
+                    <li><a style="padding-left:11px;padding-right:11px"href="#">Hardcover</a></li>
+                    <li class="divider-vertical"></li>
+                    <li><a style="padding-left:11px;padding-right:11px"href="#">Standard</a></li>
+                    <li class="divider-vertical"></li>
+                </ul>
+
+                <ul class="nav" style="float:right;margin-right:0px">
+                    <li><a style="padding-left:11px;padding-right:11px"href="#edit_modal" rel="modal:open">Edit</a></li>
+                    <li class="divider-vertical"></li>
+                    <li><a style="padding-left:11px;padding-right:11px"href="#share_modal" rel="modal:open">Share</a></li>
+                    <li class="divider-vertical"></li>
+                    <li  class="active"><a style="padding-left:11px;padding-right:11px"href="#"><b>View Yearbook</b></a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
     <div id="canvas">
         <div id="book-zoom">
             <div class="sj-book">
@@ -26,9 +57,29 @@
         </div>
     </div>
 
-    <div>
-        <h1>The story of you in 2012</h1>
+    <div class="footer_background_black" style="margin-top:40px">
+        <div class="container">
+            <div class="row">
+                <div class="span12">
+                    <img src="{% static 'img/yearbook_allstar.png' %}" width="120px" style="float:right; margin-top:10px">
+                    <div class="footer_column">
+                        <h6 class="headerfont"><a style="color:lightblue">About</a></h6>
+                        <h6 class="headerfont"><a style="color:lightblue">How it Works</a></h6>
+                        <h6 class="headerfont"><a style="color:lightblue">Contact Us</a></h6>
+                    </div>
+
+                    <div class="footer_bottom">
+                        <p>&copy; 2012 Voomza, Inc., All Rights Reserved</p>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
+
+    {# MODALS #}
+
+    {% include 'includes/edit_modal.html' %}
+    {% include 'includes/share_modal.html' %}
 
 {% endblock %}
 
@@ -45,6 +96,7 @@
 {#    </script>#}
 
     <script type="text/javascript" src="{% static 'js/jquery-1.7.2.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/jquery.modal.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/jquery-ui-1.8.20.custom.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/jquery.mousewheel.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/modernizr.2.5.3.min.js' %}"></script>
@@ -52,18 +104,17 @@
     <script type="text/javascript" src="{% static 'js/underscore-min.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/next_prev_buttons.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/addpage-api.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/yearbook-ux.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/yearbook.js' %}"></script>
 
     <script type="text/javascript">
         var pagesUrl = "{% url 'api_dispatch_list' api_name='v1' resource_name='yearbookpage' hash=hash %}";
 
-        // Load turn.js
         yepnope({
             test : Modernizr.csstransforms,
             yep: ["{% static 'js/turn.min.js' %}"],
-            nope: ["{% static 'js/turn.html4.min.js' %}", "{% static 'css/jquery.ui.html4.css' %}", "{% static 'css/turnjs-html4.css' %}"],
-            both: ["{% static 'css/jquery.ui.css' %}", "{% static 'css/turnjs.css' %}",
-                "{% static 'css/yearbook-pages.css' %}"],
+            nope: ["{% static 'js/turn.html4.min.js' %}", "{% static 'css/jquery.ui.html4.css' %}", "{% static 'css/steve-jobs-html4.css' %}"],
+            both: ["{% static 'css/jquery.ui.css' %}", "{% static 'css/steve-jobs.css' %}"],
             complete: loadApp
         });
     </script>

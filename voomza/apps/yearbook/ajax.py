@@ -4,7 +4,7 @@ from tastypie.authentication import SessionAuthentication
 from tastypie.api import Api
 from voomza.apps.yearbook.models import InviteRequestSent, YearbookSign
 from voomza.apps.account.models import FacebookUser
-from voomza.apps.backend.ajax import PageResource
+from voomza.apps.backend.ajax import PageResource, YearbookProgressResource
 
 
 class FriendResource(ModelResource):
@@ -139,3 +139,4 @@ v1_api.register(YearbookToSignResource())
 v1_api.register(UnsignedYearbookResource())
 v1_api.register(SignedYearbookResource())
 v1_api.register(PageResource())
+v1_api.register(YearbookProgressResource())

@@ -162,11 +162,14 @@ class TopFriendNamePage(PhotoPage):
     def page_content(self):
         # De-reference the field and return
         # the user's first name and stat
-        photo_list = self.yearbook.get_photo_from_field_string(
+        friend_id = self.yearbook.get_photo_from_field_string(
             self.ranking_table_name, self.index_field_name
         )
-        if photo_list:
-            friend_id = photo_list[0]['subject']
+#        photo_list = self.yearbook.get_photo_from_field_string(
+#            self.ranking_table_name, self.index_field_name
+#        )
+#        if photo_list:
+        if friend_id:
             try:
                 friend = FacebookUser.objects.get(facebook_id=friend_id)
                 friend_stat = getattr(self.yearbook, self.stat_field)
@@ -224,8 +227,9 @@ class AlbumPage(PhotoPage):
             # Manually get the album index
             # self.field_prefix = 'top_album_1.top_album_1'
             album_index = getattr(self.yearbook, self.field_prefix.split('.')[0])
-            album_info = self.yearbook.rankings.top_albums_info[album_index]
-            album_name = album_info['name']
+            album_info = self.yearbook.rankings.top_albums_ranked[album_index]
+#            album_name = album_info['name']
+            album_name = ''
 
         page_content = {
             'photos': photos,
@@ -314,7 +318,7 @@ class TopStatusPage(FieldPage):
         super(FieldPage, self).__init__(**kwargs)
 
     def page_content(self):
-        top_post = self.yearbook.top_post
+        top_post = self.yearbook.rankings.top_posts[self.yearbook.top_post]
         # Parse the date into a datetime
         top_post['created_time'] = dateutil.parser.parse(top_post['created_time'])
         # Resolve the user ids of the poster and the people who commented
@@ -407,21 +411,23 @@ class YearbookPageFactory(object):
             PhotoWithCommentPage( page=7,  ranking_name='top_photos',             field_name='top_photo_3'),
             PhotoWithCommentPage( page=8,  ranking_name='top_photos',             field_name='top_photo_4'),
             PhotoWithCommentPage( page=9,  ranking_name='top_photos',             field_name='top_photo_5'),
-            StaticPage(           page=10),
-            PhotoPage(            page=11, ranking_name='top_photos_first_half',  field_name='first_half_photo_1',  force_landscape=True),
-            PhotoPageDoublePort(  page=12, ranking_name='top_photos_first_half',  field_name='first_half_photo_2',  field_name_2='first_half_photo_4'),
-            PhotoPageDoublePort(  page=13, ranking_name='top_photos_first_half',  field_name='first_half_photo_3',  field_name_2='first_half_photo_5'),
-            StaticPage(           page=14),
-            PhotoPage(            page=15, ranking_name='top_photos_second_half', field_name='second_half_photo_1', force_landscape=True),
-            PhotoPageDoublePort(  page=16, ranking_name='top_photos_second_half', field_name='second_half_photo_2', field_name_2='second_half_photo_4'),
-            PhotoPageDoublePort(  page=17, ranking_name='top_photos_second_half', field_name='second_half_photo_3', field_name_2='second_half_photo_5'),
             # Group photos
-            StaticPage(           page=18),
-            PhotoPage(            page=19, ranking_name='group_shots',            field_name='group_photo_1',       force_landscape=True),
+            StaticPage(           page=10),
+            PhotoPage(            page=11, ranking_name='group_shots',            field_name='group_photo_1',       force_landscape=True),
+            PhotoWithCommentPage( page=12, ranking_name='group_shots',            field_name='group_photo_2'),
+            PhotoWithCommentPage( page=13, ranking_name='group_shots',            field_name='group_photo_3'),
+            # Year photos
+            StaticPage(           page=14),
+            PhotoPage(            page=15, ranking_name='top_photos',             field_name='year_photo_1',  force_landscape=True),
+            PhotoPageDoublePort(  page=16, ranking_name='top_photos',             field_name='year_photo_2',  field_name_2='year_photo_6'),
+            PhotoPageDoublePort(  page=17, ranking_name='top_photos',             field_name='year_photo_3',  field_name_2='year_photo_7'),
+            PhotoPageDoublePort(  page=18, ranking_name='top_photos',             field_name='year_photo_4',  field_name_2='year_photo_8'),
+            PhotoPageDoublePort(  page=19, ranking_name='top_photos',             field_name='year_photo_5',  field_name_2='year_photo_9'),
+
             StaticPage(           page=20),
-            AlbumPage(            page=21, ranking_name='top_albums',    field_prefix='top_album_1.top_album_1', max_photos=ALBUM_PHOTOS_TO_SHOW, template='album_page_1.html'),
-            AlbumPage(            page=22, ranking_name='top_albums',    field_prefix='top_album_2.top_album_2', max_photos=ALBUM_PHOTOS_TO_SHOW, template='album_page_2.html'),
-            AlbumPage(            page=23, ranking_name='top_albums',    field_prefix='top_album_3.top_album_3', max_photos=ALBUM_PHOTOS_TO_SHOW, template='album_page_3.html'),
+            AlbumPage(            page=21, ranking_name='top_albums_photos',    field_prefix='top_album_1.top_album_1', max_photos=ALBUM_PHOTOS_TO_SHOW, template='album_page_1.html'),
+            AlbumPage(            page=22, ranking_name='top_albums_photos',    field_prefix='top_album_2.top_album_2', max_photos=ALBUM_PHOTOS_TO_SHOW, template='album_page_2.html'),
+            AlbumPage(            page=23, ranking_name='top_albums_photos',    field_prefix='top_album_3.top_album_3', max_photos=ALBUM_PHOTOS_TO_SHOW, template='album_page_3.html'),
             StaticPage(           page=24),
             StaticPage(           page=25),
             StaticPage(           page=26),
@@ -439,16 +445,16 @@ class YearbookPageFactory(object):
             MultiAlbumPage(       page=31, ranking_name='back_in_time', field_prefix='back_in_time', max_photos=1, max_albums=NUM_PREV_YEARS,   template='back_in_time_right.html'),
             StaticPage(           page=32),
             StaticPage(           page=33),
-            TopFriendNamePage(    page=34, ranking_name='top_friends', field_name='top_friend_1',      stat_field='top_friend_1_stat'),
-            AlbumPage(            page=35, ranking_name='top_friends', field_prefix='top_friend_1.top_friend_1', max_photos=TOP_FRIEND_PHOTOS_TO_SHOW,  template='lands_sq_port_dbl_port_full_bleed.html', get_album_name=False),
-            TopFriendNamePage(    page=36, ranking_name='top_friends', field_name='top_friend_2',      stat_field='top_friend_2_stat'),
-            AlbumPage(            page=37, ranking_name='top_friends', field_prefix='top_friend_2.top_friend_2', max_photos=TOP_FRIEND_PHOTOS_TO_SHOW,  template='lands_sq_port_dbl_port_full_bleed.html', get_album_name=False),
-            TopFriendNamePage(    page=38, ranking_name='top_friends', field_name='top_friend_3',      stat_field='top_friend_3_stat'),
-            AlbumPage(            page=39, ranking_name='top_friends', field_prefix='top_friend_3.top_friend_3', max_photos=TOP_FRIEND_PHOTOS_TO_SHOW,  template='lands_sq_port_dbl_port_full_bleed.html', get_album_name=False),
-            TopFriendNamePage(    page=40, ranking_name='top_friends', field_name='top_friend_4',      stat_field='top_friend_4_stat'),
-            AlbumPage(            page=41, ranking_name='top_friends', field_prefix='top_friend_4.top_friend_4', max_photos=TOP_FRIEND_PHOTOS_TO_SHOW,  template='lands_sq_port_dbl_port_full_bleed.html', get_album_name=False),
-            TopFriendNamePage(    page=42, ranking_name='top_friends', field_name='top_friend_5',      stat_field='top_friend_5_stat'),
-            AlbumPage(            page=43, ranking_name='top_friends', field_prefix='top_friend_5.top_friend_5', max_photos=TOP_FRIEND_PHOTOS_TO_SHOW,  template='lands_sq_port_dbl_port_full_bleed.html', get_album_name=False),
+            TopFriendNamePage(    page=34, ranking_name='top_friends_ids', field_name='top_friend_1',      stat_field='top_friend_1_stat'),
+            AlbumPage(            page=35, ranking_name='top_friends_photos', field_prefix='top_friend_1.top_friend_1', max_photos=TOP_FRIEND_PHOTOS_TO_SHOW,  template='lands_sq_port_dbl_port_full_bleed.html', get_album_name=False),
+            TopFriendNamePage(    page=36, ranking_name='top_friends_ids', field_name='top_friend_2',      stat_field='top_friend_2_stat'),
+            AlbumPage(            page=37, ranking_name='top_friends_photos', field_prefix='top_friend_2.top_friend_2', max_photos=TOP_FRIEND_PHOTOS_TO_SHOW,  template='lands_sq_port_dbl_port_full_bleed.html', get_album_name=False),
+            TopFriendNamePage(    page=38, ranking_name='top_friends_ids', field_name='top_friend_3',      stat_field='top_friend_3_stat'),
+            AlbumPage(            page=39, ranking_name='top_friends_photos', field_prefix='top_friend_3.top_friend_3', max_photos=TOP_FRIEND_PHOTOS_TO_SHOW,  template='lands_sq_port_dbl_port_full_bleed.html', get_album_name=False),
+            TopFriendNamePage(    page=40, ranking_name='top_friends_ids', field_name='top_friend_4',      stat_field='top_friend_4_stat'),
+            AlbumPage(            page=41, ranking_name='top_friends_photos', field_prefix='top_friend_4.top_friend_4', max_photos=TOP_FRIEND_PHOTOS_TO_SHOW,  template='lands_sq_port_dbl_port_full_bleed.html', get_album_name=False),
+            TopFriendNamePage(    page=42, ranking_name='top_friends_ids', field_name='top_friend_5',      stat_field='top_friend_5_stat'),
+            AlbumPage(            page=43, ranking_name='top_friends_photos', field_prefix='top_friend_5.top_friend_5', max_photos=TOP_FRIEND_PHOTOS_TO_SHOW,  template='lands_sq_port_dbl_port_full_bleed.html', get_album_name=False),
 
             # Friends collage
             # really a two-page spread

@@ -52,7 +52,7 @@ function addCheckboxClickCallback(el) {
 function onGetFriendsError(jqXHR, textStatus, errorThrown) {
     if (!loaded) {
         // If there was an error, just redirect to the next page
-        top.location.href = nextUrl;
+//        top.location.href = nextUrl;
     }
 }
 

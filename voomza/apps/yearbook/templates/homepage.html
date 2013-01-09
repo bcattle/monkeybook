@@ -162,50 +162,50 @@
             </div>
         </div>
     </div>
+</div>
 
-    <div class="page_divider">
-    </div>
+<div class="page_divider">
+</div>
 
-    <div class="textured_background">
-        <div class="container">
-            <div class="row">
-                <a name="howworks"></a>
-                <img style="float:left"src="{% static 'img/vintage_player.gif' %}" width="360">
-                <h1 class="home_header"style="text-align:right" id="howitworks">Inside the Photomatic Yearbook </h1>
-                <h3 class="home_header gray" style="margin-bottom:50px; text-align:right">How we create 50 pages about you in 4 clicks.</h3>
+<div class="textured_background">
+    <div class="container">
+        <div class="row">
+            <a name="howworks"></a>
+            <img style="float:left"src="{% static 'img/vintage_player.gif' %}" width="360">
+            <h1 class="home_header"style="text-align:right; margin-right:140px" id="howitworks">Inside the Photomatic Yearbook </h1>
+            <h3 class="home_header gray" style="margin-bottom:50px; text-align:right; margin-right:140px">How we create 50 pages about you in 4 clicks.</h3>
 
-                <div class="span3 offset1 process_wrapper">
-                    <div class="process_photo_wrapper">
-                        <img class="margin_right"src="{% static 'img/comment_icon.png' %}" width="60">
-                        <img src="{% static 'img/f_logo.png' %}" width="45">
-                        <img src="{% static 'img/photo_icon.png' %}" width="65">
-                    </div>
-
-                    <h4>Facebook Photos</h4>
-                    <p class="home_paragraph process_details">Once you get started, we'll ask for your permission
-                        to use your Facebook photos and your comments. We use your pre-existing photos so you never
-                        have to upload a single photo.</p>
+            <div class="span3 offset1 process_wrapper">
+                <div class="process_photo_wrapper">
+                    <img class="margin_right"src="{% static 'img/comment_icon.png' %}" width="60">
+                    <img src="{% static 'img/f_logo.png' %}" width="45">
+                    <img src="{% static 'img/photo_icon.png' %}" width="65">
                 </div>
 
+                <h4>Facebook Photos</h4>
+                <p class="home_paragraph process_details">Once you get started, we'll ask for your permission
+                    to use your Facebook photos and your comments. We use your pre-existing photos so you never
+                    have to upload anything.</p>
+            </div>
 
-                <div class="span3 process_wrapper">
 
-                    <div class="process_photo_wrapper">
-                        <img src="{% static 'img/algo_2.png' %}">
-                    </div>
+            <div class="span3 process_wrapper">
 
-                    <h4>Algorithmic Logic </h4>
-                    <p class="home_paragraph process_details">We use a series of ranking algorithms to determine the
-                        relevance and importance of your Facebook photos. Then we select your top photos and distribute
-                        them across 50 pages of unique design layouts.</p>
+                <div class="process_photo_wrapper">
+                    <img src="{% static 'img/algo_2.png' %}">
                 </div>
+
+                <h4>Algorithmic Logic </h4>
+                <p class="home_paragraph process_details">We use clever algorithms to find your best Facebook photos.
+                    Then we arrange them across 50 pages of unique design layouts, creating a totally unique book
+                    that is all about you.</p>
             </div>
         </div>
     </div>
-
-    {% include 'footer.html' %}
-
 </div>
+
+{% include 'footer.html' %}
+
 
 {% endblock %}
 

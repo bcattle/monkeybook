@@ -1,22 +1,26 @@
-/* Steve jobs' book */
-
 @font-face {
     font-family: 'Reenie Beanie';
     font-style: normal;
     font-weight: 400;
-    src: local('Reenie Beanie'), local('ReenieBeanie'), url(https://yearbook-allstar.s3.amazonaws.com/fonts/reeniebeanie.woff) format('woff');
+    src: local('Reenie Beanie'), local('ReenieBeanie'), url(../fonts/reeniebeanie.woff) format('woff');
 }
 @font-face {
     font-family: 'Bad Script';
     font-style: normal;
     font-weight: 400;
-    src: local('Bad Script Regular'), local('BadScript-Regular'), url(https://yearbook-allstar.s3.amazonaws.com/fonts/badscript.woff) format('woff');
+    src: local('Bad Script Regular'), local('BadScript-Regular'), url(../fonts/badscript.woff) format('woff');
 }
 @font-face {
     font-family: 'Nothing You Could Do';
     font-style: normal;
     font-weight: 400;
-    src: local('Nothing You Could Do'), local('NothingYouCouldDo'), url(https://yearbook-allstar.s3.amazonaws.com/fonts/nothingyoucoulddo.woff) format('woff');
+    src: local('Nothing You Could Do'), local('NothingYouCouldDo'), url(../fonts/nothingyoucoulddo.woff) format('woff');
+}
+@font-face {
+    font-family: 'Cabin';
+    font-style: normal;
+    font-weight: 600;
+    src: local('Cabin SemiBold'), local('Cabin-SemiBold'), url(../fonts/cabin-semibold.woff) format('woff');
 }
 
 body, ul, table, form{
@@ -36,7 +40,7 @@ body, ul, table, form{
 #canvas{
 	width: 940px;
 	height: 400px;
-	margin-top: 0px;
+	margin-top: 0;
 	margin-left: auto;
 	margin-right:auto;
 
@@ -111,23 +115,23 @@ body, ul, table, form{
 
 .sj-book .p2 {
 background-color:white;
-background-image:url(../pics/page_2_940.jpg) !important;
+background-image:url(../img/pages/page_2_940.jpg) !important;
 }
 
 
 .sj-book .p1 {
-	background-image:url(../pics/cover_940.jpg) !important;
+	background-image:url(../img/pages/cover_940.jpg) !important;
 }
 
 .sj-book .p51 {
 	background-color:white;
-	background-image:url(../pics/page_51_940.jpg)!important;
+	background-image:url(../img/pages/page_51_940.jpg)!important;
 		
 }
 
 .sj-book .p52 {
 	background-color:white;
-	background-image:url(../pics/page_52_940.jpg)!important;
+	background-image:url(../img/pages/page_52_940.jpg)!important;
 }
 
 
@@ -166,7 +170,7 @@ background-image:url(../pics/page_2_940.jpg) !important;
 }
 
 .sj-book .depth{
-	background-image:url(../pics/pages-depth.png);
+	background-image:url(../img/pages/pages-depth.png);
 	position:absolute;
 	top:7px;
 	width:16px;
@@ -226,7 +230,7 @@ background-image:url(../pics/page_2_940.jpg) !important;
 }
 
 .sj-book .loader{
-	background-image:url(../pics/loader.gif);
+	background-image:url(../img/loader.gif);
 	width:22px;
 	height:22px;
 	position:absolute;
@@ -239,12 +243,12 @@ background-image:url(../pics/page_2_940.jpg) !important;
 
 .sj-book .p3 {
 	background-color:white;
-	background-image:url(../pics/page_3_940.jpg) !important;
+	background-image:url(../img/pages/page_3_940.jpg) !important;
 }
 
 .sj-book .p4 {
 	background-color:white;
-	background-image:url(../pics/top_photo_940.jpg) !important;
+	background-image:url(../img/pages/top_photo_940.jpg) !important;
 }
 
 .sj-book .p5 {
@@ -254,29 +258,29 @@ background-image:url(../pics/page_2_940.jpg) !important;
 
 .sj-book .p6 {
 	background-color:white;
-	background-image:url(../pics/top_photos_2_3_940.jpg) !important;
+	background-image:url(../img/pages/top_photos_2_3_940.jpg) !important;
 }
 
 .sj-book .p7 {
 	background-color:white;
-	background-image:url(../pics/top_photos_2_3_940.jpg) !important;
-	background-position:456px 0px;
+	background-image:url(../img/pages/top_photos_2_3_940.jpg) !important;
+	background-position:456px 0;
 }
 
 .sj-book .p8 {
 	background-color:white;
-	background-image:url(../pics/top_photos_4_5_940.jpg) !important;
+	background-image:url(../img/pages/top_photos_4_5_940.jpg) !important;
 }
 
 .sj-book .p9 {
-	background-image:url(../pics/top_photos_4_5_940.jpg) !important;
-	background-position:456px 0px;
+	background-image:url(../img/pages/top_photos_4_5_940.jpg) !important;
+	background-position:456px 0;
 
 }
 
 .sj-book .p10 {
 	background-color:white;
-	background-image:url(../pics/top_group_photo_940.jpg) !important;
+	background-image:url(../img/pages/top_group_photo_940.jpg) !important;
 }
 
 .sj-book .p11 {
@@ -286,19 +290,19 @@ background-image:url(../pics/page_2_940.jpg) !important;
 
 .sj-book .p12 {
 	background-color:white;
-	background-image:url(../pics/top_group_photos_940.jpg) !important;
+	background-image:url(../img/pages/top_group_photos_940.jpg) !important;
 }
 
 .sj-book .p13 {
 	background-color:white;
-	background-image:url(../pics/top_group_photos_940.jpg) !important;
-	background-position:456px 0px;
+	background-image:url(../img/pages/top_group_photos_940.jpg) !important;
+	background-position:456px 0;
 
 }
 
 .sj-book .p14 {
 	background-color:black;
-	background-image:url(../pics/page_12_940.jpg) !important;
+	background-image:url(../img/pages/page_12_940.jpg) !important;
 }
 
 .sj-book .p15 {
@@ -307,196 +311,196 @@ background-image:url(../pics/page_2_940.jpg) !important;
 
 .sj-book .p16 {
 	background-color:white;
-	background-image:url(../pics/page_14_15_940.jpg) !important;
+	background-image:url(../img/pages/page_14_15_940.jpg) !important;
 
 }
 
 .sj-book .p17 {
 	background-color:white;
-	background-image:url(../pics/page_14_15_940.jpg) !important;
-	background-position:456px 0px;
+	background-image:url(../img/pages/page_14_15_940.jpg) !important;
+	background-position:456px 0;
 
 }
 
 .sj-book .p18 {
 	background-color:white;
-	background-image:url(../pics/page_10_11_940.jpg) !important;
+	background-image:url(../img/pages/page_10_11_940.jpg) !important;
 }
 
 .sj-book .p19 {
 	background-color:black;
-	background-image:url(../pics/page_10_11_940.jpg) !important;
-	background-position:456px 0px;
+	background-image:url(../img/pages/page_10_11_940.jpg) !important;
+	background-position:456px 0;
 }
 
 .sj-book .p20 {
 	background-color:white;
-	background-image:url(../pics/page_20_940.jpg) !important;
+	background-image:url(../img/pages/page_20_940.jpg) !important;
 }
 
 .sj-book .p21 {
 	background-color:white;
-	background-image:url(../pics/page_21_940.jpg) !important;
+	background-image:url(../img/pages/page_21_940.jpg) !important;
 }
 
 .sj-book .p22 {
 	background-color:white;
-	background-image:url(../pics/page_22_23_940.jpg) !important;
+	background-image:url(../img/pages/page_22_23_940.jpg) !important;
 }
 
 .sj-book .p23 {
 	background-color:white;
-	background-image:url(../pics/page_22_23_940.jpg) !important;
-	background-position:456px 0px;
+	background-image:url(../img/pages/page_22_23_940.jpg) !important;
+	background-position:456px 0;
 }
 
 .sj-book .p24 {
 	background-color:white;
-	background-image:url(../pics/page_24_25_940.jpg) !important;
+	background-image:url(../img/pages/page_24_25_940.jpg) !important;
 
 }
 
 .sj-book .p25 {
 	background-color:white;
-	background-image:url(../pics/page_24_25_940.jpg) !important;
-	background-position:456px 0px;
+	background-image:url(../img/pages/page_24_25_940.jpg) !important;
+	background-position:456px 0;
 }
 
 .sj-book .p26 {
 	background-color:white;
-	background-image:url(../pics/you_went_social_940.jpg) !important;
+	background-image:url(../img/pages/you_went_social_940.jpg) !important;
 }
 
 .sj-book .p27 {
 	background-color:white;
-	background-image:url(../pics/you_went_social_940.jpg) !important;
-	background-position:456px 0px;
+	background-image:url(../img/pages/you_went_social_940.jpg) !important;
+	background-position:456px 0;
 }
 
 .sj-book .p28 {
 	background-color:white;
-	background-image:url(../pics/double_container_940.jpg) !important;
+	background-image:url(../img/pages/double_container_940.jpg) !important;
 }
 
 .sj-book .p29 {
 	background-color:white;
-	background-image:url(../pics/double_container_940.jpg) !important;
-		background-position:456px 0px;
+	background-image:url(../img/pages/double_container_940.jpg) !important;
+		background-position:456px 0;
 }
 
 .sj-book .p30 {
 	background-color:white;
-	background-image:url(../pics/page_30_31_940.jpg) !important;
+	background-image:url(../img/pages/page_30_31_940.jpg) !important;
 }
 
 .sj-book .p31 {
 	background-color:white;
-	background-image:url(../pics/page_30_31_940.jpg) !important;
-		background-position:456px 0px;
+	background-image:url(../img/pages/page_30_31_940.jpg) !important;
+		background-position:456px 0;
 }
 
 .sj-book .p32 {
 	background-color:white;
-	background-image:url(../pics/page_32_33_940.jpg) !important;
+	background-image:url(../img/pages/page_32_33_940.jpg) !important;
 }
 
 .sj-book .p33 {
 	background-color:white;
-	background-image:url(../pics/page_32_33_940.jpg) !important;
-	background-position:456px 0px;
+	background-image:url(../img/pages/page_32_33_940.jpg) !important;
+	background-position:456px 0;
 }
 
 .sj-book .p34 {
 	background-color:white;
-	background-image:url(../pics/page_34_35_940.jpg) !important;
+	background-image:url(../img/pages/page_34_35_940.jpg) !important;
 }
 
 .sj-book .p35 {
 	background-color:white;
-	background-image:url(../pics/page_34_35_940.jpg) !important;
-	background-position:456px 0px;
+	background-image:url(../img/pages/page_34_35_940.jpg) !important;
+	background-position:456px 0;
 }
 
 .sj-book .p36 {
 	background-color:white;
-	background-image:url(../pics/page_36_37_940.jpg) !important;
+	background-image:url(../img/pages/page_36_37_940.jpg) !important;
 }
 
 .sj-book .p37 {
 	background-color:white;
-	background-image:url(../pics/page_36_37_940.jpg) !important;
-	background-position:456px 0px;
+	background-image:url(../img/pages/page_36_37_940.jpg) !important;
+	background-position:456px 0;
 }
 
 .sj-book .p38 {
 	background-color:white;
-	background-image:url(../pics/page_38_39_940.jpg) !important;
+	background-image:url(../img/pages/page_38_39_940.jpg) !important;
 }
 
 .sj-book .p39 {
 	background-color:white;
-	background-image:url(../pics/page_38_39_940.jpg) !important;
-	background-position:456px 0px;
+	background-image:url(../img/pages/page_38_39_940.jpg) !important;
+	background-position:456px 0;
 }
 
 .sj-book .p40 {
 	background-color:white;
-	background-image:url(../pics/page_40_41_940.jpg) !important;
+	background-image:url(../img/pages/page_40_41_940.jpg) !important;
 }
 
 .sj-book .p41 {
 	background-color:white;
-	background-image:url(../pics/page_40_41_940.jpg) !important;
-	background-position:456px 0px;
+	background-image:url(../img/pages/page_40_41_940.jpg) !important;
+	background-position:456px 0;
 }
 
 .sj-book .p42 {
 	background-color:white;
-	background-image:url(../pics/page_42_43_940.jpg) !important;
+	background-image:url(../img/pages/page_42_43_940.jpg) !important;
 }
 
 .sj-book .p43 {
 	background-color:white;
-	background-image:url(../pics/page_42_43_940.jpg) !important;
-	background-position:456px 0px;
+	background-image:url(../img/pages/page_42_43_940.jpg) !important;
+	background-position:456px 0;
 }
 
 .sj-book .p44 {
 	background-color:white;
-	background-image:url(../pics/double_container_940.jpg) !important;
+	background-image:url(../img/pages/double_container_940.jpg) !important;
 }
 
 .sj-book .p45 {
 	background-color:white;
-	background-image:url(../pics/double_container_940.jpg) !important;
-		background-position:456px 0px;
+	background-image:url(../img/pages/double_container_940.jpg) !important;
+		background-position:456px 0;
 }
 
 .sj-book .p46 {
 	background-color:white;
-	background-image:url(../pics/page_48_49_940.jpg) !important;
+	background-image:url(../img/pages/page_48_49_940.jpg) !important;
 }
 
 .sj-book .p47 {
 	background-color:white;
-	background-image:url(../pics/page_48_49_940.jpg)!important;
-		background-position:456px 0px;
+	background-image:url(../img/pages/page_48_49_940.jpg)!important;
+		background-position:456px 0;
 }
 
 .sj-book .p48 {
 	background-color:white;
-	background-image:url(../pics/notes_blank_940.jpg) !important;
+	background-image:url(../img/pages/notes_blank_940.jpg) !important;
 }
 
 .sj-book .p49 {
-	background-image:url(../pics/notes_blank_940.jpg)!important;
-		background-position:456px 0px;
+	background-image:url(../img/pages/notes_blank_940.jpg)!important;
+		background-position:456px 0;
 		
 }
 
 .sj-book .p50 {
 	background-color:white;
-	background-image:url(../pics/page_50_940.jpg)!important;
+	background-image:url(../img/pages/page_50_940.jpg)!important;
 }
 
 
@@ -508,7 +512,7 @@ background-image:url(../pics/page_2_940.jpg) !important;
 	color:gray;
 	position:absolute;
 	right:8px;
-	bottom:0px;
+	bottom:0;
 	font-family: 'cabin';
 	
 }
@@ -523,7 +527,7 @@ background-image:url(../pics/page_2_940.jpg) !important;
 .year_left {
 	color:white;
 	float:left;
-	margin:0px;
+	margin:0;
 	line-height:17.5px;
 	margin-left:4px;
 	margin-bottom:-4px;
@@ -531,7 +535,7 @@ background-image:url(../pics/page_2_940.jpg) !important;
 .year_right {
 	color:white;
 	float:right;
-	margin:0px;
+	margin:0;
 	line-height:17.5px;
 	margin-right:4px;
 	margin-bottom:-4px;
@@ -557,7 +561,7 @@ background-image:url(../pics/page_2_940.jpg) !important;
 .album_name_22 {
 	position:absolute;
 	color:white;
-	top:0px;
+	top:0;
 	left:152px;
 	font-family: 'Fjalla One', sans-serif;
 	text-transform:uppercase;
@@ -609,7 +613,7 @@ background-image:url(../pics/page_2_940.jpg) !important;
 
 .top_photo_comment {
 	position:absolute;
-	bottom:0px;
+	bottom:0;
 	left:100px;
 }
 
@@ -618,7 +622,7 @@ background-image:url(../pics/page_2_940.jpg) !important;
 	position:absolute;
 	width:67%;
 	height:100%;
-	right:0px;
+	right:0;
 	overflow:hidden;
 }
 
@@ -636,7 +640,7 @@ background-image:url(../pics/page_2_940.jpg) !important;
 	width:282px;
 	color:#0547a6;
 	padding-left:4px;
-	padding-top:0px;
+	padding-top:0;
 }
 
 .status_message {
@@ -645,7 +649,7 @@ background-image:url(../pics/page_2_940.jpg) !important;
 }
 
 .top_status_text > h5 {
-	margin-top:0px;
+	margin-top:0;
 	line-height:15px;
 	font-size:13px;
 	float:left;
@@ -667,7 +671,7 @@ background-image:url(../pics/page_2_940.jpg) !important;
 	color:#0547a6;
 	font-size:10px;
 	float:left;
-	margin-top:0px;
+	margin-top:0;
 	margin-left:4px;
 	margin-bottom:-2px;
 }
@@ -676,7 +680,7 @@ background-image:url(../pics/page_2_940.jpg) !important;
 	color:#0547a6;
 	font-size:10px;
 	float:right;
-	margin-top:0px;
+	margin-top:0;
 	margin-left:10px;
 	margin-bottom:-2px;
 	margin-right:4px;
@@ -695,7 +699,7 @@ background-image:url(../pics/page_2_940.jpg) !important;
 	color:black;
 	float:left;
 	font-size:10px;
-	padding-top:0px;
+	padding-top:0;
 	margin-top:-6px;
 	line-height:12px;
 	width:250px;
@@ -739,7 +743,7 @@ background-image:url(../pics/page_2_940.jpg) !important;
 	color:black;
 	float:left;
 	font-size:10px;
-	padding-top:0px;
+	padding-top:0;
 	margin-top:-6px;
 	line-height:12px;
 	width:104px;
@@ -749,7 +753,7 @@ background-image:url(../pics/page_2_940.jpg) !important;
 	position:absolute;
 	width:406px;
 	height:230px;
-	right:0px;
+	right:0;
 	top:52px;
 	opacity:.9;
 	overflow:hidden;
@@ -762,7 +766,7 @@ background-image:url(../pics/page_2_940.jpg) !important;
 .birthday_header {
 	position:absolute;
 	right:12px;
-	bottom:0px;
+	bottom:0;
 	color:white;
 	font-family: 'cabin';
 
@@ -780,7 +784,7 @@ background-image:url(../pics/page_2_940.jpg) !important;
 }
 
 .cc_right {
-	left:0px;
+	left:0;
 }
 
 .collage_image {
@@ -792,7 +796,7 @@ background-image:url(../pics/page_2_940.jpg) !important;
 /* PHOTOS AND BORDERS*/
 
 .photo {
-	background-image:url(../pics/couple_beach2.jpg);
+	background-image:url(../img/pages/couple_beach2.jpg);
 	background-position:center;
 	background-size:cover;
 	float:left;
@@ -804,7 +808,7 @@ background-image:url(../pics/page_2_940.jpg) !important;
 }
 
 .border {
-	background-image:url(../pics/photo_box_landscape.jpg);
+	background-image:url(../img/pages/photo_box_landscape.jpg);
 	background-position:center;
 	background-size:cover;
 	padding:2px;
@@ -848,7 +852,7 @@ background-image:url(../pics/page_2_940.jpg) !important;
 .full_bleed {
 	width:456px;
 	height:333px;
-	margin:0px;
+	margin:0;
 }
 
 .p218 {
@@ -1277,7 +1281,7 @@ background-image:url(../pics/page_2_940.jpg) !important;
 .note_box_name {
 	width:110px;
 	float:left;
-	margin-top:0px;
+	margin-top:0;
 	color:gray;
 }
 
@@ -1303,7 +1307,7 @@ background-image:url(../pics/page_2_940.jpg) !important;
 /* SAMPLE PHOTOBOOK IMAGES */
 
 .photo_a {
-	background-image:url(../sample_pics/photo_a.jpg);
+	background-image:url(../img/sample/photo_a.jpg);
 	background-position:center;
 	background-size:cover;
 	float:left;
@@ -1311,7 +1315,7 @@ background-image:url(../pics/page_2_940.jpg) !important;
 }
 
 .photo_b {
-	background-image:url(../sample_pics/photo_b.jpg);
+	background-image:url(../img/sample/photo_b.jpg);
 	background-position:center;
 	background-size:cover;
 	float:left;
@@ -1319,7 +1323,7 @@ background-image:url(../pics/page_2_940.jpg) !important;
 }
 
 .photo_c {
-	background-image:url(../sample_pics/photo_c.jpg);
+	background-image:url(../img/sample/photo_c.jpg);
 	background-position:center;
 	background-size:cover;
 	float:left;
@@ -1327,7 +1331,7 @@ background-image:url(../pics/page_2_940.jpg) !important;
 }
 
 .photo_d {
-	background-image:url(../sample_pics/photo_d.jpg);
+	background-image:url(../img/sample/photo_d.jpg);
 	background-position:center;
 	background-size:cover;
 	float:left;
@@ -1335,7 +1339,7 @@ background-image:url(../pics/page_2_940.jpg) !important;
 }
 
 .photo_e {
-	background-image:url(../sample_pics/photo_e.jpg);
+	background-image:url(../img/sample/photo_e.jpg);
 	background-position:center;
 	background-size:cover;
 	float:left;
@@ -1343,7 +1347,7 @@ background-image:url(../pics/page_2_940.jpg) !important;
 }
 
 .photo_f {
-	background-image:url(../sample_pics/group_a.jpg);
+	background-image:url(../img/sample/group_a.jpg);
 	background-position:center;
 	background-size:cover;
 	float:left;
@@ -1351,7 +1355,7 @@ background-image:url(../pics/page_2_940.jpg) !important;
 }
 
 .photo_g {
-	background-image:url(../sample_pics/group_c.jpg);
+	background-image:url(../img/sample/group_c.jpg);
 	background-position:center;
 	background-size:cover;
 	float:left;
@@ -1359,7 +1363,7 @@ background-image:url(../pics/page_2_940.jpg) !important;
 }
 
 .photo_h {
-	background-image:url(../sample_pics/group_b.jpg);
+	background-image:url(../img/sample/group_b.jpg);
 	background-position:center;
 	background-size:cover;
 	float:left;
@@ -1367,7 +1371,7 @@ background-image:url(../pics/page_2_940.jpg) !important;
 }
 
 .photo_i {
-	background-image:url(../sample_pics/year_cover.jpg);
+	background-image:url(../img/sample/year_cover.jpg);
 	background-position:center;
 	background-size:cover;
 	float:left;
@@ -1375,7 +1379,7 @@ background-image:url(../pics/page_2_940.jpg) !important;
 }
 
 .photo_j {
-	background-image:url(../sample_pics/year_b.jpg);
+	background-image:url(../img/sample/year_b.jpg);
 	background-position:center;
 	background-size:cover;
 	float:left;
@@ -1383,7 +1387,7 @@ background-image:url(../pics/page_2_940.jpg) !important;
 }
 
 .photo_k {
-	background-image:url(../sample_pics/year_c.jpg);
+	background-image:url(../img/sample/year_c.jpg);
 	background-position:center;
 	background-size:cover;
 	float:left;
@@ -1391,7 +1395,7 @@ background-image:url(../pics/page_2_940.jpg) !important;
 }
 
 .photo_l {
-	background-image:url(../sample_pics/year_d.jpg);
+	background-image:url(../img/sample/year_d.jpg);
 	background-position:center;
 	background-size:cover;
 	float:left;
@@ -1399,7 +1403,7 @@ background-image:url(../pics/page_2_940.jpg) !important;
 }
 
 .photo_m {
-	background-image:url(../sample_pics/year_dd.jpg);
+	background-image:url(../img/sample/year_dd.jpg);
 	background-position:center;
 	background-size:cover;
 	float:left;
@@ -1407,7 +1411,7 @@ background-image:url(../pics/page_2_940.jpg) !important;
 }
 
 .photo_n {
-	background-image:url(../sample_pics/year_e.jpg);
+	background-image:url(../img/sample/year_e.jpg);
 	background-position:center;
 	background-size:cover;
 	float:left;
@@ -1415,7 +1419,7 @@ background-image:url(../pics/page_2_940.jpg) !important;
 }
 
 .photo_o {
-	background-image:url(../sample_pics/wedding_a.jpg);
+	background-image:url(../img/sample/wedding_a.jpg);
 	background-position:center;
 	background-size:cover;
 	float:left;
@@ -1423,7 +1427,7 @@ background-image:url(../pics/page_2_940.jpg) !important;
 }
 
 .photo_p {
-	background-image:url(../sample_pics/wedding_b.jpg);
+	background-image:url(../img/sample/wedding_b.jpg);
 	background-position:center;
 	background-size:cover;
 	float:left;
@@ -1431,7 +1435,7 @@ background-image:url(../pics/page_2_940.jpg) !important;
 }
 
 .photo_q {
-	background-image:url(../sample_pics/wedding_c.jpg);
+	background-image:url(../img/sample/wedding_c.jpg);
 	background-position:center;
 	background-size:cover;
 	float:left;
@@ -1439,7 +1443,7 @@ background-image:url(../pics/page_2_940.jpg) !important;
 }
 
 .photo_r {
-	background-image:url(../sample_pics/vacation_a.jpg);
+	background-image:url(../img/sample/vacation_a.jpg);
 	background-position:center;
 	background-size:cover;
 	float:left;
@@ -1447,7 +1451,7 @@ background-image:url(../pics/page_2_940.jpg) !important;
 }
 
 .photo_s {
-	background-image:url(../sample_pics/album_b.jpg);
+	background-image:url(../img/sample/album_b.jpg);
 	background-position:center;
 	background-size:cover;
 	float:left;
@@ -1455,7 +1459,7 @@ background-image:url(../pics/page_2_940.jpg) !important;
 }
 
 .photo_t {
-	background-image:url(../sample_pics/album_a.jpg);
+	background-image:url(../img/sample/album_a.jpg);
 	background-position:center;
 	background-size:cover;
 	float:left;
@@ -1463,7 +1467,7 @@ background-image:url(../pics/page_2_940.jpg) !important;
 }
 
 .photo_u {
-	background-image:url(../sample_pics/roadtrip_a.jpg);
+	background-image:url(../img/sample/roadtrip_a.jpg);
 	background-position:center;
 	background-size:cover;
 	float:left;
@@ -1471,7 +1475,7 @@ background-image:url(../pics/page_2_940.jpg) !important;
 }
 
 .photo_v {
-	background-image:url(../sample_pics/roadtrip_b.jpg);
+	background-image:url(../img/sample/roadtrip_b.jpg);
 	background-position:center;
 	background-size:cover;
 	float:left;
@@ -1479,7 +1483,7 @@ background-image:url(../pics/page_2_940.jpg) !important;
 }
 
 .photo_w {
-	background-image:url(../sample_pics/album_ac.jpg);
+	background-image:url(../img/sample/album_ac.jpg);
 	background-position:center;
 	background-size:cover;
 	float:left;
@@ -1487,7 +1491,7 @@ background-image:url(../pics/page_2_940.jpg) !important;
 }
 
 .photo_x {
-	background-image:url(../sample_pics/back_a.jpg);
+	background-image:url(../img/sample/back_a.jpg);
 	background-position:center;
 	background-size:cover;
 	float:left;
@@ -1496,7 +1500,7 @@ background-image:url(../pics/page_2_940.jpg) !important;
 
 
 .photo_y {
-	background-image:url(../sample_pics/back_b.jpg);
+	background-image:url(../img/sample/back_b.jpg);
 	background-position:center;
 	background-size:cover;
 	float:left;
@@ -1504,7 +1508,7 @@ background-image:url(../pics/page_2_940.jpg) !important;
 }
 
 .photo_z {
-	background-image:url(../sample_pics/back_c.jpg);
+	background-image:url(../img/sample/back_c.jpg);
 	background-position:center;
 	background-size:cover;
 	float:left;
@@ -1512,7 +1516,7 @@ background-image:url(../pics/page_2_940.jpg) !important;
 }
 
 .photo_aa {
-	background-image:url(../sample_pics/back_d.jpg);
+	background-image:url(../img/sample/back_d.jpg);
 	background-position:center;
 	background-size:cover;
 	float:left;
@@ -1520,7 +1524,7 @@ background-image:url(../pics/page_2_940.jpg) !important;
 }
 
 .photo_ab {
-	background-image:url(../sample_pics/back_e.jpg);
+	background-image:url(../img/sample/back_e.jpg);
 	background-position:center;
 	background-size:cover;
 	float:left;
@@ -1528,7 +1532,7 @@ background-image:url(../pics/page_2_940.jpg) !important;
 }
 
 .photo_ac {
-	background-image:url(../sample_pics/allstar_a.jpg);
+	background-image:url(../img/sample/allstar_a.jpg);
 	background-position:center;
 	background-size:cover;
 	float:left;
@@ -1536,7 +1540,7 @@ background-image:url(../pics/page_2_940.jpg) !important;
 }
 
 .photo_ad {
-	background-image:url(../sample_pics/allstar_b.jpg);
+	background-image:url(../img/sample/allstar_b.jpg);
 	background-position:center;
 	background-size:cover;
 	float:left;
@@ -1544,7 +1548,7 @@ background-image:url(../pics/page_2_940.jpg) !important;
 }
 
 .photo_ae {
-	background-image:url(../sample_pics/allstar_c.jpg);
+	background-image:url(../img/sample/allstar_c.jpg);
 	background-position:center;
 	background-size:cover;
 	float:left;
@@ -1552,7 +1556,7 @@ background-image:url(../pics/page_2_940.jpg) !important;
 }
 
 .photo_af {
-	background-image:url(../sample_pics/allstar_d.jpg);
+	background-image:url(../img/sample/allstar_d.jpg);
 	background-position:center;
 	background-size:cover;
 	float:left;
@@ -1560,18 +1564,10 @@ background-image:url(../pics/page_2_940.jpg) !important;
 }
 
 .photo_ag {
-	background-image:url(../sample_pics/allstar_e.jpg);
+	background-image:url(../img/sample/allstar_e.jpg);
 	background-position:center;
 	background-size:cover;
 	float:left;
 	margin:2px;
 }
-
-
-
-
-
-
-
-
 

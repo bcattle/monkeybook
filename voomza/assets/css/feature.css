@@ -1,0 +1,27 @@
+
+
+.details_container {
+	border:solid 1px lightgray;
+	-webkit-border-radius: 3px;
+	-moz-border-radius: 3px;
+	border-radius: 3px;
+	width:100%;
+}
+
+.product_header {
+	background-color:whitesmoke;
+	margin-top:0px;
+	margin-bottom:5px;
+	padding:2px;
+}
+
+.product_list {
+	margin-left:20px;
+	font-size:9pt;
+	color:gray;
+	font-family:'open sans';
+}
+
+.product_list>li {
+	line-height:14pt;
+}

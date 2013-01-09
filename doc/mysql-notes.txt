@@ -1,0 +1,7 @@
+In order to run tests, the db user account needs the ability to create and drop
+databases. To grant this permission run the following line from the mysql shell:
+
+GRANT ALL PRIVILEGES ON `test\_%`.* TO `testuser`@`localhost`;
+
+This lets testuser do anything to databases that begin with the 'test_' prefix.
+

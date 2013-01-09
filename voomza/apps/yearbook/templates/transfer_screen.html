@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% load url from future %}
+
+{% block style_0 %}
+    <link href='{% static 'css/bootstrap.css' %}' rel='stylesheet' type='text/css'>
+{% endblock %}
+
+{% block style %}
+    <link href="{% static 'css/home.css' %}" type="text/css" rel="stylesheet" media="all" />
+    <link href="{% static 'css/transfer.css' %}" rel="stylesheet" type="text/css">
+{% endblock %}
+
+{% block body %}
+
+    <div class="container">
+
+        <div class="transfer_message">
+            <img src="{% static 'img/check_mark.png' %}" width="65">
+            <h4 class="transfer_header">Your Yearbook is ready!</h4>
+            <p class="transfer_paragraph">To view your yearbook, visit your
+                homepage at <a href="http://www.yearbookallstar.com/">
+                <b>www.yearbookallstar.com</b></a>.</p>
+            <a class="btn btn-primary btn-small" href="{% url  %}">Go to my Yearbook</a>
+
+            <div class="message_footer">
+                <img class="transfer_logo"src="{% static 'img/logo_new1.png' %}">
+            </div>
+
+        </div>
+
+    </div>
+
+{% endblock %}
