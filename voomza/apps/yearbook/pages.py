@@ -414,7 +414,7 @@ class YearbookPageFactory(object):
             # Group photos
             StaticPage(           page=10),
             PhotoPage(            page=11, ranking_name='group_shots',            field_name='group_photo_1',       force_landscape=True),
-            PhotoWithCommentPage( page=12, ranking_name='group_shots',            field_name='group_photo_2'),
+            PhotoWithCommentPage( page=12, ranking_name='group_shots',            field_name='group_photo_2',       template='photo_w_comment_lt.html'),
             PhotoWithCommentPage( page=13, ranking_name='group_shots',            field_name='group_photo_3'),
             # Year photos
             StaticPage(           page=14),
