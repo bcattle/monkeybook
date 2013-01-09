@@ -4,13 +4,14 @@
     margin-right:4px;
 }
 
-h1, h2, h3, h5,p {
+.home_header {
     font-family: 'Open Sans', sans-serif;
     font-weight:normal;
     text-align:center;
 }
 
-p {
+.home_paragraph {
+    font-family: 'Open Sans', sans-serif;
     font-size:.8em;
     color:gray;
     text-align:center;
