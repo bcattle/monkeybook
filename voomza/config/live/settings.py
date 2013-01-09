@@ -50,9 +50,10 @@ CELERY_RESULT_BACKEND = BROKER_URL
 ## S3 storage
 
 AWS_STORAGE_BUCKET_NAME = 'yearbook-allstar'
-DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
+#DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
+DEFAULT_FILE_STORAGE = 'voomza.apps.core.storage.CachedS3BotoStorage'
 STATICFILES_STORAGE = DEFAULT_FILE_STORAGE
-
+COMPRESS_STORAGE = DEFAULT_FILE_STORAGE
 
 ## Static files storage
 
