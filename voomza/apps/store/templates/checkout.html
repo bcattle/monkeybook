@@ -15,142 +15,25 @@
 
 {% block script %}
     <script type="text/javascript" src="{% static 'js/jquery-1.7.2.min.js' %}"></script>
-{#    <script type="text/javascript" src="{% static 'js/jquery.validate.min.js' %}"></script>#}
-    <script type="text/javascript" src="{% static 'js/jquery.validate.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/jquery.validate.min.js' %}"></script>
+{#    <script type="text/javascript" src="{% static 'js/jquery.validate.js' %}"></script>#}
     <script type="text/javascript" src="{% static 'js/underscore-min.js' %}"></script>
+    <script type="text/javascript" src="https://js.stripe.com/v1/"></script>
+    <script type="text/javascript" src="{% static 'js/checkout.js' %}"></script>
     <script type="text/javascript">
         var fullPrice      = {{ full_price }};
         var abridgedPrice  = {{ abridged_price }};
         var digitalPrice   = {{ digital_price }};
         var shippingPrice  = {{ shipping_price }};
         var caTaxRate      = {{ ca_tax_rate }};
-        var orderTotal;
-
-        function updateTaxAndTotal() {
-            var fullQty = parseInt($('#fullQty').val());
-            var abridgedQty = parseInt($('#abridgedQty').val());
-            var digitalQty = parseInt($('#id_digital_upgrade').val());
-
-            $('#fullTotal').text((fullQty * fullPrice).toFixed(2));
-            $('#abridgedTotal').text((abridgedQty * abridgedPrice).toFixed(2));
-
-            var untaxedSubtotal = digitalQty * digitalPrice;
-            var taxedSubtotal = fullQty * fullPrice + abridgedQty * abridgedPrice;
-
-            var isShipping = (fullQty > 0) || (abridgedQty > 0);
-            var shippingSubtotal = 0;
-            if (isShipping)
-                shippingSubtotal = shippingPrice;
-
-            var isTax = ($('#id_shipping_country').val() == 'US') && ($('#id_shipping_us_state').val() == 'CA');
-            var taxSubtotal = 0;
-            if (isTax) {
-                taxSubtotal = taxedSubtotal * caTaxRate;
-                $('#taxTotal').text(taxSubtotal.toFixed(2));
-                // Show the tax subtotal
-                $('.taxSubtotalDiv').show();
-            }
-
-            orderTotal = untaxedSubtotal + taxedSubtotal + shippingSubtotal + taxSubtotal;
-            $('#orderTotal').text(orderTotal.toFixed(2));
-        }
-
-        function onQtyChanged() {
-
-            updateTaxAndTotal();
-        }
-
-        function billing_is_us() {
-            return $('#id_billing_country').val() == 'US';
-        }
-
-        function shipping_is_us() {
-            return $('#id_shipping_country').val() == 'US';
-        }
-
-        function diffShipping() {
-            return $('.sameShipping:checked').val() == 'diff';
-        }
 
         $(document).ready(function() {
-            $('.qtySelect').change(onQtyChanged);
-            // Select the United States by default
-            $('option[value="US"]').attr('selected', 'selected');
-            $('.usStateDiv option[value="CA"]').attr('selected', 'selected');
-            $('.countrySelect').change(function(){
-                var el = $(this);
-                var fieldset = el.parents('fieldset');
-                if (el.val() == 'US') {
-                    fieldset.find('.nonUsStateDiv').hide();
-                    fieldset.find('.usStateDiv').show();
-                } else {
-                    fieldset.find('.usStateDiv').hide();
-                    fieldset.find('.nonUsStateDiv').show();
-                }
-            });
-            $('.usStateSelect').change(function(){
-                var shipping_is_billing = true;
-                if ((shipping_is_billing && $('#id_billing_us_state').val() == 'CA') ||
-                    (!shipping_is_billing && $('#id_shipping_us_state').val() == 'CA')) {
-                    $('.taxSubtotalDiv').slideDown(400);
-                } else {
-                    // No sales tax
-                    $('.taxSubtotalDiv').slideUp(400);
-                }
-            });
-            $('.sameShipping').change(function(){
-                if (diffShipping()) {
-                    $('.shippingForm').slideDown(800);
-                } else {
-                    $('.shippingForm').slideUp(800);
-                }
-            });
+            Stripe.setPublishableKey("{{ STRIPE_PUBLISHABLE_KEY }}");
 
-            $('#orderForm').submit(function(e){
-                $('#orderForm').validate({
-                    debug: true,
-                    errorElement: "span",
-                    errorClass: "help-inline",
-                    onfocusout: false,
-                    onkeyup: false,
-                    groups: {
-                        expiration: "exp_month exp_year"
-                    }, rules: {
-                        billing_us_state: {        required: { depends: billing_is_us }},
-                        billing_us_zip: {          required: { depends: billing_is_us }},
-                        billing_state_province: {  required: { depends: function(el) { return !billing_is_us(); }}},
-                        billing_postal: {        required: { depends: function(el) { return !billing_is_us(); }}},
-
-                        shipping_address: {        required: { depends: diffShipping }},
-                        shipping_city: {           required: { depends: diffShipping }},
-                        shipping_us_state: {       required: { depends: function(el) { return diffShipping() && shipping_is_us(); }}},
-                        shipping_us_zip: {         required: { depends: function(el) { return diffShipping() && shipping_is_us(); }}},
-                        shipping_state_province: { required: { depends: function(el) { return diffShipping() && !shipping_is_us(); }}},
-                        shipping_postal: {       required: { depends: function(el) { return diffShipping() && !shipping_is_us(); }}}
-
-                    }, showErrors: function(errorMap, errorList) {
-                        $('.control-group').removeClass('error');
-                        // Add .error to each parent control-group
-                        _.each(errorList, function(error){
-                            $(error.element).parents('.control-group').addClass('error');
-                        });
-                        this.defaultShowErrors();
-
-                    }, errorPlacement: function(error, element) {
-                        if (element.attr("name") == "exp_month"
-                                || element.attr("name") == "exp_year" )
-                            error.insertAfter("#id_exp_year");
-                        else
-                            error.insertAfter(element);
-
-                    }, submitHandler: function(form) {
-
-                    }
-                });
-
-                e.preventDefault();
-                return false;
-            });
+            {% if not order_full and not order_abridged %}
+                $('#id_digital_upgrade').val('1');
+            {% endif %}
+            updateTaxAndTotal();
         });
     </script>
 {% endblock %}
@@ -164,6 +47,10 @@
             </div>
         </div>
 
+        {% if error_message %}
+            <div class="alert alert-error">{{ error_message }}</div>
+        {% endif %}
+
         <div class="row">
             <div class="span12">
                 <h2 style="text-align:left">Checkout</h2>
@@ -174,44 +61,51 @@
                 {% csrf_token %}
                 {{ order_form.stripe_single_use_token }}
                 {{ order_form.digital_upgrade }}
-{#                {{ order_form.full_quantity }}#}
-{#                {{ order_form.abridged_quantity }}#}
+                {{ order_form.full_quantity }}
+                {{ order_form.abridged_quantity }}
+                {{ order_form.charged_total }}
 
-                <div class="span7">
-                    <h5 class="desc">
-                        <select class="qtySelect" id="fullQty" name="full_qty">
-                            <option>1</option>
-                            <option>2</option>
-                            <option>3</option>
-                            <option>4</option>
-                            <option>5</option>
-                        </select> 8X11 Full Version Hardcover </h5>
-                    <h5 class="price">$<span id="fullTotal">{{ full_price }}</span></h5>
-                </div>
-                <div class="span7">
-                    <h5 class="desc">
-                        <select class="qtySelect" id="abridgedQty" name="abridged_qty">
-                            <option>1</option>
-                            <option>2</option>
-                            <option>3</option>
-                            <option>4</option>
-                            <option>5</option>
-                        </select> 8X11 Abridged Hardcover </h5>
-                    <h5 class="price">$<span id="abridgedTotal">{{ abridged_price }}</span></h5>
-                </div>
-                <div class="span7">
-                    <h5 class="desc">Digital Upgrade: Editable, Savable Version</h5>
-                    <h5 class="price">$<span id="digitalTotal">{{ digital_price }}</span></h5>
-                </div>
-    
-                <div class="span7">
-                    <h5 class="desc">Shipping</h5>
-                    <h5 class="price">$<span id="shippingTotal">{{ shipping_price }}</span></h5>
-                </div>
-                <div class="span7 taxSubtotalDiv">
-                    <h5 class="desc">CA Online Sales Tax</h5>
-                    <h5 class="price">$<span id="taxTotal">8.99</span></h5>
-                </div>
+                {% if order_full %}
+                    <div class="span7">
+                        <h5 class="desc">
+                            <select class="qtySelect" id="fullQty" name="full_qty">
+                                <option>1</option>
+                                <option>2</option>
+                                <option>3</option>
+                                <option>4</option>
+                                <option>5</option>
+                            </select> 8X11 Full Version Hardcover </h5>
+                        <h5 class="price">$<span id="fullTotal">{{ full_price }}</span></h5>
+                    </div>
+                {% elif order_abridged %}
+                    <div class="span7">
+                        <h5 class="desc">
+                            <select class="qtySelect" id="abridgedQty" name="abridged_qty">
+                                <option>1</option>
+                                <option>2</option>
+                                <option>3</option>
+                                <option>4</option>
+                                <option>5</option>
+                            </select> 8X11 Abridged Hardcover </h5>
+                        <h5 class="price">$<span id="abridgedTotal">{{ abridged_price }}</span></h5>
+                    </div>
+                {% else %}
+                    <div class="span7">
+                        <h5 class="desc">Digital Upgrade: Editable, Savable Version</h5>
+                        <h5 class="price">$<span id="digitalTotal">{{ digital_price }}</span></h5>
+                    </div>
+                {% endif %}
+
+                {% if order_full or order_abridged %}
+                    <div class="span7">
+                        <h5 class="desc">Shipping</h5>
+                        <h5 class="price">$<span id="shippingTotal">{{ shipping_price }}</span></h5>
+                    </div>
+                    <div class="span7 taxSubtotalDiv">
+                        <h5 class="desc">CA Online Sales Tax</h5>
+                        <h5 class="price">$<span id="taxTotal">8.99</span></h5>
+                    </div>
+                {% endif %}
                 <div class="span7" style="border-top:solid 2px lightgray; margin-top:4px">
                     <h5 class="desc">Total</h5>
                     <h5 class="price">$<span id="orderTotal">8.99</span></h5>
@@ -243,9 +137,9 @@
                 <div class="span7">
                     <h4 style="text-align:left">Shipping Address</h4>
                     <label class="radio inline">
-                        <input type="radio" class="sameShipping" name="same_shipping" value="same" checked="checked">Same as shipping</label>
+                        <input type="radio" class="sameShipping" name="same_shipping" value="same" checked="checked">Same as billing</label>
                     <label class="radio inline">
-                        <input type="radio" class="sameShipping" name="same_shipping" value="diff">Enter new billing address</label>
+                        <input type="radio" class="sameShipping" name="same_shipping" value="diff">Enter new shipping address</label>
                 </div>
 
                 <div class="span7 shippingForm" style="display:none;">
@@ -269,7 +163,7 @@
                     </fieldset>
                 </div>
 
-                <div class="span7">
+                <div class="span7" class="paymentForm">
                     <h4 style="text-align:left">Payment Information</h4>
                     <fieldset>
                         {% field_with_label credit_card_form.name_on_card %}
@@ -281,10 +175,15 @@
                             <div>{{ credit_card_form.exp_month }}<span> / </span>{{ credit_card_form.exp_year }}</div>
                         </div>
                         {% field_with_label credit_card_form.cvv_code %}
+                        <div class="control-group error"><span class="help-inline paymentFormError"></span></div>
 
                         <br>
-                        <button type="submit" class="btn btn-primary">
-                            Submit Payment</button>
+                        <button type="submit" class="btn btn-primary submitButton">
+                            Submit Payment
+                        </button>
+                        <a href="#" class="btn disabled processingButton" style="display:none;">
+                            <img src="{% static 'img/loading-16.gif' %}"> processing ...
+                        </a>
                     </fieldset>
                 </div>
             </form>
