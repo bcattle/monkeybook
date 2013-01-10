@@ -12,35 +12,14 @@
     <link href='{% static 'css/open_sans.css' %}' rel='stylesheet' type='text/css'>
     <link href='{% static 'css/cabin_fjalla.css' %}' rel='stylesheet' type='text/css'>
     <link href='{% static 'css/inbox.css' %}' rel='stylesheet' type='text/css'>
-{% endblock %}
-
-{% block body_tag %}
-    <body style="background-color:black; min-height:100%;">
+    <link href='{% static 'css/yearbook.css' %}' rel='stylesheet' type='text/css'>
+    <link href='{% static 'css/navbar.css' %}' rel='stylesheet' type='text/css'>
 {% endblock %}
 
 {% block body %}
     <div class="container">
-        <div class="navbar navbar-inverse" style="margin-top:10px">
-            <div class="navbar-inner inner_small_right">
-                <a class="brand" style="padding-top:4px;"id="brand_small" href="#"><img src="{% static 'img/yearbook_allstar.png' %}" width="90px"></a>
-                <ul class="nav" style="float:left">
-                    <li><a href="#">Inbox</a></li>
-                    <li class="divider-vertical"></li>
-                    <li><a style="padding-left:11px;padding-right:11px"href="#">Hardcover</a></li>
-                    <li class="divider-vertical"></li>
-                    <li><a style="padding-left:11px;padding-right:11px"href="#">Standard</a></li>
-                    <li class="divider-vertical"></li>
-                </ul>
-
-                <ul class="nav" style="float:right;margin-right:0px">
-                    <li><a style="padding-left:11px;padding-right:11px"href="#edit_modal" rel="modal:open">Edit</a></li>
-                    <li class="divider-vertical"></li>
-                    <li><a style="padding-left:11px;padding-right:11px"href="#share_modal" rel="modal:open">Share</a></li>
-                    <li class="divider-vertical"></li>
-                    <li  class="active"><a style="padding-left:11px;padding-right:11px"href="#"><b>View Yearbook</b></a></li>
-                </ul>
-            </div>
-        </div>
+        {% load navbar %}
+        {% navbar active='view' inverse=1 %}
     </div>
 
     <div id="canvas">

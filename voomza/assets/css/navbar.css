@@ -1,0 +1,17 @@
+.navbar {
+    margin-top: 10px;
+}
+
+.inner_small_right {
+    padding-right: 0;
+}
+
+#brand_small {
+    padding-top: 6px;
+    padding-bottom: 4px;
+}
+
+.navbar_link {
+    padding-left: 11px;
+    padding-right: 11px;
+}

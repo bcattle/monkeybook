@@ -1,28 +1,36 @@
 {% load staticfiles %}
 {% load url from future %}
 
-<div class="navbar" style="margin-top:10px">
+<div class="navbar {% if inverse %}navbar-inverse{% endif %}">
     <div class="navbar-inner inner_small_right">
-        <a class="brand" style="padding-top:4px;"id="brand_small" href="#"><img src="{% static 'img/logo_new1.png' %}" width="90"></a>
+        <a class="brand" style="padding-top:4px;" id="brand_small" href="{% url 'homepage' %}">
+            {% if inverse %}
+                <img src="{% static 'img/yearbook_allstar.png' %}" width="90">
+            {% else %}
+                <img src="{% static 'img/logo_new1.png' %}" width="90">
+            {% endif %}
+        </a>
         <ul class="nav" style="float:left">
-            <li class="active"><a href="#">Inbox</a></li>
+            <li class="{% if active == 'inbox' %}active{% endif %}"><a href="{% url 'homepage' %}">Inbox</a></li>
             <li class="divider-vertical"></li>
-            <li><a style="padding-left:11px;padding-right:11px" href="{% url 'hardcover_feature' %}">Hardcovers</a></li>
+            <li class="{% if active == 'hardcover' %}active{% endif %}">
+                <a class="navbar_link" href="{% url 'hardcover_feature' %}">Hardcovers</a></li>
             <li class="divider-vertical"></li>
-            <li><a style="padding-left:11px;padding-right:11px" href="{% url 'standard_feature' %}">Standard</a></li>
+            <li class="{% if active == 'standard' %}active{% endif %}">
+                <a class="navbar_link" href="{% url 'standard_feature' %}">Standard</a></li>
             <li class="divider-vertical"></li>
         </ul>
 
-        <ul class="nav" style="float:right;margin-right:0">
-
-            <li><a style="padding-left:11px;padding-right:11px" href="#">Edit</a></li>
+        <ul class="nav" style="float:right;margin-right:0;">
+            <li><a class="navbar_link" href="#edit_modal" rel="modal:open">Edit</a></li>
             <li class="divider-vertical"></li>
-            <li><a style="padding-left:11px;padding-right:11px" href="#">Share</a></li>
+            <li><a class="navbar_link" href="#share_modal" rel="modal:open">Share</a></li>
             <li class="divider-vertical"></li>
-            <li><p style="font-famly:'open sans';font-size:8pt;margin-top:7px">
-                <img src="{% static 'img/ajax-loader.gif' %}"> 30 seconds</p><a style="padding-left:11px;padding-right:11px;display:none;" href="#">
-                <b>View Yearbook</b></a></li>
-
+            <li class="{% if active == 'view' %}active{% endif %}">
+                <p style="font-famly:'open sans';font-size:8pt;margin-top:7px">
+                <img src="{% static 'img/ajax-loader.gif' %}"> 30 seconds</p>
+                <a class="navbar_link" style="display:none;" href="{% url 'yearbook_no_hash' %}"><b>View Yearbook</b></a>
+            </li>
         </ul>
     </div>
 </div>

@@ -6,7 +6,7 @@ from ajax import v1_api
 
 urlpatterns = patterns('',
     url(r'^$', homepage, name='homepage'),
-    url(r'^canvas/$', homepage, name='homepage', kwargs={'template_name': 'homepage_canvas.html'}),
+    url(r'^canvas/$', homepage, name='homepage_canvas', kwargs={'template_name': 'homepage_canvas.html'}),
 
     url(r'^start/$', invite_friends_to_sign, name='invite_friends_to_sign'),
 

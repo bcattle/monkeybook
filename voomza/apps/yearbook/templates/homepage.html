@@ -61,7 +61,8 @@
 {% include 'includes/connect_form.html' %}
 
 <div class="container">
-    {% include 'navbar__preview_editions_how_it_works.html' %}
+    {% load navbar %}
+    {% navbar active='view' %}
 
     <h1 class="home_header">Your Photomatic 2012 Yearbook</h1>
     <h3 class="home_header gray" style="font-family:'open sans'; font-weight:normal;

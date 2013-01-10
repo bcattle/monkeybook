@@ -11,6 +11,7 @@
     <link href="{% static 'css/jquery.modal.css' %}" rel="stylesheet" type="text/css" media="screen">
     <link href="{% static 'css/inbox.css' %}" rel="stylesheet" type="text/css">
     <link href="{% static 'css/footer.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'css/navbar.css' %}" rel="stylesheet" type="text/css">
 {% endblock %}
 
 {% block script %}
@@ -112,7 +113,8 @@
 
 {% block body %}
     <div class="container">
-        {% include 'navbar_features.html' %}
+        {% load navbar %}
+        {% navbar active='inbox' %}
 
         <div class="row">
             <div class="span12">
