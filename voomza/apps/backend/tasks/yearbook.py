@@ -428,8 +428,12 @@ def run_yearbook(user, results):
     yb.rankings = rankings
     yb.save()
 
-    # Initiate a task to start downloading user's yearbook photos?
+    # Initiate a task to start downloading user's yearbook phointos?
     return yb
+
+#    except FacebookSSLError, exc:
+#        logger.error('run_yearbook: FacebookSSLError, retrying.')
+#        raise self.retry(exc=exc)
 
 
 def get_unused_if_portrait(photo_index, photo_list, yearbook, photos_of_me):

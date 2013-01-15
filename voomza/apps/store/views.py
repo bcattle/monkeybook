@@ -30,9 +30,6 @@ def checkout(request, template_name='checkout.html'):
             logger.error('OrderForm failed to validate: %s. POST: %s' % (order_form.errors, request.POST))
             error = True
         if not billing_address_form.is_valid():
-            import ipdb
-            ipdb.set_trace()
-
             logger.error('OrderBillingAddressForm failed to validate: %s. POST: %s' % (billing_address_form.errors, request.POST))
             error = True
         if shipping_address_form and not shipping_address_form.is_valid():

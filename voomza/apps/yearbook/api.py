@@ -2,9 +2,6 @@ import logging
 from collections import defaultdict
 from django.utils import timezone
 from django_facebook.api import FacebookUserConverter
-from django_facebook.signals import facebook_post_store_friends
-from django_facebook.utils import get_profile_class
-from voomza.apps.core import bulk
 
 logger = logging.getLogger(__name__)
 

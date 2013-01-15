@@ -2,6 +2,7 @@
 {% load staticfiles %}
 {% load url from future %}
 {% load compress %}
+{% load navbar %}
 
 {% block style_0 %}
     <link href="{% static 'css/bootstrap.css' %}" rel="stylesheet" type="text/css">
@@ -14,10 +15,14 @@
     <link href="{% static 'css/navbar.css' %}" rel="stylesheet" type="text/css">
 {% endblock %}
 
+{% block script %}
+    <script type="text/javascript" src="{% static 'js/jquery-1.7.2.min.js' %}"></script>
+    {% navbar_js %}
+{% endblock %}
+
 {% block body %}
 
     <div class="container">
-        {% load navbar %}
         {% navbar active='hardcover' %}
 
         <div class="row">
@@ -63,6 +68,7 @@
 
 
         <div class="row" style="margin-top:40px">
+            <a name="abridged"></a>
             <div class="span12" style="margin-bottom:20px;margin-top:20px">
                 <img src="{% static 'img/hardcover_abridged.jpg' %}" width="400" style="float:left">
                 <h3 style="text-align:right">Your 2012 Yearbook in 8X11 Hardcover</h3>

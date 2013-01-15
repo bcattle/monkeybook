@@ -5,7 +5,8 @@ THIS_YEAR = datetime.datetime(2012, 1, 1, tzinfo=utc)
 GROUP_PHOTO_CUTOFF = datetime.datetime(2012 - 2, 1, 1, tzinfo=utc)
 
 PHOTO_FIELDS = 'object_id, images, created, comment_info, like_info'
-PHOTO_WIDTH_DESIRED     = 900
+#PHOTO_WIDTH_DESIRED     = 900
+PHOTO_WIDTH_DESIRED     = 565
 
 TOP_FRIEND_POINTS_FOR_PHOTO_COMMENT = 2
 TOP_FRIEND_POINTS_FOR_POST          = 3

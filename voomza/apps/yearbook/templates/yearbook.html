@@ -1,6 +1,8 @@
 {% extends 'base.html' %}
 {% load staticfiles %}
 {% load url from future %}
+{% load compress %}
+{% load navbar %}
 
 {% block meta %}
     <meta http-equiv="Access-Control-Allow-Origin" content="*">
@@ -18,7 +20,6 @@
 
 {% block body %}
     <div class="container">
-        {% load navbar %}
         {% navbar active='view' inverse=1 %}
     </div>
 
@@ -55,46 +56,34 @@
         </div>
     </div>
 
-    {# MODALS #}
-
-    {% include 'includes/edit_modal.html' %}
-    {% include 'includes/share_modal.html' %}
-
 {% endblock %}
 
 
 {% block script %}
-{#    <script type="text/html" id="edit_row_template">#}
-{#        <div class="edit_row">#}
-{#            <btn class="btn btn-mini btn-primary disabled prevButton"#}
-{#                 data-page="[[ page ]]" data-index="[[ index ]]">Previous</btn>#}
-{#            <btn class="btn btn-mini btn-primary nextButton"#}
-{#                 data-page="[[ page ]]" data-index="[[ index ]]">Next</btn>#}
-{#            <h6 class="options_none">No more available options for this photo.</h6>#}
-{#        </div>#}
-{#    </script>#}
-
     <script type="text/javascript" src="{% static 'js/jquery-1.7.2.min.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/jquery.modal.min.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/jquery-ui-1.8.20.custom.min.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/jquery.mousewheel.min.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/modernizr.2.5.3.min.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/hash.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/underscore-min.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/next_prev_buttons.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/addpage-api.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/yearbook-ux.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/yearbook.js' %}"></script>
+    {% navbar_js %}
+    {% compress js %}
+        <script type="text/javascript" src="{% static 'js/jquery.modal.min.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/jquery-ui-1.8.20.custom.min.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/jquery.mousewheel.min.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/modernizr.2.5.3.min.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/hash.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/underscore-min.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/next_prev_buttons.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/addpage-api.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/yearbook-ux.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/yearbook.js' %}"></script>
 
-    <script type="text/javascript">
-        var pagesUrl = "{% url 'api_dispatch_list' api_name='v1' resource_name='yearbookpage' hash=hash %}";
+        <script type="text/javascript">
+            var pagesUrl = "{% url 'api_dispatch_list' api_name='v1' resource_name='yearbookpage' hash=hash %}";
 
-        yepnope({
-            test : Modernizr.csstransforms,
-            yep: ["{% static 'js/turn.min.js' %}"],
-            nope: ["{% static 'js/turn.html4.min.js' %}", "{% static 'css/jquery.ui.html4.css' %}", "{% static 'css/steve-jobs-html4.css' %}"],
-            both: ["{% static 'css/jquery.ui.css' %}", "{% static 'css/steve-jobs.css' %}"],
-            complete: loadApp
-        });
-    </script>
+            yepnope({
+                test : Modernizr.csstransforms,
+                yep: ["{% static 'js/turn.min.js' %}"],
+                nope: ["{% static 'js/turn.html4.min.js' %}", "{% static 'css/jquery.ui.html4.css' %}", "{% static 'css/steve-jobs-html4.css' %}"],
+                both: ["{% static 'css/jquery.ui.css' %}", "{% static 'css/steve-jobs.css' %}"],
+                complete: loadApp
+            });
+        </script>
+    {% endcompress %}
 {% endblock %}

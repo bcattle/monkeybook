@@ -1,11 +1,12 @@
 {% load staticfiles %}
+{% load url from future %}
 
 <div id="edit_modal" style="display:none;">
-    <p style="font-family:'open sans'">To edit photos and save your yearbook permanently, please upgrade to a Standard Cloud Yearbook.</p>
+    <p style="font-family:'Open Sans',sans-serif;">To edit photos and save your yearbook permanently, please upgrade to a Standard Cloud Yearbook.</p>
     <img src="{% static 'img/cloud_upload.png' %}" width="160px" style="float:left">
     <h4 class="inbox_product_header" style="float:right;text-align:right">Standard Cloud Yearbook<br>$4.99</h4>
     <div style="float:right">
-        <btn class="btn btn-primary">Buy Now</btn>
-        <btn class="btn">Learn More</btn>
+        <a class="btn btn-primary" href="{% url 'checkout' %}">Buy Now</a>
+        <a class="btn" href="{% url 'standard_feature' %}">Learn More</a>
     </div>
 </div>

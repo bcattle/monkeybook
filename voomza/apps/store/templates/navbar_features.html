@@ -21,16 +21,42 @@
             <li class="divider-vertical"></li>
         </ul>
 
-        <ul class="nav" style="float:right;margin-right:0;">
-            <li><a class="navbar_link" href="#edit_modal" rel="modal:open">Edit</a></li>
-            <li class="divider-vertical"></li>
-            <li><a class="navbar_link" href="#share_modal" rel="modal:open">Share</a></li>
-            <li class="divider-vertical"></li>
-            <li class="{% if active == 'view' %}active{% endif %}">
-                <p style="font-famly:'open sans';font-size:8pt;margin-top:7px">
-                <img src="{% static 'img/ajax-loader.gif' %}"> 30 seconds</p>
-                <a class="navbar_link" style="display:none;" href="{% url 'yearbook_no_hash' %}"><b>View Yearbook</b></a>
-            </li>
-        </ul>
+        {% if user.is_authenticated %}
+            <ul class="nav" style="float:right;margin-right:0;">
+                <li><a class="navbar_link" href="#edit_modal" rel="modal:open">Edit</a></li>
+                <li class="divider-vertical"></li>
+                <li><a class="navbar_link" href="#share_modal" rel="modal:open">Share</a></li>
+                <li class="divider-vertical"></li>
+                {% if active == 'view' %}
+                    <li class="active">
+                        <a class="navbar_link yearbookReady" href="#">
+                            <strong>View Yearbook</strong>
+                        </a>
+                    </li>
+                {% else %}
+                    <li>
+                        <a class="yearbookNotReadyInitial" href="#">
+                            <img src="{% static 'img/loading-16.gif' %}"> loading...
+                        </a>
+                        <a class="yearbookNotReady" style="display:none;" href="#">
+                            <img src="{% static 'img/loading-16.gif' %}"> Ready in 30 seconds
+                        </a>
+                        <a class="navbar_link yearbookReady" style="display:none;" href="{% url 'yearbook_no_hash' %}">
+                            <strong>View Yearbook</strong>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        {% else %}
+            <ul class="nav" style="float:right;">
+                <li><a href="#" class="facebook-login"><img class="navbar_f_logo" src="{% static 'img/f_logo.png' %}" width="18">
+                    Create Free Version</a></li>
+            </ul>
+        {% endif %}
     </div>
 </div>
+
+{# MODALS #}
+
+{% include 'includes/edit_modal.html' %}
+{% include 'includes/share_modal.html' %}

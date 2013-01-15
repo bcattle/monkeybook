@@ -2,6 +2,7 @@
 {% load staticfiles %}
 {% load url from future %}
 {% load compress %}
+{% load navbar %}
 
 {% block style_0 %}
     <link href="{% static 'css/bootstrap.css' %}" rel="stylesheet" type="text/css">
@@ -64,6 +65,7 @@
     </script>
 
     <script type="text/javascript" src="{% static 'js/jquery-1.7.2.min.js' %}"></script>
+    {% navbar_js %}
     {% compress js %}
         <script type="text/javascript" src="{% static 'js/yepnope.1.5.4-min.js' %}"></script>
         <script type="text/javascript" src="{% static 'js/jquery.cookie.js' %}"></script>
@@ -113,7 +115,6 @@
 
 {% block body %}
     <div class="container">
-        {% load navbar %}
         {% navbar active='inbox' %}
 
         <div class="row">
@@ -152,19 +153,19 @@
                     <div class="inbox_product">
                         <img src="{% static 'img/hardcover_abridged.jpg' %}" width="156">
                         <h5 class="inbox_product_header">Abridged Hardcover<br>$39.99</h5>
-                        <a class="btn btn-mini btn-primary">Buy Now</a>
+                        <a class="btn btn-mini btn-primary" href="{% url 'checkout' %}?o=abridged">Buy Now</a>
                         <a class="btn btn-mini" href="{% url 'hardcover_feature' %}#abridged">Learn More</a>
                     </div>
                     <div class="inbox_product">
                         <img src="{% static 'img/hardcover_photobook.jpg' %}" width="156">
                         <h5 class="inbox_product_header">Hardcover<br>$79.99</h5>
-                        <a class="btn btn-mini btn-primary">Buy Now</a>
+                        <a class="btn btn-mini btn-primary" href="{% url 'checkout' %}?o=full">Buy Now</a>
                         <a class="btn btn-mini" href="{% url 'hardcover_feature' %}">Learn More</a>
                     </div>
                     <div class="inbox_product">
                         <img src="{% static 'img/cloud_upload.png' %}" width="160">
                         <h5 class="inbox_product_header">Standard Cloud Yearbook<br>$4.99</h5>
-                        <a class="btn btn-mini btn-primary">Buy Now</a>
+                        <a class="btn btn-mini btn-primary" href="{% url 'checkout' %}">Buy Now</a>
                         <a class="btn btn-mini" href="{% url 'standard_feature' %}">Learn More</a>
                     </div>
                 </div>

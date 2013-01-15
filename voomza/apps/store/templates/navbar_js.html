@@ -1,0 +1,12 @@
+{% load staticfiles %}
+{% load url from future %}
+{% load compress %}
+
+{% if user.is_authenticated %}
+    {% compress js %}
+        <script type="text/javascript" src="{% static 'js/progress.js' %}"></script>
+        <script type="text/javascript">
+            var yearbookStatusUrl = "{% url 'api_dispatch_detail' api_name='v1' resource_name='yearbook_progress' pk='1' %}";
+        </script>
+    {% endcompress %}
+{% endif %}

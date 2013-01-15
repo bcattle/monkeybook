@@ -5,8 +5,6 @@ from voomza.apps.core import bulk
 from voomza.apps.core.utils import timeit, flush_transaction
 from voomza.apps.account.models import FacebookUser, FacebookFriend
 from voomza.apps.backend.fql.top_friends_fast import TopFriendsFastPipeline
-from voomza.apps.backend.getter import FreqDistResultGetter
-
 
 @task.task()
 @timeit

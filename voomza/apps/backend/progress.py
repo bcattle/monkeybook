@@ -1,3 +1,4 @@
+from celery.result import AsyncResult
 from voomza.apps.backend.models import Yearbook
 
 class YearbookProgress(object):
@@ -15,7 +16,8 @@ class YearbookProgress(object):
         self.user = request.user
         # session can contain 'pull_friends_async',
         # which in turn contains 'run_yearbook_async'
-        self.pull_friends_async = request.session.get('pull_friends_async', None)
+        if 'pull_friends_id' in request.session:
+            self.pull_friends_async = AsyncResult(id=request.session['pull_friends_id'])
 
     def get_status(self):
         if self.pull_friends_async and self.pull_friends_async.successful():
@@ -26,7 +28,7 @@ class YearbookProgress(object):
 
         # Otherwise, look for a yearbook for user in db
         try:
-            yb = Yearbook(rankings__user=self.user)
+            Yearbook.objects.filter(rankings__user=self.user)
             return 'SUCCESS'
         except Yearbook.DoesNotExist:
             return 'FAILURE'

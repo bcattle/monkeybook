@@ -12,6 +12,7 @@
     <link href="{% static 'css/cabin_fjalla.css' %}" rel="stylesheet" type="text/css">
     <link href="{% static 'css/open_sans.css' %}" rel="stylesheet" type="text/css">
     <link href="{% static 'css/footer.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'css/navbar.css' %}" rel="stylesheet" type="text/css">
     <link href="{% static 'css/home.css' %}" rel="stylesheet" type="text/css">
 {% endblock %}
 
@@ -55,14 +56,11 @@
     {% endcompress %}
 {% endblock %}
 
-
 {% block body %}
-
 {% include 'includes/connect_form.html' %}
 
 <div class="container">
-    {% load navbar %}
-    {% navbar active='view' %}
+    {% include 'navbar__preview_editions_how_it_works.html' %}
 
     <h1 class="home_header">Your Photomatic 2012 Yearbook</h1>
     <h3 class="home_header gray" style="font-family:'open sans'; font-weight:normal;
@@ -120,7 +118,6 @@
                 </div>
                 <a class="btn btn-mini btn-primary facebook-login">Create (Free)</a>
             </div>
-
         </div>
 
         <div class="span4">
@@ -142,8 +139,6 @@
                 </div>
                 <a class="btn btn-mini btn-primary facebook-login">Create (Free)</a>
             </div>
-
-
         </div>
 
         <div class="span4">
