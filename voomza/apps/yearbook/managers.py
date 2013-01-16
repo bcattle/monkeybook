@@ -18,6 +18,10 @@ class YearbookSignManager(models.Manager):
             self.get_people_who_signed_me_i_have(user).extra(select={'can_sign': 'SELECT 0'})
         )
 
+    def get_my_yearbook_signs(self, user):
+        from voomza.apps.yearbook.models import YearbookSign
+        return YearbookSign.objects.filter(to_facebook_user=user.profile.facebook_user)
+
     def get_people_who_signed_me_i_havent(self, user):
         from voomza.apps.yearbook.models import YearbookSign
         return YearbookSign.objects.filter(to_facebook_user=user.profile.facebook_user) \
