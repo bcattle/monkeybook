@@ -33,3 +33,9 @@ class YearbookProgress(object):
         except Yearbook.DoesNotExist:
             return 'FAILURE'
 
+    def get_hash(self):
+        if self.get_status() == 'SUCCESS':
+            yearbooks = Yearbook.objects.filter(rankings__user=self.user)
+            return yearbooks[0].hash
+        else:
+            return ''

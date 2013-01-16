@@ -7,6 +7,7 @@
         <script type="text/javascript" src="{% static 'js/progress.js' %}"></script>
         <script type="text/javascript">
             var yearbookStatusUrl = "{% url 'api_dispatch_detail' api_name='v1' resource_name='yearbook_progress' pk='1' %}";
+            var yearbookUrlPath = "{% url 'yearbook_no_hash' %}";
         </script>
     {% endcompress %}
 {% endif %}

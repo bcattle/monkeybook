@@ -15,13 +15,17 @@ function getProgress() {
 }
 
 function onGetProgress(data, textStatus, jqXHR) {
-    var status = data.status;
     // status could be PENDING, STARTED, RETRY, FAILURE, or SUCCESS
     $('.yearbookNotReadyInitial').hide();
-    if (status == "SUCCESS") {
+    if (data.status == "SUCCESS") {
+        // Update the link url and share modal (if any) with the hash
+        var yearbookUrl = window.location.origin + yearbookUrlPath + data.hash + '/';
+        $('a.yearbookReady').attr('href', yearbookUrl);
+        $('.shareUrl').text(yearbookUrl);
         // Show the "view yearbook" button
         $('.yearbookNotReady').hide();
         $('.yearbookReady').show();
+        // Stop the timer
         clearInterval(successTimer);
     } else {
         $('.yearbookNotReady').show();

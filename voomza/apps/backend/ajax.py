@@ -22,6 +22,7 @@ class YearbookProgressResource(Resource):
     async done or model exists in db
     """
     status = fields.CharField(attribute='get_status', readonly=True)
+    hash = fields.CharField(attribute='get_hash', readonly=True)
 
     class Meta:
         resource_name = 'yearbook_progress'
