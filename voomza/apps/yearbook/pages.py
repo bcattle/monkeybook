@@ -193,20 +193,22 @@ class AlbumPage(PhotoPage):
 
     def get_album_photos(self, field_prefix):
         photos = []
+        album_name = ''
         for photo_num in range(self.max_photos):
             photo = self.yearbook.get_photo_from_field_string(
                 self.ranking_table_name, '%s_photo_%d' % (field_prefix, (photo_num + 1))
             )
-            if 'album_name' in photo:
-                album_name = photo['album_name']
-            else:
-                album_name = ''
-            photo_id = self.yearbook._get_id_from_dict_or_int(photo)
-            try:
-                photo = FacebookPhoto.objects.get(facebook_id=photo_id)
-                photos.append(photo)
-            except FacebookPhoto.DoesNotExist:
-                logger.warn('Tried to get fb photo %s, referenced by album but not in db' % photo_id)
+            if photo:
+                if 'album_name' in photo:
+                    album_name = photo['album_name']
+                else:
+                    album_name = ''
+                photo_id = self.yearbook._get_id_from_dict_or_int(photo)
+                try:
+                    photo = FacebookPhoto.objects.get(facebook_id=photo_id)
+                    photos.append(photo)
+                except FacebookPhoto.DoesNotExist:
+                    logger.warn('Tried to get fb photo %s, referenced by album but not in db' % photo_id)
         return photos, album_name
 
     def get_next_image(self, next_index, photo_index):
