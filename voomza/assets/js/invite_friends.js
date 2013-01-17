@@ -4,6 +4,10 @@ var checkedAttr = 'checked="checked"';
 var friendsList = null;
 var selectNoneWasClicked = false;
 
+if (!String.prototype.trim) {
+    String.prototype.trim=function(){return this.replace(/^\s+|\s+$/g, '');};
+}
+
 function onGetFriends(data, textStatus, jqXHR) {
     nextFriendsUrl = data.meta.next;
     // Get the next page of results, if we need to
@@ -22,7 +26,7 @@ function onGetFriends(data, textStatus, jqXHR) {
             friend.checked = checkedAttr;
         }
         // All divs are injected hidden
-        friend_element = $(Mustache.to_html(friendTemplate, friend))
+        friend_element = $(Mustache.to_html(friendTemplate, friend).trim())
             .addClass('friend_unloaded').hide().appendTo(friendsList);
         // Add a callback to show after the image has loaded
         friend_element.imagesLoaded(function(){

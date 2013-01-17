@@ -60,10 +60,9 @@
 
 
 {% block script %}
-    <script type="text/javascript" src="{% static 'js/jquery-1.7.2.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/jquery-1.9.0.min.js' %}"></script>
     {% navbar_js %}
     {% compress js %}
-        <script type="text/javascript" src="{% static 'js/jquery.modal.min.js' %}"></script>
         <script type="text/javascript" src="{% static 'js/jquery-ui-1.8.20.custom.min.js' %}"></script>
         <script type="text/javascript" src="{% static 'js/jquery.mousewheel.min.js' %}"></script>
         <script type="text/javascript" src="{% static 'js/modernizr.2.5.3.min.js' %}"></script>
@@ -73,7 +72,6 @@
         <script type="text/javascript" src="{% static 'js/addpage-api.js' %}"></script>
         <script type="text/javascript" src="{% static 'js/yearbook-ux.js' %}"></script>
         <script type="text/javascript" src="{% static 'js/yearbook.js' %}"></script>
-
         <script type="text/javascript">
             var pagesUrl = "{% url 'api_dispatch_list' api_name='v1' resource_name='yearbookpage' hash=hash %}";
 

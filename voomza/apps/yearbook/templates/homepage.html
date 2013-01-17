@@ -21,7 +21,7 @@
 {% endblock %}
 
 {% block script %}
-    <script type="text/javascript" src="{% static 'js/jquery-1.7.2.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/jquery-1.9.0.min.js' %}"></script>
     {% compress js %}
         <script type="text/javascript" src="{% static 'js/jquery-ui-1.8.20.custom.min.js' %}"></script>
         <script type="text/javascript" src="{% static 'js/jquery.mousewheel.min.js' %}"></script>
@@ -51,6 +51,9 @@
                 $('.facebook-login').click(function(){
                     F.connect($('#facebook-login-form'));
                 });
+
+                // Open the book automatically
+                setTimeout(function () { $('.sj-book').turn('page', 4); }, 5000);
             });
         </script>
     {% endcompress %}

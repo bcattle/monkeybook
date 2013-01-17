@@ -4,6 +4,10 @@ var lastXhr, lastSignedXhr;
 var lastSearchStr = '';
 var signedYearbookTemplate;
 
+if (!String.prototype.trim) {
+    String.prototype.trim=function(){return this.replace(/^\s+|\s+$/g, '');};
+}
+
 // Typeahead filter, pulls from AJAX
 $(document).ready(function(){
     filterElement = $('#filter_input');
@@ -63,7 +67,7 @@ function onGetFilteredResults(data, textStatus, jqXHR) {
         // If the user is already in the DOM,
         // assume the value their textarea already has
         curr_text = getExistingElementById(result.facebook_id).find('.yearbook_input').val();
-        result_element = $(Mustache.to_html(yearbookTemplate, result))
+        result_element = $(Mustache.to_html(yearbookTemplate, result).trim())
             .addClass('yearbook_result').hide().appendTo(yearbooksList);
         // Add a callback to show after the image has loaded
         result_element.imagesLoaded(function(){
@@ -84,7 +88,7 @@ function onGetSignedResults(data, textStatus, jqXHR) {
     // Prepend these results to the top of the list
     var results = data.objects;
     _.each(results, function(result) {
-        $(Mustache.to_html(signedYearbookTemplate, result)).show().prependTo(yearbooksList);
+        $(Mustache.to_html(signedYearbookTemplate, result).trim()).show().prependTo(yearbooksList);
     });
 }
 

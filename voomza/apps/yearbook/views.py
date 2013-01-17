@@ -35,12 +35,9 @@ def homepage(request):
 
 @login_required
 @facebook_required_lazy(canvas=True)
-@ensure_csrf_cookie
-def invite_friends_to_sign(request,
-                           template_name='invite_friends.html',
-                           next_view='homepage'):
+def start(request, next_view='loading'):
     """
-    User invites people to sgn their yearbook
+    Spins off the yearbook
     """
     # Start pulling the user's top friends (fast)
     # ** This also fires off the run_yearbook task **
@@ -50,7 +47,7 @@ def invite_friends_to_sign(request,
         # Oddly, saving the async_result to session - it disappears
         # this even though the 'optional_fields_async' survives
         request.session['pull_friends_id'] = pull_friends_async.id
-#        request.session['pull_friends_async'] = pull_friends_async
+    #        request.session['pull_friends_async'] = pull_friends_async
 
     # We also need their optional profile fields,
     # fire that off as well
@@ -58,6 +55,29 @@ def invite_friends_to_sign(request,
         optional_fields_async = pull_user_profile.apply_async(kwargs={'user': request.user})
         request.session['optional_fields_async'] = optional_fields_async
 
+    return redirect(next_view)
+
+
+@login_required
+@facebook_required_lazy(canvas=True)
+@ensure_csrf_cookie
+def invite_friends_to_sign(request,
+                           template_name='invite_friends.html',
+                           next_view='homepage'):
+    """
+    User invites people to sgn their yearbook
+    """
+    context = {
+        'next_view': next_view
+    }
+    return render(request, template_name, context)
+
+
+@login_required
+@facebook_required_lazy(canvas=True)
+def loading(request,
+            template_name='loading.html',
+            next_view='yearbook_no_hash'):
     context = {
         'next_view': next_view
     }

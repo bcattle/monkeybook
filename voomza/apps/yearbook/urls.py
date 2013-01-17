@@ -8,7 +8,9 @@ urlpatterns = patterns('',
     url(r'^$', homepage, name='homepage'),
     url(r'^canvas/$', homepage, name='homepage_canvas', kwargs={'template_name': 'homepage_canvas.html'}),
 
-    url(r'^start/$', invite_friends_to_sign, name='invite_friends_to_sign'),
+    url(r'^start/$', start, name='start'),
+    url(r'^running/$', loading, name='loading'),
+    url(r'^invite/$', invite_friends_to_sign, name='invite_friends_to_sign'),
 
 #    url(r'^transfer/$', transfer_screen, name='transfer_screen'),
 #    url(r'^sign/$', sign_friends, name='sign_friends'),

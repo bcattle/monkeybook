@@ -9,6 +9,7 @@
 {% endblock %}
 
 {% block style %}
+    <link href='{% static 'css/jquery.modal.css' %}' rel='stylesheet' type='text/css'>
     <link href="{% static 'css/home.css' %}" rel="stylesheet" type="text/css">
     <link href="{% static 'css/footer.css' %}" rel="stylesheet" type="text/css">
     <link href="{% static 'css/feature.css' %}" rel="stylesheet" type="text/css" />
@@ -16,15 +17,14 @@
 {% endblock %}
 
 {% block script %}
-    <script type="text/javascript" src="{% static 'js/jquery-1.7.2.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/jquery-1.9.0.min.js' %}"></script>
     {% navbar_js %}
 {% endblock %}
 
 {% block body %}
     <div class="container">
         {% navbar active='standard' %}
-
-        <div class="row" style="margin-top:40px">
+        <div class="row" style="margin-top:40px;margin-bottom:40px;">
             <div class="span12" style="margin-bottom:20px;margin-top:20px">
                 <img src="{% static 'img/cloud_upload.png' %}" width="400" style="float:left">
                 <h3 style="text-align:right">Your 2012 Standard Cloud Yearbook</h3>

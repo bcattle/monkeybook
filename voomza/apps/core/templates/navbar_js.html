@@ -4,10 +4,23 @@
 
 {% if user.is_authenticated %}
     {% compress js %}
+        <script type="text/javascript" src="{% static 'js/jquery.modal.min.js' %}"></script>
         <script type="text/javascript" src="{% static 'js/progress.js' %}"></script>
         <script type="text/javascript">
             var yearbookStatusUrl = "{% url 'api_dispatch_detail' api_name='v1' resource_name='yearbook_progress' pk='1' %}";
             var yearbookUrlPath = "{% url 'yearbook_no_hash' %}";
+            $.modal.defaults = {
+                overlay: "#000",        {#  Overlay color   #}
+                opacity: 0.75,          {#  Overlay opacity   #}
+                zIndex: 2000,           {#  Overlay z-index.   #}
+                escapeClose: true,      {#  Allows the user to close the modal by pressing `ESC`   #}
+                clickClose: true,       {#  Allows the user to close the modal by clicking the overlay   #}
+                closeText: 'Close',     {#  Text content for the close <a> tag.   #}
+                showClose: true,        {#  Shows a (X) icon/link in the top-right corner   #}
+                modalClass: "modal",    {#  CSS class added to the element being displayed in the modal.   #}
+                spinnerHtml: null,      {#  HTML appended to the default spinner during AJAX requests.   #}
+                showSpinner: true       {#  Enable/disable the default spinner during AJAX requests.   #}
+            };
         </script>
     {% endcompress %}
 {% endif %}

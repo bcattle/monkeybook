@@ -27,10 +27,9 @@ class YearbookProgress(object):
                 # Can return PENDING, STARTED, RETRY, FAILURE, or SUCCESS
 
         # Otherwise, look for a yearbook for user in db
-        try:
-            Yearbook.objects.filter(rankings__user=self.user)
+        if Yearbook.objects.filter(rankings__user=self.user).exists():
             return 'SUCCESS'
-        except Yearbook.DoesNotExist:
+        else:
             return 'FAILURE'
 
     def get_hash(self):

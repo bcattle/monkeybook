@@ -3,6 +3,10 @@ var filterElement = null;
 var lastXhr;
 var lastSearchStr = '';
 
+if (!String.prototype.trim) {
+    String.prototype.trim=function(){return this.replace(/^\s+|\s+$/g, '');};
+}
+
 // Typeahead filter, pulls from AJAX
 $(document).ready(function(){
     filterElement = $('#filter_input');
@@ -59,7 +63,7 @@ function onGetFilteredResults(data, textStatus, jqXHR) {
             friend.checked = checkedAttr;
         }
 
-        result_element = $(Mustache.to_html(friendTemplate, friend))
+        result_element = $(Mustache.to_html(friendTemplate, friend).trim())
             .addClass('friend_result').hide().appendTo(friendsList);
         // Add a callback to show after the image has loaded
         result_element.imagesLoaded(function(){

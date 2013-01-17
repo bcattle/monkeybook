@@ -9,6 +9,10 @@ function csrfSafeMethod(method) {
     return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
 }
 
+if (!String.prototype.trim) {
+    String.prototype.trim=function(){return this.replace(/^\s+|\s+$/g, '');};
+}
+
 $(document).ready(function(){
     Mustache.tags = ['[[', ']]'];
 
@@ -54,7 +58,7 @@ function onGetSigns(data, textStatus, jqXHR) {
     // Dump the friends into the list
     var sign_element;
     _.each(signs, function(sign) {
-        sign_element = $(Mustache.to_html(signTemplate, sign))
+        sign_element = $(Mustache.to_html(signTemplate, sign).trim())
             .hide().appendTo(signsList);
         sign_element.imagesLoaded(function(){
             this.fadeIn(500);
@@ -125,7 +129,7 @@ function onGetYearbooks(data, textStatus, jqXHR) {
     // Dump the yearbooks into the list
     var yearbooks_element;
     _.each(yearbooks, function(yb_data) {
-        yearbooks_element = $(Mustache.to_html(yearbookTemplate, yb_data)).hide();
+        yearbooks_element = $(Mustache.to_html(yearbookTemplate, yb_data).trim()).hide();
         if (jqXHR.prepend) {
             yearbooks_element.prependTo(yearbooksList);
         } else {

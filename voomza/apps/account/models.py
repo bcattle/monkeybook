@@ -26,7 +26,8 @@ class UserProfile(BaseFacebookProfileModel):
         """
         Behavior after registering with facebook
         """
-        return redirect(self.current_page)
+#        return redirect(self.current_page)
+        return redirect('start')
 
 
 class FamilyConnection(models.Model):

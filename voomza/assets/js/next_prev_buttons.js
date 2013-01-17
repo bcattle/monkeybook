@@ -9,7 +9,7 @@
 //    // Attach an edit row div to every image on the page
 //    $('.p' + page).find('photo').each(function(index, value){
 //        var data = {'page': page, 'index': index};
-//        $(Mustache.to_html(edit_row_template, data)).appendTo(this);
+//        $(Mustache.to_html(edit_row_template, data).trim()).appendTo(this);
 //    });
 //
 //    // Register click handlers

@@ -27,6 +27,8 @@ function onGetProgress(data, textStatus, jqXHR) {
         $('.yearbookReady').show();
         // Stop the timer
         clearInterval(successTimer);
+        // Fire an event
+        $(document).trigger('yearbookReady');
     } else {
         $('.yearbookNotReady').show();
     }

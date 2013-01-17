@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% load url from future %}
+{% load compress %}
+{% load navbar %}
+
+{% block style_0 %}
+    <link href='{% static 'css/jquery.modal.css' %}' rel='stylesheet' type='text/css'>
+    <link href='{% static 'css/bootstrap.css' %}' rel='stylesheet' type='text/css'>
+    <link href='{% static 'css/open_sans.css' %}' rel='stylesheet' type='text/css'>
+    <link href='{% static 'css/inbox.css' %}' rel='stylesheet' type='text/css'>
+    <link href='{% static 'css/yearbook.css' %}' rel='stylesheet' type='text/css'>
+    <link href='{% static 'css/navbar.css' %}' rel='stylesheet' type='text/css'>
+{% endblock %}
+
+{% block body %}
+    <div class="container">
+        {% navbar inverse=1 %}
+
+        <div class="row">
+            <div class="span12" style="text-align:center;padding-top:100px">
+                <img src="{% static 'img/blue_loader.gif' %}">
+            </div>
+        </div>
+    </div>
+
+    <div class="footer_background_black" style="margin-top:40px">
+        <div class="container">
+            <div class="row">
+                <div class="span12">
+                    <img src="{% static 'img/yearbook_allstar.png' %}" width="120px" style="float:right; margin-top:10px">
+                    <div class="footer_column">
+                        <h6 class="headerfont"><a style="color:lightblue">About</a></h6>
+                        <h6 class="headerfont"><a style="color:lightblue">How it Works</a></h6>
+                        <h6 class="headerfont"><a style="color:lightblue">Contact Us</a></h6>
+                    </div>
+
+                    <div class="footer_bottom">
+                        <p>&copy; 2012 Voomza, Inc., All Rights Reserved</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+
+{% block script %}
+    <script type="text/javascript" src="{% static 'js/jquery-1.9.0.min.js' %}"></script>
+    {% navbar_js %}
+    <script type="text/javascript">
+        $(document).ready(function(){
+            // Bind to the yearbook ready event
+            $(document).on('yearbookReady', function(){
+                // Redirect to the next page
+                top.location.href = "{% url next_view %}";
+            });
+        });
+    </script>
+{% endblock %}
