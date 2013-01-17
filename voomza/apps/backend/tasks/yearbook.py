@@ -1,6 +1,6 @@
 import logging, itertools
 from collections import defaultdict
-from celery import task
+from celery import task, group
 from django.db import transaction
 from voomza.apps.backend.tasks.albums import pull_album_photos
 from voomza.apps.core import bulk
@@ -15,7 +15,6 @@ from backend.tasks.fql import run_task as rt
 
 logger = logging.getLogger(__name__)
 
-
 @task.task(ignore_result=True)
 def pull_user_profile(user):
     profile_task = ProfileFieldsTask()
@@ -25,8 +24,8 @@ def pull_user_profile(user):
 
 @task.task(ignore_result=True)
 @transaction.commit_manually
-def save_to_db(user, family_task, family, photos_of_me):
-    family_task.save_family(user, family)
+def save_to_db(user, family, photos_of_me):
+    FamilyTask().save_family(user, family)
     transaction.commit()
 
     bulk.insert_or_update_many(FacebookPhoto, photos_of_me)
@@ -37,22 +36,39 @@ def save_to_db(user, family_task, family, photos_of_me):
 @timeit
 def run_yearbook(user, results):
 #    profile_task = ProfileFieldsTask()
-    family_task = FamilyTask()
+#    family_task = FamilyTask()
 
-    class YearbookPipeline(FqlTaskPipeline):
-        class Meta:
-            tasks = [
-                PhotosOfMeTask(),
-                CommentsOnPhotosOfMeTask(),
-                OwnerPostsFromYearTask(),
-                OthersPostsFromYearTask(),
-#                profile_task,
-                family_task
-            ]
+    ## Batch
 
-    pipeline = YearbookPipeline(user)
-    pipe_results = pipeline.run()
-    results = merge_dicts(results, pipe_results)
+#    class YearbookPipeline(FqlTaskPipeline):
+#        class Meta:
+#            tasks = [
+#                PhotosOfMeTask(),
+#                CommentsOnPhotosOfMeTask(),
+#                OwnerPostsFromYearTask(),
+#                OthersPostsFromYearTask(),
+#                #profile_task,
+#                FamilyTask(),
+#                #family_task
+#            ]
+#
+#    pipeline = YearbookPipeline(user)
+#    pipe_results = pipeline.run()
+#    results = merge_dicts(results, pipe_results)
+
+    ## Async
+
+    fql_job = group([
+        rt.subtask(kwargs={'task_cls': PhotosOfMeTask,           'user_id': user.id}),
+        rt.subtask(kwargs={'task_cls': CommentsOnPhotosOfMeTask, 'user_id': user.id}),
+        rt.subtask(kwargs={'task_cls': OwnerPostsFromYearTask,   'user_id': user.id}),
+        rt.subtask(kwargs={'task_cls': OthersPostsFromYearTask,  'user_id': user.id}),
+        rt.subtask(kwargs={'task_cls': FamilyTask,               'user_id': user.id}),
+    ])
+    job_async = fql_job.apply_async()
+    job_results = job_async.get()
+
+    results = merge_dicts(results, *job_results)
 
     ## Results contains
     #   'get_friends'               all friends     (already saved to db)
@@ -88,7 +104,8 @@ def run_yearbook(user, results):
     # Save photos, profile fields, and family to db
 #    save_to_db.delay(user, profile_task, results['profile_fields'],
 #                     family_task, results['family'], photos_of_me)
-    save_to_db.delay(user, family_task, results['family'], photos_of_me)
+#    save_to_db.delay(user, family_task, results['family'], photos_of_me)
+    save_to_db.delay(user, results['family'], photos_of_me)
 
     ## Calculate top friends
 
@@ -169,7 +186,7 @@ def run_yearbook(user, results):
         score = ((TOP_PHOTO_POINTS_FOR_TOP_FRIENDS * num_top_friends_by_photo_id[photo['id']] +
                   TOP_PHOTO_POINTS_FOR_COMMENT * comments_from_friends +
                   TOP_PHOTO_POINTS_FOR_LIKE * photo['like_count']) /
-                      max(num_tags_by_photo_id.fields_by_id[photo['id']]['count'] - 3.0, 1.0)
+                      max(num_tags_by_photo_id.fields_by_id[photo['id']]['count'] - 2.0, 1.0)
                           if photo['id'] in num_tags_by_photo_id.fields_by_id else 1)
 
         top_photo_score_by_id[photo['id']] = photo['score'] = score
@@ -302,13 +319,15 @@ def run_yearbook(user, results):
         top_friend_photos = []
         for tag in friend_tags:
             tag_id = tag['object_id']
-            top_friend_photos.append({'id': tag_id, 'score': top_photo_score_by_id[tag_id]})
-#            top_friend_photos.append(tag_id)
+            photo = results['photos_of_me'].fields_by_id[tag_id]
+            top_friend_photos.append({'id': tag_id, 'score': top_photo_score_by_id[tag_id],
+                                      'width': photo['width'], 'height': photo['height']})
         top_friend_photos.sort(key=lambda x: x['score'], reverse=True)
         top_friends_photos.append(top_friend_photos)
     rankings.top_friends_photos = top_friends_photos
 
     ## Assign the top friends
+#    used_albums = []
     for index in range(NUM_TOP_FRIENDS):
         # Index
         setattr(yb, 'top_friend_%d' % (index + 1), index)
@@ -322,14 +341,15 @@ def run_yearbook(user, results):
             friend_stat = u'Tagged in %d photo%s with you' % (num_tags, 's' if num_tags > 1 else '')
         setattr(yb, 'top_friend_%d_stat' % (index + 1), friend_stat)
         # Set photo
-        tf_photo_index = yb.get_first_unused_photo(rankings.top_friends_photos[index])
+#        tf_photo_index = yb.get_first_unused_photo(rankings.top_friends_photos[index])
+        tf_photo_index = yb.get_first_unused_photo_landscape(rankings.top_friends_photos[index])
         setattr(yb, 'top_friend_%d_photo_1' % (index + 1), tf_photo_index)
         # If photo was portrait, grab another one
-        tf_photo_id = rankings.top_friends_photos[index][tf_photo_index]['id']
-        tf_photo = results['photos_of_me'].fields_by_id[tf_photo_id]
-        if tf_photo['width'] / float(tf_photo['height']) < HIGHEST_SQUARE_ASPECT_RATIO:
-            tf_photo_index_2 = yb.get_first_unused_photo(rankings.top_friends_photos[index])
-            setattr(yb, 'top_friend_%d_photo_2' % (index + 1), tf_photo_index_2)
+#        tf_photo_id = rankings.top_friends_photos[index][tf_photo_index]['id']
+#        tf_photo = results['photos_of_me'].fields_by_id[tf_photo_id]
+#        if tf_photo['width'] / float(tf_photo['height']) < HIGHEST_SQUARE_ASPECT_RATIO:
+#            tf_photo_index_2 = yb.get_first_unused_photo(rankings.top_friends_photos[index])
+#            setattr(yb, 'top_friend_%d_photo_2' % (index + 1), tf_photo_index_2)
 
 
     ## Top albums

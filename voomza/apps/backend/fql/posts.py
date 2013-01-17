@@ -7,13 +7,14 @@ logger = logging.getLogger(__name__)
 
 # http://stackoverflow.com/a/11409065/1161906
 unix_this_year = calendar.timegm(THIS_YEAR.utctimetuple())
+unix_this_year_end = calendar.timegm(THIS_YEAR_END.utctimetuple())
 
 class OwnerPostsFromYearTask(FQLTask):
     fql = '''
         SELECT post_id, actor_id, created_time, comments, likes, message FROM stream
             WHERE source_id=me() AND message!='' AND filter_key='owner'
-            AND created_time > %s LIMIT 500
-    ''' % unix_this_year
+            AND created_time > %s AND created_time < %s LIMIT 500
+    ''' % (unix_this_year, unix_this_year_end)
 
     def on_results(self, results):
         getter = ResultGetter(
@@ -33,8 +34,8 @@ class OthersPostsFromYearTask(OwnerPostsFromYearTask):
     fql = '''
         SELECT post_id, actor_id, created_time, comments, likes, message FROM stream
             WHERE source_id=me() AND message!='' AND filter_key='others'
-            AND created_time > %s LIMIT 500
-    ''' % unix_this_year
+            AND created_time > %s AND created_time < %s LIMIT 500
+    ''' % (unix_this_year, unix_this_year_end)
 
 
 #class GetPostTask(FQLTask):
