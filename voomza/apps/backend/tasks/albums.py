@@ -19,9 +19,9 @@ def pull_album_photos(user, album_score_and_date_by_id, exclude_albums=None):
     # All album photos, sorted by score
     album_photos_by_score = [
         [
-            {'id': photo['id'], 'score':photo['score']}
+            {'id': photo['id'], 'score': photo['score'], 'album_name': top_albums[album_index]['name']}
             for photo in getter.order_by('score')
-        ] for getter in top_albums_photos
+        ] for album_index, getter in enumerate(top_albums_photos)
     ]
     return album_photos_by_score, albums_ranked
 

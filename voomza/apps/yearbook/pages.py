@@ -194,15 +194,20 @@ class AlbumPage(PhotoPage):
     def get_album_photos(self, field_prefix):
         photos = []
         for photo_num in range(self.max_photos):
-            photo_id = self.yearbook.get_photo_id_from_field_string(
+            photo = self.yearbook.get_photo_from_field_string(
                 self.ranking_table_name, '%s_photo_%d' % (field_prefix, (photo_num + 1))
             )
+            if 'album_name' in photo:
+                album_name = photo['album_name']
+            else:
+                album_name = ''
+            photo_id = self.yearbook._get_id_from_dict_or_int(photo)
             try:
                 photo = FacebookPhoto.objects.get(facebook_id=photo_id)
                 photos.append(photo)
             except FacebookPhoto.DoesNotExist:
                 logger.warn('Tried to get fb photo %s, referenced by album but not in db' % photo_id)
-        return photos
+        return photos, album_name
 
     def get_next_image(self, next_index, photo_index):
         # De-reference the field and get the next unallocated image
@@ -217,19 +222,19 @@ class AlbumPage(PhotoPage):
 
     def page_content(self):
         # Return up to `max_photos` photos, dereferenced to `ranking_name`
-        photos = self.get_album_photos(self.field_prefix)
+        photos, album_name = self.get_album_photos(self.field_prefix)
         # Sort them according to whether they are portrait or landscape
         photos_portrait = [photo for photo in photos if not photo.is_landscape()]       # includes square
         photos_landscape = [photo for photo in photos if photo.is_landscape()]
 
-        album_name = ''
-        if self.get_album_name:
-            # Manually get the album index
-            # self.field_prefix = 'top_album_1.top_album_1'
-            album_index = getattr(self.yearbook, self.field_prefix.split('.')[0])
-            album_info = self.yearbook.rankings.top_albums_ranked[album_index]
-#            album_name = album_info['name']
-            album_name = ''
+#        album_name = ''
+#        if self.get_album_name:
+#            # Manually get the album index
+#            # self.field_prefix = 'top_album_1.top_album_1'
+#            album_index = getattr(self.yearbook, self.field_prefix.split('.')[0])
+#            album_info = self.yearbook.rankings.top_albums_ranked[album_index]
+##            album_name = album_info['name']
+#            album_name = ''
 
         page_content = {
             'photos': photos,
