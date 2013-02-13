@@ -1,8 +1,12 @@
-import datetime
+import datetime, calendar
 from pytz import utc
 
 THIS_YEAR       = datetime.datetime(2012, 1, 1, tzinfo=utc)
 THIS_YEAR_END   = datetime.datetime(2012, 12, 31, tzinfo=utc)
+# http://stackoverflow.com/a/11409065/1161906
+UNIX_THIS_YEAR      = calendar.timegm(THIS_YEAR.utctimetuple())
+UNIX_THIS_YEAR_END  = calendar.timegm(THIS_YEAR_END.utctimetuple())
+
 GROUP_PHOTO_CUTOFF = datetime.datetime(2012 - 2, 1, 1, tzinfo=utc)
 
 PHOTO_FIELDS = 'object_id, images, created, comment_info, like_info'

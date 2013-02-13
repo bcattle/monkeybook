@@ -34,8 +34,8 @@ class TaggedWithMeTask(FQLTask):
     fql = '''
         SELECT subject, object_id, created FROM photo_tag WHERE object_id IN
             (SELECT object_id FROM photo_tag WHERE subject=me())
-        AND subject!=me() ORDER BY created DESC
-    '''
+        AND subject!=me() AND created < %s ORDER BY created DESC
+    ''' % UNIX_THIS_YEAR_END
     def on_results(self, results):
         """
         Build a list of user ids that are tagged with

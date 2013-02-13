@@ -8,9 +8,10 @@ class PhotosOfMeTask(FQLTask):
     """
     fql = '''
         SELECT %s, album_object_id, caption FROM photo
-            WHERE object_id IN
+            WHERE created < %s
+            AND object_id IN
                 (SELECT object_id FROM photo_tag WHERE subject=me())
-    ''' % PHOTO_FIELDS
+    ''' % (PHOTO_FIELDS, UNIX_THIS_YEAR_END)
 
     def on_results(self, results):
         getter = process_photo_results(
@@ -27,9 +28,11 @@ class CommentsOnPhotosOfMeTask(FQLTask):
     """
     fql = '''
         SELECT object_id, fromid, time, text, likes, user_likes
-            FROM comment WHERE object_id IN
-        (SELECT object_id FROM photo_tag WHERE subject=me())
-    '''
+            FROM comment WHERE time < %s
+            AND object_id IN
+                (SELECT object_id FROM photo_tag WHERE subject=me())
+    ''' % UNIX_THIS_YEAR_END
+
     def on_results(self, results):
         getter = ResultGetter(
             results,

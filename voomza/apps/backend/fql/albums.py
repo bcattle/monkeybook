@@ -33,6 +33,7 @@ class AlbumPhotosTask(FQLTask):
             ALBUM_POINTS_FOR_LIKE * photo['like_count']
         return score
 
+
 class AlbumInfoTask(FQLTask):
     """
     Pulls album name and size from the specified albums
