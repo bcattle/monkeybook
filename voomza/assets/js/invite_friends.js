@@ -167,8 +167,8 @@ function fbSubmitCallback(data) {
             success: function() {},
             error: function() {},
     //        error: function(jqXHR, textStatus, errorThrown) {
-    //            console.log('error');
-    //        },
+    //          console.log('error : ' + textStatus);
+            //        },
             complete: function(){
                 // Whether or not it worked, go on to next page
                 top.location.href = nextUrl;

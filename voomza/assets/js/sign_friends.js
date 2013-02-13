@@ -70,7 +70,7 @@ function onGetSigns(data, textStatus, jqXHR) {
 
 function onGetSignsError(jqXHR, textStatus, errorThrown) {
     // TODO
-    console.log('error');
+    console.log('error : ' + textStatus);
 }
 
 function registerYearbookSignHandlers() {
@@ -220,12 +220,12 @@ function sendYearbookSign(yearbook, text, success, error) {
 //    console.log('sendYearbookSign called');
     var id = yearbook.data('id');
     // Submit the yearbook sign
-    var data = {
-        'to_facebook_user_id': id,
-        'text': text
+    var msg_data = {
+        to_facebook_user_id: id,
+        text: text
     };
     // Reject duplicates
-    if (lastSendYearbookData != null && _.isEqual(data, lastSendYearbookData)) {
+    if (lastSendYearbookData != null && _.isEqual(msg_data, lastSendYearbookData)) {
 //        console.log('rejecting duplicate');
         return;
     }
@@ -234,7 +234,8 @@ function sendYearbookSign(yearbook, text, success, error) {
     var sendYearbookXHR = $.ajax({
         url: signsUrl,
         type: 'POST',
-        data: JSON.stringify(data),
+//        data: msg_data,
+        data: JSON.stringify(msg_data),
         contentType: 'application/json',
         dataType: 'json',
         processData: false,
@@ -246,7 +247,7 @@ function sendYearbookSign(yearbook, text, success, error) {
         error: error
     });
     sendYearbookXHR.facebook_id = id;
-    lastSendYearbookData = data;
+    lastSendYearbookData = msg_data;
 }
 
 function onYearbookSignSent(data, textStatus, jqXHR) {
@@ -264,7 +265,7 @@ function onYearbookSignSent(data, textStatus, jqXHR) {
     // Set class that it worked
     yearbook.removeClass('yearbook').addClass('yearbook_sent');
     // Show the post to wall dialog
-    showPostToWallDialog(to_id);
+//    showPostToWallDialog(to_id);
 }
 
 function showPostToWallDialog(to_id) {
@@ -290,5 +291,5 @@ function showPostToWallDialog(to_id) {
 
 function onYearbookSignError(jqXHR, textStatus, errorThrown) {
     // TODO
-    console.log('error');
+    console.log('error : ' + textStatus);
 }

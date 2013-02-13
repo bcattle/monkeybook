@@ -36,5 +36,5 @@ function onGetProgress(data, textStatus, jqXHR) {
 
 function onGetProgressError(jqXHR, textStatus, errorThrown) {
     // TODO
-    console.log('error');
+    console.log('error : ' + textStatus);
 }
