@@ -113,7 +113,7 @@ def run_yearbook(user, results):
     comments_score_by_user_id = defaultdict(lambda: 0)
     for comment in results['comments_on_photos_of_me']:
         comments_score_by_user_id[comment['fromid']] += \
-            TOP_FRIEND_POINTS_FOR_PHOTO_COMMENT / (2012 - comment['time'].year + 1.0)
+            TOP_FRIEND_POINTS_FOR_PHOTO_COMMENT / max((THIS_YEAR.year - comment['time'].year + 1.0), 1.0)
 
     # Combine the lists of posts
     all_posts_this_year = ResultGetter.from_fields(itertools.chain(

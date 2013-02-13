@@ -3,7 +3,7 @@ from voomza.config.common_settings import *
 DEBUG = True
 #DEBUG = False
 TEMPLATE_DEBUG = DEBUG
-COMPRESS_ENABLED = True
+#COMPRESS_ENABLED = True
 
 ## Facebook
 
