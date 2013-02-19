@@ -326,13 +326,13 @@ class Yearbook(models.Model):
                             continue
                     except FacebookPhoto.DoesNotExist:
                         logger.warn('Attempted to look up fb photo %d, doesn\'t exist in db.' % photo)
+                        continue
                     if return_id:
                         return index + start_index, photo_db.facebook_id
                     return index + start_index
         if return_id:
             return None, None
         return None
-
 
     def get_first_unused_photo_portrait(self, list_of_photos, used_ids=None, start_index=0):
         """
@@ -355,6 +355,7 @@ class Yearbook(models.Model):
                             continue
                     except FacebookPhoto.DoesNotExist:
                         logger.warn('Attempted to look up fb photo %d, doesn\'t exist in db.' % photo)
+                        continue
                 return index + start_index
         return None
 

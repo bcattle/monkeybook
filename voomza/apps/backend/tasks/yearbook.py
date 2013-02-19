@@ -124,11 +124,12 @@ def run_yearbook(user, results):
     # Strip posts that have an attachment that is a photo?
 #    .filter(lambda x: 'attachment' in x and 'fb_object_type' in x['attachment'] and x['attachment'])
 
+    # Assign each friend points for each post they made
     posts_score_by_user_id = defaultdict(lambda: 0)
     for post in all_posts_this_year:
-        if 'score' not in post:
-            post['score'] = 0
-        post['score'] += TOP_FRIEND_POINTS_FOR_POST
+        # if 'score' not in post:
+        #     post['score'] = 0
+        # post['score'] += TOP_FRIEND_POINTS_FOR_POST
         posts_score_by_user_id[post['actor_id']] += TOP_FRIEND_POINTS_FOR_POST
 
     # Calculate photo score for each user, discounted by year
@@ -136,7 +137,10 @@ def run_yearbook(user, results):
     for tag in results['tagged_with_me']:
         tags_by_user_id[tag['subject']].append(tag)
 
-    photos_score_by_user_id = defaultdict(lambda: 0)
+    # import ipdb
+    # ipdb.set_trace()
+
+    photos_score_by_user_id = defaultdict(lambda: 0.0)
     for friend_id, tag_list in tags_by_user_id.items():
         for tag in tag_list:
             photo_id = tag['object_id']
@@ -156,7 +160,7 @@ def run_yearbook(user, results):
         | set(photos_score_by_user_id))
     top_friend_ids.remove(user.profile.facebook_id)
     top_friend_score_by_id = {
-        friend_id: comments_score_by_user_id[friend_id] + posts_score_by_user_id[friend_id] +\
+        friend_id: comments_score_by_user_id[friend_id] + posts_score_by_user_id[friend_id] +
                    photos_score_by_user_id[friend_id]
         for friend_id in top_friend_ids
     }
@@ -217,7 +221,6 @@ def run_yearbook(user, results):
         # Also tag with the date
         album_score_and_date_by_id[photo['album_object_id']]['created'] = photo['created']
 
-
     ## Calculate top post
     for post in all_posts_this_year:
         top_friend_comments = 0
@@ -240,7 +243,6 @@ def run_yearbook(user, results):
             lambda x: start_time < x['created_time'] < end_time and x['message']
         )
 
-
     ## Save fields to the PhotoRankings class
 
     rankings = PhotoRankings(user=user)
@@ -251,7 +253,7 @@ def run_yearbook(user, results):
 
     rankings.top_photos = top_photos_this_year
     rankings.group_shots = [
-        k for k,v in sorted(
+        k for k, v in sorted(
             group_photo_score_by_id.items(),
             # Sort by year, score
             key=lambda x: (x[1]['created'].year, x[1]['score']),
@@ -285,7 +287,6 @@ def run_yearbook(user, results):
     yb.top_photo_3 = yb.get_first_unused_photo(rankings.top_photos)
     yb.top_photo_4 = yb.get_first_unused_photo(rankings.top_photos)
     yb.top_photo_5 = yb.get_first_unused_photo(rankings.top_photos)
-
 
     # Assign the group photos from different albums, if possible
     # Make one pass assigning from different albums,
@@ -351,7 +352,6 @@ def run_yearbook(user, results):
 #            tf_photo_index_2 = yb.get_first_unused_photo(rankings.top_friends_photos[index])
 #            setattr(yb, 'top_friend_%d_photo_2' % (index + 1), tf_photo_index_2)
 
-
     ## Top albums
 
     # Start pulling album names, photos
@@ -361,7 +361,6 @@ def run_yearbook(user, results):
     album_photos_by_score, albums_ranked = pull_album_photos(user, album_score_and_date_by_id)
     rankings.top_albums_photos = album_photos_by_score
     rankings.top_albums_ranked = albums_ranked
-
 
     albums_assigned = 0
     all_top_albums = rankings.top_albums_photos[:]
@@ -481,20 +480,26 @@ def get_next_unused_photo_of_user(yearbook, photo_list, photos_of_me, used_indic
 def assign_group_photos(yearbook, rankings, photos_of_me, do_unique_albums=False):
     assigned_group_photos = 0
     assigned_album_ids = []
+    skipped_photo_indices = []
     photo_index = None
     while True:
         if not assigned_group_photos:
+            # The first photo should be landscape
             photo_index, photo_id = yearbook.get_first_unused_photo_landscape(rankings.group_shots, return_id=True)
         if assigned_group_photos > 0 or photo_index is None:
-            photo_index, photo_id = yearbook.get_first_unused_photo(rankings.group_shots, return_id=True)
+            # Subsequent iterations or it failed
+            photo_index, photo_id = yearbook.get_first_unused_photo(rankings.group_shots, used_indices=skipped_photo_indices, return_id=True)
         if photo_index:
             if do_unique_albums:
                 # Do we already have a photo from this album?
                 album_id = photos_of_me.fields_by_id[photo_id]['album_object_id']
                 if album_id in assigned_album_ids:
+                    # Assign the photo id to the "skipped" list
+                    skipped_photo_indices.append(photo_index)
                     continue
                 else:
                     assigned_album_ids.append(album_id)
+            # Actually assign the photo
             setattr(yearbook, 'group_photo_%d' % (assigned_group_photos + 1), photo_index)
             assigned_group_photos += 1
         if assigned_group_photos >= NUM_GROUP_PHOTOS or photo_index is None:
