@@ -159,16 +159,15 @@ class ResultGetter(object):
         timestamps = timestamps or []
         integer_fields = integer_fields or []
 
-        # If we are generating an auto_id,
-        # still want `id_field` in results
+        # If we are generating an auto_id, still want `id_field` in results
         if auto_id_field:
             fields.append(id_field)
 
         for index, curr_result in enumerate(results):
             processed_fields = {}
+            # If we encounter any ValueError or KeyError,
+            # scrub the whole entry (poor man's transaction)
             try:
-                # If we encounter any ValueError or KeyError,
-                # scrub the whole entry (poor man's transaction)
                 if auto_id_field:
                     curr_id = index
                 else:
@@ -179,7 +178,7 @@ class ResultGetter(object):
                 for field in fields:
                     f = field.split('.')
                     try:
-                        field1_val = curr_result[f[0]]        # fail loudly!
+                        field1_val = curr_result[field]        # fail loudly!
                     except KeyError:
                         # Either substitute a default or
                         # skip if field is optional
@@ -189,38 +188,21 @@ class ResultGetter(object):
                             continue
                         else:
                             raise
+                    # Was it a first or second level field?
                     if len(f) == 1:
-                        if f[0] in timestamps:
-                            val = datetime.datetime.utcfromtimestamp(field1_val).replace(tzinfo=utc)
-                        elif f[0] in integer_fields:
-                            try:
-                                val = int(field1_val)
-                            except ValueError:
-                                # Either substitute a default or
-                                # skip if field is optional
-                                if field in defaults:
-                                    val = defaults[field]
-                                elif field in optional_fields:
-                                    continue
-                                else:
-                                    raise
-                        else:
-                            val = field1_val
-                        if field in field_names:
-                            processed_fields[field_names[field]] = val
-                        else:
-                            processed_fields[f[0]] = val
-                    else :
+                        field_name = field
+                        field_val = field1_val
+                    else:
                         # f[1] is the actual field name
+                        field_name = f[1]
+                        field_val = field1_val[f[1]]        # fail loudly!
+                    # Process the field
+                    if field_name in timestamps:
+                        val = datetime.datetime.utcfromtimestamp(float(field_val)).replace(tzinfo=utc)      # fail loudly!
+                    elif field_name in integer_fields:
                         try:
-                            if f[1] in timestamps:
-                                # Assuming fb timestamps come in as UTC
-                                val = datetime.datetime.fromtimestamp(field1_val[f[1]]).replace(tzinfo=utc)    # fail loudly!
-                            elif f[0] in integer_fields:
-                                val = int(field1_val[f[1]])
-                            else:
-                                val = field1_val[f[1]]        # fail loudly!
-                        except (KeyError, ValueError):
+                            val = int(field_val)
+                        except ValueError:
                             # Either substitute a default or
                             # skip if field is optional
                             if field in defaults:
@@ -229,13 +211,17 @@ class ResultGetter(object):
                                 continue
                             else:
                                 raise
-                        if field in field_names:
-                            processed_fields[field_names[field]] = val
-                        else:
-                            processed_fields[f[1]] = val
+                    # Regular old field
+                    else:
+                        val = field_val
+                    if field in field_names:
+                        processed_fields[field_names[field_name]] = val
+                    else:
+                        processed_fields[field_name] = val
+
                 processed_fields['id'] = curr_id
-                for extra_name, callable in extra_fields.items():
-                    processed_fields[extra_name] = callable(processed_fields)
+                for extra_name, fxn in extra_fields.items():
+                    processed_fields[extra_name] = fxn(processed_fields)
                 # add to _fields_by_id
                 self._fields_by_id[curr_id] = processed_fields
 
