@@ -8,6 +8,8 @@ from voomza.apps.core.utils import merge_dicts
 
 logger = logging.getLogger(__name__)
 
+class BlankFieldException(Exception):
+    pass
 
 class ResultGetter(object):
     """
@@ -137,7 +139,7 @@ class ResultGetter(object):
 
     def __init__(self, results, id_field='object_id', auto_id_field=False, id_is_int=True,
                  fields=None, field_names=None, defaults=None, optional_fields=None, timestamps=None,
-                 integer_fields=None, extra_fields=None, fail_silently=True):
+                 integer_fields=None, extra_fields=None):
         """
         extra_fields    a dict of field names to add, and a function to call
                         on the existing entry, for instance to calculate a composite value
@@ -146,8 +148,10 @@ class ResultGetter(object):
         """
         self._ids = None
         if settings.DEBUG:
+            fail_silently = False
             self._fields_by_id = {}
         else:
+            fail_silently = True
             self._fields_by_id = defaultdict(lambda: '')
         self._ordered = {}
 
@@ -165,20 +169,20 @@ class ResultGetter(object):
 
         for index, curr_result in enumerate(results):
             processed_fields = {}
-            # If we encounter any ValueError or KeyError,
+            # If we encounter a ValueError or KeyError,
             # scrub the whole entry (poor man's transaction)
             try:
                 if auto_id_field:
                     curr_id = index
                 else:
                     if id_is_int:
-                        curr_id = int(curr_result[id_field])      # fail loudly!
+                        curr_id = int(curr_result[id_field])      # fail if no id or not an int
                     else:
-                        curr_id = curr_result[id_field]
+                        curr_id = curr_result[id_field]         # fail if no id
                 for field in fields:
                     f = field.split('.')
                     try:
-                        field1_val = curr_result[field]        # fail loudly!
+                        field1_val = curr_result[f[0]]        # fail loudly!
                     except KeyError:
                         # Either substitute a default or
                         # skip if field is optional
@@ -194,28 +198,51 @@ class ResultGetter(object):
                         field_val = field1_val
                     else:
                         # f[1] is the actual field name
-                        field_name = f[1]
-                        field_val = field1_val[f[1]]        # fail loudly!
-                    # Process the field
-                    if field_name in timestamps:
-                        val = datetime.datetime.utcfromtimestamp(float(field_val)).replace(tzinfo=utc)      # fail loudly!
-                    elif field_name in integer_fields:
+                        field_name = f[1]       # 'comment_info.comment_count' --> 'comment_count'
                         try:
-                            val = int(field_val)
-                        except ValueError:
+                            field_val = field1_val[f[1]]        # fail loudly!
+                        except KeyError:
                             # Either substitute a default or
                             # skip if field is optional
                             if field in defaults:
-                                val = defaults[field]
+                                field_val = defaults[field]
                             elif field in optional_fields:
                                 continue
                             else:
                                 raise
-                    # Regular old field
-                    else:
-                        val = field_val
+
+                    # Is the field blank?
+                    # Note: a blank field is not necessarily an error, may be something fb won't let us see
+                    if hasattr(field_val, 'strip') and field_val.strip() == '':
+                        # Does it have a default or is it optional?
+                        if field in defaults:
+                            field_val = defaults[field_name]
+                        elif field in optional_fields:
+                            continue
+                        else:
+                            # Scrub the entire result
+                            raise BlankFieldException(field)
+
+                    # Process the field
+                    try:
+                        if field in timestamps:
+                            val = datetime.datetime.utcfromtimestamp(float(field_val)).replace(tzinfo=utc)      # fail loudly!
+                        elif field in integer_fields:
+                            val = int(field_val)
+                        else:
+                            # Regular old field
+                            val = field_val
+                    except ValueError:
+                        # Either substitute a default or skip if field is optional
+                        if field in defaults:
+                            val = defaults[field]
+                        elif field in optional_fields:
+                            continue
+                        else:
+                            raise
+
                     if field in field_names:
-                        processed_fields[field_names[field_name]] = val
+                        processed_fields[field_names[field]] = val
                     else:
                         processed_fields[field_name] = val
 
@@ -225,10 +252,15 @@ class ResultGetter(object):
                 # add to _fields_by_id
                 self._fields_by_id[curr_id] = processed_fields
 
-            except (ValueError, KeyError):
+            except BlankFieldException:
+                continue
+            except (ValueError, KeyError), e:
                 if fail_silently:
                     continue
                 else:
+                    # import ipdb
+                    # ipdb.set_trace()
+
                     raise
 
 
@@ -237,10 +269,11 @@ class FreqDistResultGetter(ResultGetter):
     A result getter that returns the data
     in the form of a list of frequencies in descending order
     """
-    def __init__(self, results, id_field='object_id', cutoff=0, fail_silently=True):
+    def __init__(self, results, id_field='object_id', cutoff=0):
         """
         Elements that occur less-frequently than `cutoff` are discarded
         """
+        fail_silently = not settings.DEBUG
         self._ids = None
         self._ordered = {}
 
@@ -266,7 +299,7 @@ class FreqDistResultGetter(ResultGetter):
         self._ids = set(self._fields_by_id.keys())
 
 
-def process_photo_results(results, scoring_fxn=None, add_to_fields=None, commit=True):
+def process_photo_results(results, scoring_fxn=None, add_to_fields=None, add_to_defaults=None, commit=True):
     """
     Resolves the fields we know about for photos
     If commit=True, saves them to the db
@@ -275,19 +308,23 @@ def process_photo_results(results, scoring_fxn=None, add_to_fields=None, commit=
               'comment_info.comment_count', 'like_info.like_count']
     if add_to_fields:
         fields.extend(add_to_fields)
+    add_to_defaults = add_to_defaults or {}
 
     fb_results = len(results)
     _set_photo_by_width(results)
     extra_fields = {}
     if scoring_fxn:
         extra_fields['score'] = scoring_fxn
+
     getter = ResultGetter(
         results,
         fields = fields,
         timestamps = ['created'],
         extra_fields = extra_fields,
-        fail_silently=False
+        defaults=add_to_defaults,
+        # fail_silently=False
     )
+
     getter_results = len(getter)
     if fb_results != getter_results:
         logger.warning('Facebook returned %d results, our getter only produced %d' % (fb_results, getter_results))

@@ -17,6 +17,7 @@ class PhotosOfMeTask(FQLTask):
         getter = process_photo_results(
             results,
             add_to_fields=['album_object_id', 'caption'],
+            add_to_defaults={'caption': ''},
             commit=False,
         )
         return getter
