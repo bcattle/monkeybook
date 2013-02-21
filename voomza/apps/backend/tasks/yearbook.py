@@ -21,7 +21,7 @@ def pull_user_profile(user):
     profile_task.save_profile_fields(user, results['profile_fields'])
 
 
-@task.task(ignore_result=True)
+@task.task()
 @transaction.commit_manually
 def save_to_db(user, family, photos_of_me):
     FamilyTask().save_family(user, family)
@@ -88,7 +88,7 @@ def run_yearbook(user, results):
 #    save_to_db.delay(user, profile_task, results['profile_fields'],
 #                     family_task, results['family'], photos_of_me)
 #    save_to_db.delay(user, family_task, results['family'], photos_of_me)
-    save_to_db.delay(user, results['family'], photos_of_me)
+    save_to_db_async = save_to_db.delay(user, results['family'], photos_of_me)
 
     ## Calculate top friends
 
@@ -261,6 +261,11 @@ def run_yearbook(user, results):
     yb.top_photo_3 = yb.get_first_unused_photo(rankings.top_photos)
     yb.top_photo_4 = yb.get_first_unused_photo(rankings.top_photos)
     yb.top_photo_5 = yb.get_first_unused_photo(rankings.top_photos)
+
+    # `assign_group_photos` uses FacebookPhoto classes to determine portrait/landscape
+    # make sure they finished saving to the db
+    print 'save_to_db state: %s' % save_to_db_async.state
+    save_to_db_async.get()
 
     # Assign the group photos from different albums, if possible
     # Make one pass assigning from different albums,
@@ -463,7 +468,7 @@ def assign_group_photos(yearbook, rankings, photos_of_me, do_unique_albums=False
         if assigned_group_photos > 0 or photo_index is None:
             # Subsequent iterations or it failed
             photo_index, photo_id = yearbook.get_first_unused_photo(rankings.group_shots, used_indices=skipped_photo_indices, return_id=True)
-        if photo_index:
+        if photo_index is not None:
             if do_unique_albums:
                 # Do we already have a photo from this album?
                 album_id = photos_of_me.fields_by_id[photo_id]['album_object_id']
