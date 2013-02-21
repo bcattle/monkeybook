@@ -53,7 +53,7 @@ class FamilyTask(FQLTask):
         for family_member in getter.fields:
             fam_db = FamilyConnection(
                 owner           = user,
-                facebook_id     = family_member['uid'],
+                facebook_id     = family_member['id'],
                 relationship    = family_member['relationship'],
             )
             family.append(fam_db)

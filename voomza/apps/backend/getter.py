@@ -226,7 +226,16 @@ class ResultGetter(object):
                     # Process the field
                     try:
                         if field in timestamps:
-                            val = datetime.datetime.utcfromtimestamp(float(field_val)).replace(tzinfo=utc)      # fail loudly!
+                            if field_val is None:
+                                if field in defaults:
+                                    val = defaults[field_name]
+                                elif field in optional_fields:
+                                    continue
+                                else:
+                                    # Scrub the entire result
+                                    raise BlankFieldException(field)
+                            else:
+                                val = datetime.datetime.utcfromtimestamp(float(field_val)).replace(tzinfo=utc)      # fail loudly!
                         elif field in integer_fields:
                             val = int(field_val)
                         else:
@@ -258,9 +267,6 @@ class ResultGetter(object):
                 if fail_silently:
                     continue
                 else:
-                    # import ipdb
-                    # ipdb.set_trace()
-
                     raise
 
 
@@ -306,6 +312,8 @@ def process_photo_results(results, scoring_fxn=None, add_to_fields=None, add_to_
     """
     fields = ['created', 'height', 'width', 'fb_url',
               'comment_info.comment_count', 'like_info.like_count']
+    integer_fields = ['height', 'width', 'comment_info.comment_count', 
+                      'like_info.like_count']
     if add_to_fields:
         fields.extend(add_to_fields)
     add_to_defaults = add_to_defaults or {}
@@ -320,6 +328,7 @@ def process_photo_results(results, scoring_fxn=None, add_to_fields=None, add_to_
         results,
         fields = fields,
         timestamps = ['created'],
+        integer_fields = integer_fields,
         extra_fields = extra_fields,
         defaults=add_to_defaults,
         # fail_silently=False

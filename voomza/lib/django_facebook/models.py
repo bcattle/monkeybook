@@ -98,7 +98,7 @@ class BaseFacebookProfileModel(models.Model):
         expires_delta = datetime.timedelta(days=60)
         logger.info(log_format, message, expires_delta)
         if token_changed:
-            logger.info('Saving the new access token')
+            logger.info('Saving the new access token: user %s, token %s' % (self.username, access_token))
             self.access_token = access_token
             self.save()
 
