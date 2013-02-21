@@ -5,9 +5,8 @@ from django.db import transaction
 from voomza.apps.backend.tasks.albums import pull_album_photos
 from voomza.apps.core import bulk
 from voomza.apps.core.utils import timeit, merge_dicts
-from voomza.apps.backend.fql import FqlTaskPipeline, PhotosOfMeTask, \
-    CommentsOnPhotosOfMeTask, OwnerPostsFromYearTask, OthersPostsFromYearTask, \
-    ProfileFieldsTask, FamilyTask
+from voomza.apps.backend.fql import PhotosOfMeTask, CommentsOnPhotosOfMeTask, \
+    OwnerPostsFromYearTask, OthersPostsFromYearTask, ProfileFieldsTask, FamilyTask
 from voomza.apps.backend.getter import FreqDistResultGetter, ResultGetter
 from voomza.apps.backend.models import PhotoRankings, FacebookPhoto, Yearbook
 from voomza.apps.backend.settings import *
@@ -35,29 +34,7 @@ def save_to_db(user, family, photos_of_me):
 @task.task()
 @timeit
 def run_yearbook(user, results):
-#    profile_task = ProfileFieldsTask()
-#    family_task = FamilyTask()
-
-    ## Batch
-
-#    class YearbookPipeline(FqlTaskPipeline):
-#        class Meta:
-#            tasks = [
-#                PhotosOfMeTask(),
-#                CommentsOnPhotosOfMeTask(),
-#                OwnerPostsFromYearTask(),
-#                OthersPostsFromYearTask(),
-#                #profile_task,
-#                FamilyTask(),
-#                #family_task
-#            ]
-#
-#    pipeline = YearbookPipeline(user)
-#    pipe_results = pipeline.run()
-#    results = merge_dicts(results, pipe_results)
-
-    ## Async
-
+    # Run separate, async tasks to facebook
     fql_job = group([
         rt.subtask(kwargs={'task_cls': PhotosOfMeTask,           'user_id': user.id}),
         rt.subtask(kwargs={'task_cls': CommentsOnPhotosOfMeTask, 'user_id': user.id}),
@@ -82,8 +59,14 @@ def run_yearbook(user, results):
     num_tags_by_photo_id = FreqDistResultGetter(results['tagged_with_me'], id_field='object_id')
 
     comments_by_photo_id = defaultdict(list)
-    for comment in results['comments_on_photos_of_me'].fields:
+    comments_score_by_user_id = defaultdict(lambda: 0)
+    for comment in results['comments_on_photos_of_me']:
+        # Get the comments in each photo
         comments_by_photo_id[comment['object_id']].append(comment)
+
+        # Get the number of commments by each user, discounted by year
+        comments_score_by_user_id[comment['fromid']] += \
+            TOP_FRIEND_POINTS_FOR_PHOTO_COMMENT / max((THIS_YEAR.year - comment['time'].year + 1.0), 1.0)
 
     # Save the photos to the database
     photos_of_me = []
@@ -109,12 +92,6 @@ def run_yearbook(user, results):
 
     ## Calculate top friends
 
-    # Get the number of commments by each user, discounted by year
-    comments_score_by_user_id = defaultdict(lambda: 0)
-    for comment in results['comments_on_photos_of_me']:
-        comments_score_by_user_id[comment['fromid']] += \
-            TOP_FRIEND_POINTS_FOR_PHOTO_COMMENT / max((THIS_YEAR.year - comment['time'].year + 1.0), 1.0)
-
     # Combine the lists of posts
     all_posts_this_year = ResultGetter.from_fields(itertools.chain(
         results['others_posts_from_year'],
@@ -136,9 +113,6 @@ def run_yearbook(user, results):
     tags_by_user_id = defaultdict(list)
     for tag in results['tagged_with_me']:
         tags_by_user_id[tag['subject']].append(tag)
-
-    # import ipdb
-    # ipdb.set_trace()
 
     photos_score_by_user_id = defaultdict(lambda: 0.0)
     for friend_id, tag_list in tags_by_user_id.items():
