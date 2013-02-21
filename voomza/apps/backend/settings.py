@@ -51,6 +51,7 @@ ALBUM_POINTS_FOR_LIKE       = 1
 PICS_OF_USER_TO_PROMOTE     = 2
 
 NUM_TOP_FRIENDS             = 5
+NUM_TOP_FRIENDS_STORED      = 30
 TOP_FRIEND_MIN_UNUSED_PHOTOS = 1     # If a person has fewer than this many photos, they are dsq
 TOP_FRIEND_PHOTOS_TO_SHOW   = 2
 

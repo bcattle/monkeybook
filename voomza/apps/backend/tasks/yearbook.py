@@ -264,7 +264,7 @@ def run_yearbook(user, results):
 
     # `assign_group_photos` uses FacebookPhoto classes to determine portrait/landscape
     # make sure they finished saving to the db
-    print 'save_to_db state: %s' % save_to_db_async.state
+    # print 'save_to_db state: %s' % save_to_db_async.state
     save_to_db_async.get()
 
     # Assign the group photos from different albums, if possible
@@ -277,11 +277,16 @@ def run_yearbook(user, results):
     ## Top friends
     # Do this after we assign the top photos and top group photos,
     # so we can make sure there are enough unused photos of them
+
+    # We need to make sure the user exists in the db
+    # Users that came back from the db are still in results['get_friends']
+    saved_friends_ids = results['get_friends'].ids
+
     family_ids = user.family.all().values_list('facebook_id', flat=True)
     top_friend_ids = []
     gfbf_added = False
     for user_id, score in sorted(top_friend_score_by_id.items(), key=lambda x: x[1], reverse=True):
-        if yb.num_unused_photos(tags_by_user_id[user_id]) >= TOP_FRIEND_MIN_UNUSED_PHOTOS:
+        if yb.num_unused_photos(tags_by_user_id[user_id]) >= TOP_FRIEND_MIN_UNUSED_PHOTOS and user_id in saved_friends_ids:
             # If user is family or gfbf, insert at front
             if user_id == user.profile.significant_other_id:
                 top_friend_ids.insert(0, user_id)
@@ -292,7 +297,7 @@ def run_yearbook(user, results):
                 top_friend_ids.append(user_id)
 
     # Need to build another list that combines tag and photo score
-    rankings.top_friends_ids = top_friend_ids
+    rankings.top_friends_ids = top_friend_ids[:NUM_TOP_FRIENDS_STORED]
     top_friends_photos = []
     for friend_id in top_friend_ids:
         friend_tags = tags_by_user_id[friend_id]
