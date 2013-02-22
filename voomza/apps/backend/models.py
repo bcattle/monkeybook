@@ -87,6 +87,12 @@ class PhotoRankings(models.Model):
     top_friends_photos = JSONField(default="[]", max_length=100000)
     top_posts = JSONField(default="[]", max_length=100000)
 
+    def __unicode__(self):
+        return 'PhotoRankings %s' % self.user.username
+
+    class Meta:
+        verbose_name_plural = 'Photo rankings'
+
 
 class Yearbook(models.Model):
 #    rankings = models.OneToOneField(PhotoRankings, related_name='yearbook')

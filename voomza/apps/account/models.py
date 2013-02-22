@@ -55,6 +55,9 @@ class FacebookUser(models.Model):
 
     objects = FacebookUserManager()
 
+    def __unicode__(self):
+        return 'Facebook User %s' % self.name
+
     class Meta:
         ordering = ['-friend_of__top_friends_order']
 

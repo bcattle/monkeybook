@@ -21,6 +21,9 @@ class InviteRequestSent(models.Model):
 
     objects = InviteRequestSentManager()
 
+    class Meta:
+        verbose_name_plural = 'Invite requests sent'
+
 
 class YearbookSign(models.Model):
 #    from_user = models.ForeignKey(User, related_name='yearbook_signs')
