@@ -49,17 +49,21 @@ class FacebookPhoto(models.Model):
 
             # Sort by score, then by date
             # Take the highest-scoring, earliest
-            top_comment = sorted(self.comments,
-                                 key=lambda comment: (-comment['score'], comment['time']))[0]
+            comments_sorted = sorted(self.comments,
+                                     key=lambda comment: (-comment['score'], comment['time']))
 
-            # Get user's name and photo
-            try:
-                fb_user = FacebookUser.objects.get(facebook_id=top_comment['fromid'])
-                top_comment_name = fb_user.name
-                top_comment_pic = fb_user.pic_square
-            except FacebookUser.DoesNotExist:
-                top_comment_name = ''
-                top_comment_pic = ''
+            top_comment, top_comment_name, top_comment_pic = '', '', ''
+            for comment in comments_sorted:
+                # Get user's name and photo
+                try:
+                    fb_user = FacebookUser.objects.get(facebook_id=comment['fromid'])
+                except FacebookUser.DoesNotExist:
+                    continue
+                # If the user exists
+                if fb_user.name and fb_user.pic_square:
+                    top_comment_name = fb_user.name
+                    top_comment_pic = fb_user.pic_square
+                    top_comment = comment
 
             return {
                 'text': top_comment,
