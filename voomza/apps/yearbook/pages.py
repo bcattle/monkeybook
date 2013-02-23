@@ -269,8 +269,9 @@ class MultiAlbumPage(AlbumPage):
             photo_id = self.yearbook.get_photo_id_from_field_string(
                 self.ranking_table_name, '%s_photo_%d' % (field_prefix, (photo_num + 1))
             )
-            photo = FacebookPhoto.objects.get(facebook_id=photo_id)
-            photos.append(photo)
+            if photo_id is not None:
+                photo = FacebookPhoto.objects.get(facebook_id=photo_id)
+                photos.append(photo)
         return photos
 
     def page_content(self):

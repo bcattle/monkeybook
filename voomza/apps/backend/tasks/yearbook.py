@@ -55,6 +55,11 @@ def run_yearbook(user, results):
     #   'owner_posts_from_year'
     #   'photos_of_me'
 
+    # Toss any results in 'tagged_with_me' that aren't in 'photos_of_me'
+    results['tagged_with_me'] = results['tagged_with_me'].filter(
+        lambda x: x['object_id'] in results['photos_of_me'].ids
+        )
+
     # Get number of people in each photo
     num_tags_by_photo_id = FreqDistResultGetter(results['tagged_with_me'], id_field='object_id')
 
