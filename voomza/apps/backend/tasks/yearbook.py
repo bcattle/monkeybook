@@ -219,7 +219,7 @@ def run_yearbook(user, results):
         start_time = birthday_this_year - datetime.timedelta(days=1)
         end_time = birthday_this_year + datetime.timedelta(days=3)
         birthday_posts = all_posts_this_year.filter(
-            lambda x: start_time < x['created_time'] < end_time and x['message']
+            lambda x: start_time < x['created_time'] < end_time and x['message'] and x['actor_id'] in results['get_friends'].ids
         )
 
     ## Save fields to the PhotoRankings class
