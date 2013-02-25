@@ -24,6 +24,10 @@ STRIPE_PUBLISHABLE_KEY  = 'pk_test_e32OejkBMZNS4Ow59szBFYNu'
 #STRIPE_SECRET_KEY       = 'sk_live_A4Ycn1r9hbZnYlABFRqoEiq4'
 #STRIPE_PUBLISHABLE_KEY  = 'pk_live_4l4RVHNEZtCWbpJF3Azel5oY'
 
+## Mixpanel
+
+MIXPANEL_API_TOKEN = '845d79abdec83710efff370691a6cc84'
+
 ## Database
 
 DATABASES = {

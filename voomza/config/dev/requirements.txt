@@ -5,7 +5,6 @@ django-celery
 # In /lib:
 #django_facebook
 pil
-#django-dajaxice
 ipython
 ipdb
 django-redis-sessions
@@ -23,3 +22,6 @@ django-storages
 django-countries
 git+https://github.com/django/django-localflavor-us
 raven
+# Needed for mixpanel-celery
+simplejson
+git+git://github.com/kevinastone/mixpanel-celery.git

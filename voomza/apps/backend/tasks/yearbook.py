@@ -1,18 +1,22 @@
-import logging, itertools
+import logging, itertools, time
 from collections import defaultdict
 from celery import task, group
 from django.db import transaction
+from django.utils import timezone
 from voomza.apps.backend.tasks.albums import pull_album_photos
 from voomza.apps.core import bulk
-from voomza.apps.core.utils import timeit, merge_dicts
+from voomza.apps.core.utils import merge_dicts
 from voomza.apps.backend.fql import PhotosOfMeTask, CommentsOnPhotosOfMeTask, \
     OwnerPostsFromYearTask, OthersPostsFromYearTask, ProfileFieldsTask, FamilyTask
 from voomza.apps.backend.getter import FreqDistResultGetter, ResultGetter
 from voomza.apps.backend.models import PhotoRankings, FacebookPhoto, Yearbook
 from voomza.apps.backend.settings import *
 from backend.tasks.fql import run_task as rt
+from mixpanel.tasks import EventTracker
+
 
 logger = logging.getLogger(__name__)
+tracker = EventTracker()
 
 @task.task(ignore_result=True)
 def pull_user_profile(user):
@@ -32,8 +36,8 @@ def save_to_db(user, family, photos_of_me):
 
 
 @task.task()
-@timeit
 def run_yearbook(user, results):
+    runtime_start = time.time()
     # Run separate, async tasks to facebook
     fql_job = group([
         rt.subtask(kwargs={'task_cls': PhotosOfMeTask,           'user_id': user.id}),
@@ -436,6 +440,16 @@ def run_yearbook(user, results):
     rankings.save()
     yb.rankings = rankings
     yb.save()
+
+    # Log the yearbook run time to mixpanel
+    run_time = time.time() - runtime_start
+    tracker.run('Book Created', properties={
+        'distinct_id': user.username,
+        'mp_name_tag': user.username,
+        'time': time.time(),
+        'Book': 'Yearbook 2012',
+        'Run Time (sec)': '%.1f' % run_time
+    })
 
     # Initiate a task to start downloading user's yearbook phointos?
     return yb
