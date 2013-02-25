@@ -58,7 +58,7 @@ def run_yearbook(user, results):
     # Toss any results in 'tagged_with_me' that aren't in 'photos_of_me'
     results['tagged_with_me'] = results['tagged_with_me'].filter(
         lambda x: x['object_id'] in results['photos_of_me'].ids
-        )
+    )
 
     # Get number of people in each photo
     num_tags_by_photo_id = FreqDistResultGetter(results['tagged_with_me'], id_field='object_id')
@@ -153,6 +153,7 @@ def run_yearbook(user, results):
         if tag['subject'] in top_friend_ids:
             points = 1
             # Double points if the user in top-20
+            # TODO: does this make sense?
             if tag['subject'] in top_20_friends_score_by_id:
                 points += 1
             num_top_friends_by_photo_id[tag['object_id']] += points
