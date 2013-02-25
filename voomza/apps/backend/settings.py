@@ -33,7 +33,7 @@ ALBUM_POINTS_FOR_OTHER_PHOTO        = 1
 COMMENT_POINTS_FOR_MADE_BY_ME       = 7
 COMMENT_POINTS_FOR_COMMENT          = 5
 COMMENT_POINTS_FOR_LIKE             = 1
-COMMENTS_TO_PULL                    = 4
+COMMENTS_TO_PULL                    = 6
 # Used in rendering yb
 COMMENT_POINTS_I_LIKE               = 3
 
@@ -45,7 +45,7 @@ ALBUM_PHOTOS_TO_SHOW        = 4
 ALBUM_MIN_PHOTOS            = 1
 ALBUMS_TO_PULL_AT_ONCE      = 10
 BANNED_ALBUM_NAMES          = {'mobile uploads', 'timeline photos', 'ios photos',
-                               'profile pictures', 'cover photos'}
+                               'profile pictures', 'cover photos', 'untitled album'}
 ALBUM_POINTS_FOR_COMMENT    = 1
 ALBUM_POINTS_FOR_LIKE       = 1
 PICS_OF_USER_TO_PROMOTE     = 2
