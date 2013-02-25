@@ -22,7 +22,7 @@
         <div class="comment_long">
             <img class="comment_image" src="{{ comment_pic }}" width="22">
             <h5>{{ comment_name }}</h5>
-            <p class="comment_long_text">{{ comment.text }}</p>
+            <p class="comment_long_text">{{ comment.text|truncatechars:148 }}</p>
         </div>
     </div>
 {% endif %}
