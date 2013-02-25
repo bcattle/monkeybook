@@ -373,8 +373,8 @@ class BirthdayPage(FieldPage):
         for post in birthday_posts:
             if 'actor_id' in post:
                 posters.append(self.get_user_by_id(post['actor_id']))
-            else:
-                posters.append(None)
+#            else:
+#                posters.append(None)
 
         posts_list = zip(birthday_posts, posters)
         return {
