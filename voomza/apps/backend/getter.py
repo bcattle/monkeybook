@@ -86,7 +86,7 @@ class ResultGetter(object):
     @property
     def ids(self):
         if not self._ids:
-            self._ids = set(self._fields_by_id.keys())
+            self._ids = set(self._fields_by_id.iterkeys())
         return self._ids
 
     @property
@@ -95,7 +95,7 @@ class ResultGetter(object):
 
     @property
     def fields(self):
-        return self._fields_by_id.values()
+        return self._fields_by_id.itervalues()
 
     def order_by(self, name='id', descending=True):
         """
@@ -119,9 +119,9 @@ class ResultGetter(object):
             else:
                 fields_by_year[item_year] = [item]
         getters_by_year = {}
-        for year, bucket in fields_by_year.items():
+        for year, bucket in fields_by_year.iteritems():
             getters_by_year[year] = self.from_fields(bucket)
-        max_year = max(getters_by_year.keys())
+        max_year = max(getters_by_year.iterkeys())
         return max_year, getters_by_year
 
     def get_in_decending_year_score_order(self, date_field='created'):
@@ -256,14 +256,14 @@ class ResultGetter(object):
                         processed_fields[field_name] = val
 
                 processed_fields['id'] = curr_id
-                for extra_name, fxn in extra_fields.items():
+                for extra_name, fxn in extra_fields.iteritems():
                     processed_fields[extra_name] = fxn(processed_fields)
                 # add to _fields_by_id
                 self._fields_by_id[curr_id] = processed_fields
 
             except BlankFieldException:
                 continue
-            except (ValueError, KeyError), e:
+            except (ValueError, KeyError):
                 if fail_silently:
                     continue
                 else:
@@ -300,9 +300,9 @@ class FreqDistResultGetter(ResultGetter):
                 else:
                     raise
 
-        filtered = filter(lambda x: x['count'] > cutoff, fields_by_id.values())
+        filtered = filter(lambda x: x['count'] > cutoff, fields_by_id.itervalues())
         self._fields_by_id = {item['id']: item for item in filtered}
-        self._ids = set(self._fields_by_id.keys())
+        self._ids = set(self._fields_by_id.iterkeys())
 
 
 def process_photo_results(results, scoring_fxn=None, add_to_fields=None, add_to_defaults=None, commit=True):
@@ -354,7 +354,7 @@ def _set_photo_by_width(results):
     for photo in results:
         try:
             images = {image['width']: image for image in photo['images']}
-            widths = sorted(images.keys(), reverse=True)
+            widths = sorted(images.iterkeys(), reverse=True)
             above_cutoff = filter(lambda x: x > PHOTO_WIDTH_DESIRED, widths)
             if above_cutoff:
                 chosen_width = above_cutoff[-1]

@@ -1,8 +1,9 @@
+# Python 3 compatibility
+from __future__ import unicode_literals
 import logging, itertools, time
 from collections import defaultdict
-from celery import task, group
+from celery import task, group, current_task
 from django.db import transaction
-from django.utils import timezone
 from voomza.apps.backend.tasks.albums import pull_album_photos
 from voomza.apps.core import bulk
 from voomza.apps.core.utils import merge_dicts
@@ -124,7 +125,7 @@ def run_yearbook(user, results):
         tags_by_user_id[tag['subject']].append(tag)
 
     photos_score_by_user_id = defaultdict(lambda: 0.0)
-    for friend_id, tag_list in tags_by_user_id.items():
+    for friend_id, tag_list in tags_by_user_id.iteritems():
         for tag in tag_list:
             photo_id = tag['object_id']
             peeps_in_photo = num_tags_by_photo_id.fields_by_id[photo_id]['count'] + 1   # num tags + me
@@ -139,7 +140,7 @@ def run_yearbook(user, results):
                 photos_score_by_user_id[friend_id] += TOP_FRIEND_POINTS_FOR_PHOTO_OF_4 / photo_age
 
     # Add em up
-    top_friend_ids = (set(comments_score_by_user_id.keys()) | set(posts_score_by_user_id.keys())
+    top_friend_ids = (set(comments_score_by_user_id) | set(posts_score_by_user_id)
         | set(photos_score_by_user_id))
     top_friend_ids.remove(user.profile.facebook_id)
     top_friend_score_by_id = {
@@ -147,7 +148,7 @@ def run_yearbook(user, results):
                    photos_score_by_user_id[friend_id]
         for friend_id in top_friend_ids
     }
-    top_20_friends_score_by_id = dict(sorted(top_friend_score_by_id.items(), key=lambda x: x[1], reverse=True)[:20])
+    top_20_friends_score_by_id = dict(sorted(top_friend_score_by_id.iteritems(), key=lambda x: x[1], reverse=True)[:20])
 
     ## Calculate top photos
 
@@ -238,7 +239,7 @@ def run_yearbook(user, results):
     rankings.top_photos = top_photos_this_year
     rankings.group_shots = [
         k for k, v in sorted(
-            group_photo_score_by_id.items(),
+            group_photo_score_by_id.iteritems(),
             # Sort by year, score
             key=lambda x: (x[1]['created'].year, x[1]['score']),
             reverse=True
@@ -248,7 +249,7 @@ def run_yearbook(user, results):
 
     # Back in time
     max_year, photos_of_me_by_year = results['photos_of_me'].bucket_by_year()
-    years = list(sorted(photos_of_me_by_year.keys(), reverse=True))
+    years = list(sorted(photos_of_me_by_year.iterkeys(), reverse=True))
     back_in_time = []
     for index, year in enumerate(years[1:NUM_PREV_YEARS + 1]):
         year_photo_ids = []
@@ -274,7 +275,7 @@ def run_yearbook(user, results):
 
     # `assign_group_photos` uses FacebookPhoto classes to determine portrait/landscape
     # make sure they finished saving to the db
-    # print 'save_to_db state: %s' % save_to_db_async.state
+    # print('save_to_db state: %s' % save_to_db_async.state)
     save_to_db_async.get()
 
     # Assign the group photos from different albums, if possible
@@ -295,7 +296,7 @@ def run_yearbook(user, results):
     family_ids = user.family.all().values_list('facebook_id', flat=True)
     top_friend_ids = []
     gfbf_added = False
-    for user_id, score in sorted(top_friend_score_by_id.items(), key=lambda x: x[1], reverse=True):
+    for user_id, score in sorted(top_friend_score_by_id.iteritems(), key=lambda x: x[1], reverse=True):
         if yb.num_unused_photos(tags_by_user_id[user_id]) >= TOP_FRIEND_MIN_UNUSED_PHOTOS and user_id in saved_friends_ids:
             # If user is family or gfbf, insert at front
             if user_id == user.profile.significant_other_id:
@@ -317,7 +318,7 @@ def run_yearbook(user, results):
             photo = results['photos_of_me'].fields_by_id[tag_id]
             top_friend_photos.append({'id': tag_id, 'score': top_photo_score_by_id[tag_id],
                                       'width': photo['width'], 'height': photo['height']})
-        top_friend_photos.sort(key=lambda x: x['score'], reverse=True)
+        top_friend_photos = list(sorted(key=lambda x: x['score'], reverse=True))
         top_friends_photos.append(top_friend_photos)
     rankings.top_friends_photos = top_friends_photos
 
@@ -333,7 +334,7 @@ def run_yearbook(user, results):
             friend_stat = FAMILY_STAT
         else:
             num_tags = len(rankings.top_friends_photos[index])
-            friend_stat = u'Tagged in %d photo%s with you' % (num_tags, 's' if num_tags > 1 else '')
+            friend_stat = 'Tagged in %d photo%s with you' % (num_tags, 's' if num_tags > 1 else '')
         setattr(yb, 'top_friend_%d_stat' % (index + 1), friend_stat)
         # Set photo
 #        tf_photo_index = yb.get_first_unused_photo(rankings.top_friends_photos[index])
@@ -454,7 +455,7 @@ def run_yearbook(user, results):
     # Initiate a task to start downloading user's yearbook phointos?
     return yb
 
-#    except FacebookSSLError, exc:
+#    except FacebookSSLError as exc:
 #        logger.error('run_yearbook: FacebookSSLError, retrying.')
 #        raise self.retry(exc=exc)
 
@@ -469,7 +470,7 @@ def get_unused_if_portrait(photo_index, photo_list, yearbook, photos_of_me):
 
 def get_next_unused_photo_of_user(yearbook, photo_list, photos_of_me, used_indices=None):
     used_indices = used_indices or []
-    list_to_loop = photo_list.items() if hasattr(photo_list, 'items') else photo_list
+    list_to_loop = photo_list.iteritems() if hasattr(photo_list, 'items') else photo_list
     for photo_index, photo in enumerate(list_to_loop):
         if photo_index in used_indices:
             continue

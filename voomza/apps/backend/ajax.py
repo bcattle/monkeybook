@@ -143,7 +143,7 @@ class PageResource(Resource):
 
 
     def get_next(self, request, next_index, photo_index=None, **kwargs):
-        print 'next_index: %s' % next_index
+        print('next_index: %s' % next_index)
         self.method_check(request, allowed=['get'])
         self.is_authenticated(request)
         self.throttle_check(request)

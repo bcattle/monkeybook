@@ -37,7 +37,7 @@ class FqlTaskPipeline(TaskPipeline):
         """
         tasks = self.Meta.tasks[:]
         task_names = {task.name for task in tasks}
-        tasks_from_kwargs = {name for name in kwargs.keys()}
+        tasks_from_kwargs = {name for name in kwargs.iterkeys()}
         # Pass the kwargs through
         self._results = kwargs
         # Assemble queries
@@ -77,7 +77,7 @@ class FqlTaskPipeline(TaskPipeline):
                     task_results = fql_results[task.name]
                 else:
                     # yes, bummer. We need all keys of the form `task_name_n`
-                    curr_task_keys = filter(lambda x: re.match(r'^%s_\d+$' % task.name, x), fql_results.keys())
+                    curr_task_keys = filter(lambda x: re.match(r'^%s_\d+$' % task.name, x), fql_results.iterkeys())
                     task_results = [fql_results[key] for key in curr_task_keys]
                 if hasattr(task, 'depends_on'):
                     # Dependencies either live in self._results or kwargs

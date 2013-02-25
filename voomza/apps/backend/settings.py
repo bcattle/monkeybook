@@ -1,3 +1,5 @@
+# Python 3 compatibility
+from __future__ import unicode_literals
 import datetime, calendar
 from pytz import utc
 
@@ -60,8 +62,8 @@ NUM_PREV_YEARS              = 7     # 2011-2005
 
 IMMEDIATE_FAMILY            = ['mother', 'father', 'brother', 'sister']
 NUM_GFBF_FAMILY_FIRST       = 2
-SIGNIFICANT_OTHER_STAT      = u'That special somebody'
-FAMILY_STAT                 = u'Family'
+SIGNIFICANT_OTHER_STAT      = 'That special somebody'
+FAMILY_STAT                 = 'Family'
 
 NUM_FRIENDS_IN_FACEPILE     = 90
 NUM_BIRTHDAY_POSTS          = 24

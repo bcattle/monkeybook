@@ -1,3 +1,6 @@
+# Python 3 compantibility
+from __future__ import unicode_literals
+from django.utils.encoding import python_2_unicode_compatible
 import logging
 from django.db import models
 from django.db.models.signals import post_save
@@ -40,6 +43,7 @@ class FamilyConnection(models.Model):
 ## Done here because it lives in abstract base model
 UserProfile._meta.get_field('facebook_id').db_index = True
 
+@python_2_unicode_compatible
 class FacebookUser(models.Model):
     """
     Central repo of facebook users we know about
@@ -55,13 +59,14 @@ class FacebookUser(models.Model):
 
     objects = FacebookUserManager()
 
-    def __unicode__(self):
+    def __str__(self):
         return 'Facebook User %s' % self.name
 
     class Meta:
         ordering = ['-friend_of__top_friends_order']
 
 
+@python_2_unicode_compatible
 class FacebookFriend(models.Model):
     """
     Through model for a M2M (app) User -> FacebookUser
@@ -79,8 +84,8 @@ class FacebookFriend(models.Model):
         unique_together = ['owner', 'facebook_user']
         ordering = ['-top_friends_order']           # Don't change this! Used to recommend top friends first
 
-    def __unicode__(self):
-        return u'Facebook user %s' % self.facebook_user.name
+    def __str__(self):
+        return 'Facebook user %s' % self.facebook_user.name
 
 
 # Make sure we create a UserProfile when creating a User

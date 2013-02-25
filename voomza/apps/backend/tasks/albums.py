@@ -35,7 +35,7 @@ def get_album_names(user, album_score_and_date_by_id, exclude_albums=None):
 
     # Sort by year, score
     albums_ranked = sorted(
-        album_score_and_date_by_id.items(),
+        album_score_and_date_by_id.iteritems(),
         key=lambda x: (x[1]['created'].year, x[1]['score']),
         reverse=True
     )
@@ -58,8 +58,8 @@ def get_album_names(user, album_score_and_date_by_id, exclude_albums=None):
             results_by_id = {}
             for getter in task_results['album_info']:
                 # Albums we don't have access to didn't return any items
-                if getter.fields_by_id.items():
-                    k,v = getter.fields_by_id.items()[0]
+                if getter.fields_by_id.iteritems():
+                    k,v = getter.fields_by_id.iteritems()[0]
                     results_by_id[k] = v
 
             # The albums came back in *random* order

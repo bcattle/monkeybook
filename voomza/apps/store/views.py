@@ -1,3 +1,5 @@
+# Python 3 compatibility
+from __future__ import unicode_literals
 import logging
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
@@ -45,7 +47,7 @@ def checkout(request, template_name='checkout.html'):
             return HttpResponseRedirect(reverse('homepage') + '?c=order')
         else:
             # Set error message
-            error_message = u'Sorry, an error occurred. Please try again.'
+            error_message = 'Sorry, an error occurred. Please try again.'
             # Fall thorugh to checkout page
 
     if 'o' in request.GET:

@@ -1,3 +1,5 @@
+# Python 3 compatibility
+from __future__ import unicode_literals
 from django import forms
 from django_countries.countries import COUNTRIES
 from django_localflavor_us.forms import USStateField, USStateSelect, USZipCodeField
@@ -20,14 +22,14 @@ class OrderForm(forms.ModelForm):
 
 
 class OrderBillingAddressForm(forms.ModelForm):
-    billing_address         = forms.CharField(   label=u'Address',                    widget=forms.TextInput( attrs={'class': 'required input-xxlarge', 'placeholder': u'Enter Address...'}))
-    billing_address2        = forms.CharField(   label=u'',                           widget=forms.TextInput( attrs={'class': 'input-xxlarge'}),     required=False)
-    billing_country         = forms.ChoiceField( label=u'Country', choices=COUNTRIES, widget=forms.Select(    attrs={'class': 'countrySelect required'}))
-    billing_us_state        = USStateField(      label=u'State',                      widget=USStateSelect(   attrs={'class': 'usStateSelect'}),     required=False)
-    billing_state_province  = forms.CharField(   label=u'State / Province / Region',  widget=forms.TextInput( attrs={}),                             required=False)
-    billing_city            = forms.CharField(   label=u'City',                       widget=forms.TextInput( attrs={'class': 'required', 'placeholder': u'Enter City...'}))
-    billing_us_zip          = USZipCodeField(    label=u'ZIP Code',                   widget=forms.TextInput( attrs={'class': 'required zipcode'}),  required=False)
-    billing_postal          = forms.CharField(   label=u'Postal Code',                widget=forms.TextInput( attrs={'class': 'required'}),          required=False)
+    billing_address         = forms.CharField(   label='Address',                    widget=forms.TextInput( attrs={'class': 'required input-xxlarge', 'placeholder': 'Enter Address...'}))
+    billing_address2        = forms.CharField(   label='',                           widget=forms.TextInput( attrs={'class': 'input-xxlarge'}),     required=False)
+    billing_country         = forms.ChoiceField( label='Country', choices=COUNTRIES, widget=forms.Select(    attrs={'class': 'countrySelect required'}))
+    billing_us_state        = USStateField(      label='State',                      widget=USStateSelect(   attrs={'class': 'usStateSelect'}),     required=False)
+    billing_state_province  = forms.CharField(   label='State / Province / Region',  widget=forms.TextInput( attrs={}),                             required=False)
+    billing_city            = forms.CharField(   label='City',                       widget=forms.TextInput( attrs={'class': 'required', 'placeholder': 'Enter City...'}))
+    billing_us_zip          = USZipCodeField(    label='ZIP Code',                   widget=forms.TextInput( attrs={'class': 'required zipcode'}),  required=False)
+    billing_postal          = forms.CharField(   label='Postal Code',                widget=forms.TextInput( attrs={'class': 'required'}),          required=False)
 
     def clean(self):
         cleaned_data = super(OrderBillingAddressForm, self).clean()
@@ -54,15 +56,15 @@ class OrderBillingAddressForm(forms.ModelForm):
 
 
 class OrderShippingAddressForm(forms.ModelForm):
-    shipping_name            = forms.CharField(label=u'Name',                      widget=forms.TextInput(attrs={'class': 'required'}))
-    shipping_address         = forms.CharField(label=u'Address',                   widget=forms.TextInput(attrs={'class': 'required input-xxlarge', 'placeholder': u'Enter Address...'}))
-    shipping_address2        = forms.CharField(label=u'',                          widget=forms.TextInput(attrs={'class': 'input-xxlarge'}))
-    shipping_country         = forms.ChoiceField(label=u'Country', choices=COUNTRIES, widget=forms.Select(attrs={'class': 'countrySelect required'}))
-    shipping_us_state        = forms.CharField(label=u'State',                     widget=USStateSelect(attrs={'class': 'usStateSelect'}))
-    shipping_state_province  = forms.CharField(label=u'State / Province / Region', widget=forms.TextInput(attrs={}))
-    shipping_city            = forms.CharField(label=u'City',                      widget=forms.TextInput(attrs={'class': 'required', 'placeholder': u'Enter City...'}))
-    shipping_us_zip          = USZipCodeField(label=u'ZIP Code',                    widget=forms.TextInput(attrs={'class': 'required zipcode'}))
-    shipping_postal          = forms.CharField(label=u'Postal Code',         widget=forms.TextInput(attrs={'class': 'required'}))
+    shipping_name            = forms.CharField(label='Name',                      widget=forms.TextInput(attrs={'class': 'required'}))
+    shipping_address         = forms.CharField(label='Address',                   widget=forms.TextInput(attrs={'class': 'required input-xxlarge', 'placeholder': 'Enter Address...'}))
+    shipping_address2        = forms.CharField(label='',                          widget=forms.TextInput(attrs={'class': 'input-xxlarge'}))
+    shipping_country         = forms.ChoiceField(label='Country', choices=COUNTRIES, widget=forms.Select(attrs={'class': 'countrySelect required'}))
+    shipping_us_state        = forms.CharField(label='State',                     widget=USStateSelect(attrs={'class': 'usStateSelect'}))
+    shipping_state_province  = forms.CharField(label='State / Province / Region', widget=forms.TextInput(attrs={}))
+    shipping_city            = forms.CharField(label='City',                      widget=forms.TextInput(attrs={'class': 'required', 'placeholder': 'Enter City...'}))
+    shipping_us_zip          = USZipCodeField(label='ZIP Code',                    widget=forms.TextInput(attrs={'class': 'required zipcode'}))
+    shipping_postal          = forms.CharField(label='Postal Code',         widget=forms.TextInput(attrs={'class': 'required'}))
 
     def clean(self):
         cleaned_data = super(OrderShippingAddressForm, self).clean()
@@ -90,8 +92,8 @@ class OrderShippingAddressForm(forms.ModelForm):
 
 
 class CreditCardForm(forms.Form):
-    name_on_card  = forms.CharField(label=u'Name on Card',       widget=forms.TextInput(attrs={'class': 'required'}))
-    card_number   = forms.CharField(label=u'Credit Card Number', widget=forms.TextInput(attrs={'class': 'required creditcard'}))
-    exp_month     = forms.CharField(label=u'Expiration (MM/YY)', widget=forms.TextInput(attrs={'class': 'required input-mini', 'maxlength': '2'}))
-    exp_year      = forms.CharField(label=u'',                   widget=forms.TextInput(attrs={'class': 'required input-mini', 'maxlength': '2'}))
-    cvv_code      = forms.CharField(label=u'Security Code',      widget=forms.TextInput(attrs={'class': 'required cvccode input-mini', 'maxlength': '4'}))
+    name_on_card  = forms.CharField(label='Name on Card',       widget=forms.TextInput(attrs={'class': 'required'}))
+    card_number   = forms.CharField(label='Credit Card Number', widget=forms.TextInput(attrs={'class': 'required creditcard'}))
+    exp_month     = forms.CharField(label='Expiration (MM/YY)', widget=forms.TextInput(attrs={'class': 'required input-mini', 'maxlength': '2'}))
+    exp_year      = forms.CharField(label='',                   widget=forms.TextInput(attrs={'class': 'required input-mini', 'maxlength': '2'}))
+    cvv_code      = forms.CharField(label='Security Code',      widget=forms.TextInput(attrs={'class': 'required cvccode input-mini', 'maxlength': '4'}))
