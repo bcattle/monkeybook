@@ -265,7 +265,7 @@ def run_yearbook(user, results):
     #    except Yearbook.DoesNotExist: pass
     yb = Yearbook(rankings=rankings)
     yb.top_post = 0
-    yb.birthday_posts = birthday_posts.fields
+    yb.birthday_posts = list(birthday_posts.fields)
 
     yb.top_photo_1 = yb.get_first_unused_photo_landscape(rankings.top_photos)           # landscape
     yb.top_photo_2 = yb.get_first_unused_photo(rankings.top_photos)
@@ -318,7 +318,7 @@ def run_yearbook(user, results):
             photo = results['photos_of_me'].fields_by_id[tag_id]
             top_friend_photos.append({'id': tag_id, 'score': top_photo_score_by_id[tag_id],
                                       'width': photo['width'], 'height': photo['height']})
-        top_friend_photos = list(sorted(key=lambda x: x['score'], reverse=True))
+        top_friend_photos = list(sorted(top_friend_photos, key=lambda x: x['score'], reverse=True))
         top_friends_photos.append(top_friend_photos)
     rankings.top_friends_photos = top_friends_photos
 
@@ -440,16 +440,16 @@ def run_yearbook(user, results):
     # Save everything
     rankings.save()
     yb.rankings = rankings
+    yb.run_time = time.time() - runtime_start
     yb.save()
 
     # Log the yearbook run time to mixpanel
-    run_time = time.time() - runtime_start
-    tracker.run('Book Created', properties={
+    tracker.delay('Book Created', properties={
         'distinct_id': user.username,
         'mp_name_tag': user.username,
         'time': time.time(),
         'Book': 'Yearbook 2012',
-        'Run Time (sec)': '%.1f' % run_time
+        'Run Time (sec)': '%.1f' % yb.run_time
     })
 
     # Initiate a task to start downloading user's yearbook phointos?

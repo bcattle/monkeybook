@@ -126,7 +126,7 @@ def _filter_objects(con, objects, key_fields):
         yield o
 
 
-@timeit
+# @timeit
 def insert_or_update_many(model, objects, keys=None,
                           update_fields=None, exclude_fields=None, using="default"):
     """

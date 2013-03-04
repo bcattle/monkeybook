@@ -7,7 +7,6 @@ from voomza.apps.account.models import FacebookUser, FacebookFriend
 from voomza.apps.backend.fql.top_friends_fast import TopFriendsFastPipeline
 
 @task.task()
-@timeit
 def top_friends_fast(user, run_yearbook=False):
     """
     Pulls all friends and all tags,
