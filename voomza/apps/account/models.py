@@ -1,5 +1,5 @@
 # Python 3 compantibility
-from __future__ import unicode_literals
+from __future__ import division, print_function, unicode_literals
 from django.utils.encoding import python_2_unicode_compatible
 import logging
 from django.db import models

@@ -1,3 +1,4 @@
+from __future__ import division, print_function, unicode_literals
 from django.db import models
 from voomza.apps.core import bulk
 

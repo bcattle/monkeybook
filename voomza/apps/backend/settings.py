@@ -71,4 +71,4 @@ NUM_BIRTHDAY_POSTS          = 24
 LOWEST_SQUARE_ASPECT_RATIO  = 0.9        # How low can the aspect ratio be for a photo to be considered "square"?
 HIGHEST_SQUARE_ASPECT_RATIO = 1.1        # How high?
 
-PAGE_TEMPLATE_DIR           = 'pages/'
+PAGE_TEMPLATE_DIR           = 'books/yearbook2012/pages/'

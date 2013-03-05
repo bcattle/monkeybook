@@ -88,21 +88,21 @@ body, ul, table, form{
 
 .sj-book .p52{
 	background-color:white;
-	background-image:url(../img/pages/page_52_940.jpg) !important;
+	background-image:url(../books/yearbook2012/pages/page_52_940.jpg) !important;
 }
 
 .sj-book .p2 {
 background-color:white;
-background-image:url(../img/pages/page_2_940.jpg) !important;
+background-image:url(../books/yearbook2012/pages/page_2_940.jpg) !important;
 }
 
 .sj-book .p51 {
 	background-color:white;
-	background-image:url(../img/pages/page_51_940.jpg) !important;
+	background-image:url(../books/yearbook2012/pages/page_51_940.jpg) !important;
 }
 
 .sj-book .p1 {
-	background-image:url(../img/pages/cover_940.jpg) !important;
+	background-image:url(../books/yearbook2012/pages/cover_940.jpg) !important;
 }
 
 
@@ -140,7 +140,7 @@ background-image:url(../img/pages/page_2_940.jpg) !important;
 }
 
 .sj-book .depth{
-	background-image:url(../img/pages/pages-depth.png);
+	background-image:url(../books/yearbook2012/pages/pages-depth.png);
 	position:absolute;
 	top:7px;
 	width:16px;

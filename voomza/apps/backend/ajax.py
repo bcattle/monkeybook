@@ -1,6 +1,6 @@
+from __future__ import division, print_function, unicode_literals
 from django.conf import settings
 from django.conf.urls import url
-from django.shortcuts import render
 from django.template.context import RequestContext
 from django.template.loader import render_to_string
 from tastypie import fields
