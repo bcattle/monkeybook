@@ -1,0 +1,57 @@
+-- Useful stuff to do in git
+---------------------------------------
+
+To create a branch 
+
+  git checkout -b <branch-name>
+
+To show branches
+
+  git branch
+
+To push a local branch to the remote server
+
+  git push origin <branch-name>
+
+To checkout a branch from the remote server
+
+  git checkout -b <branch-name> origin/<branch-name>
+
+To delete a branch
+
+  git branch -d <branch-name>
+
+To delete a branch on the remote server
+
+  git push origin :<branch-to-delete>
+
+To roll back a file that hasn't been committed
+
+  git checkout HEAD <file-name>
+  
+To unstage a file 
+
+  git reset <file-name>
+  
+  git reset		<-- to unstage all 
+
+To deal with conflicts
+
+  Git provides support for a number of graphical diff tools, and you can 
+  even add your own. 
+  See http://gitguru.com/2009/02/22/integrating-git-with-a-visual-merge-tool/
+
+  apt-get install <diffuse> or <meld>
+
+  git mergetool -t <diffuse or merge>
+
+  Use the tool to merge the <file>-LOCAL and <file>-REMOTE into <file>,
+    then when you're done commit the changes.  
+
+To bring a file from another branch
+
+  git checkout <branch-name> <filename>
+
+To set a local branch to track a remote branch
+
+  git branch --set-upstream bryan-working origin/bryan-working

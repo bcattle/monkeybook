@@ -1,6 +1,18 @@
-import datetime
+import datetime, calendar
 from itertools import chain
 from django.db import transaction
+from pytz import utc
+
+
+def unix_date_from_datetime(dt):
+    # http://stackoverflow.com/a/11409065/1161906
+    return calendar.timegm(dt.utctimetuple())
+
+
+def unix_date_from_utc(*args, **kwargs):
+    kwargs['tzinfo'] = utc
+    return unix_date_from_datetime(datetime.datetime(*args, **kwargs))
+
 
 @transaction.commit_manually
 def flush_transaction():

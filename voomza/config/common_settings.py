@@ -1,3 +1,5 @@
+from __future__ import division, print_function, unicode_literals
+
 import djcelery
 djcelery.setup_loader()
 
@@ -11,9 +13,10 @@ YEARBOOK_HASH_LENGTH = 10
 OUR_APPS = (
     'account',
     'core',
-    'yearbook',
-    'backend',
-    'store',
+    'books_common',
+    'yearbook2012',
+    'checkout',
+    'viral',
 )
 
 INSTALLED_APPS = (
