@@ -69,7 +69,6 @@ class PageResource(Resource):
         detail_uri_name = 'page'
 
     def prepend_urls(self):
-        # Add a url for the `next` method
         return [
             url(r"^(?P<resource_name>%s)/(?P<hash>[a-fA-F0-9]{%d})%s$"
                 % (self._meta.resource_name, settings.YEARBOOK_HASH_LENGTH, trailing_slash()),
@@ -77,11 +76,11 @@ class PageResource(Resource):
 
             url(r"^(?P<resource_name>%s)/(?P<hash>[a-fA-F0-9]{%d})/(?P<%s>\w[\w/-]*)/next/(?P<next_index>[\d]+)%s$"
                 % (self._meta.resource_name, settings.YEARBOOK_HASH_LENGTH, self._meta.detail_uri_name, trailing_slash()),
-                    self.wrap_view('get_next'), name="api_get_next"),
+                    self.wrap_view('get_next'), name="api_get_next_photo"),
 
             url(r"^(?P<resource_name>%s)/(?P<hash>[a-fA-F0-9]{%d})/(?P<%s>\w[\w/-]*)/next/(?P<next_index>[\d]+)/(?P<photo_index>[\d]+)%s$"
                 % (self._meta.resource_name, settings.YEARBOOK_HASH_LENGTH, self._meta.detail_uri_name, trailing_slash()),
-                    self.wrap_view('get_next'), name="api_get_next_photo"),
+                    self.wrap_view('get_next'), name="api_get_next_photo_number"),
 
             url(r"^(?P<resource_name>%s)/(?P<hash>[a-fA-F0-9]{%d})/(?P<%s>\w[\w/-]*)%s$"
             % (self._meta.resource_name, settings.YEARBOOK_HASH_LENGTH, self._meta.detail_uri_name, trailing_slash()),
@@ -149,27 +148,28 @@ class PageResource(Resource):
         self.throttle_check(request)
 
         page = self.obj_get(**kwargs)
-        if hasattr(page, 'get_next_image'):
+        if hasattr(page, 'get_next_content'):
+            # Try coercing url params to int
+            photo_index_int = None
             try:
+                next_index_int = int(next_index)
                 if photo_index:
-                    # These return full template context including the new image
-                    # urls start counting at 1
-                    next_data = page.get_next_data(int(next_index) - 1, int(photo_index) - 1)
-                else:
-                    next_data = page.get_next_data(int(next_index) - 1)
+                    photo_index_int = int(photo_index)
+            except ValueError:
+                return HttpNotFound()
 
-                template = PAGE_TEMPLATE_DIR + page.template
-                data = {
-                    'page_content': render(request, template, next_data).strip()
-                }
+            # Get the next photo
+            # we maintain a list of already-skipped photos in session
+            # if this list exists, pass it through
+            next_content = page.get_next_content(next_index_int, photo_index_int)
 
-                self.log_throttled_access(request)
-                return self.create_response(request, data)
-            except ValueError: pass
-        return HttpNotFound()
+            data = {
+                'next_content': next_content,
+            }
 
+            self.log_throttled_access(request)
+            return self.create_response(request, data)
+        else:
+            # `get_next_content` not defined on that page
+            return HttpNotFound()
 
-# API registered in yearbook/ajax.py
-#v1_api = Api(api_name='v1')
-#v1_api.register(PageResource())
-#v1_api.register(YearbookProgressResource())

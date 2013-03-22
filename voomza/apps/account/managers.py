@@ -23,19 +23,6 @@ class FacebookUserManager(fb_FacebookUserManager):
         """
         # If we have a pending async request, let it finish
         async_result = request.session.get('pull_friends_async', None)
-#        if not async_result:
-#            friends = request.user.friends
-#            # Do we need to pull top friends?
-#            pull_top_friends = not friends.exclude(top_friends_order=0).exists()
-#            if pull_top_friends:
-#                # Pull top friends, then all other friends
-#                logger.info('In get_for_user(), pulling top friends')
-#                graph = require_persistent_graph(request)
-#                facebook = YearbookFacebookUserConverter(graph)
-#                async_result = get_and_store_top_friends_fast.delay(request.user, facebook,
-#                    pull_all_friends_when_done=True)
-#            request.session['pull_friends_async'] = async_result
-
         if async_result:
             # There was an async in session, or we just created one
             # Commit the transaction so we can pull new results
@@ -58,24 +45,19 @@ class FacebookUserManager(fb_FacebookUserManager):
     def get_top_friends(self, user):
         # `self` is `FacebookUser.objects`
         return self.filter(friend_of__owner=user).exclude(friend_of__top_friends_order=0)
-#        return user.friends.exclude(top_friends_order=0)
 
     def get_non_top_friends(self, user):
         return self.filter(friend_of__owner=user, friend_of__top_friends_order=0)
-#        return user.friends.filter(owner=user).filter(top_friends_order=0)
 
     def not_in_app(self, query):
         return query.filter(profile__isnull=True)
-#        return query.filter(facebook_user__profile__isnull=True)
 
     def in_app(self, query):
         return query.filter(profile__isnull=False)
-#        return query.filter(facebook_user__profile__isnull=False)
 
     def i_havent_signed(self, query, user):
         return query.exclude(
             yearbook_signs_to__from_facebook_user=user.profile.facebook_user
-#            facebook_user__yearbook_signs_to__from_facebook_user=user.profile.facebook_user
         )
 
     def i_have_signed(self, query, user):
@@ -86,7 +68,6 @@ class FacebookUserManager(fb_FacebookUserManager):
     def havent_signed_me(self, query, user):
         return query.exclude(
             yearbook_signs_from__to_facebook_user=user.profile.facebook_user
-#            facebook_user__yearbook_signs_from__to_facebook_user=user.profile.facebook_user
         )
 
 

@@ -9,7 +9,7 @@ ipython
 ipdb
 django-redis-sessions
 factory_boy
-git+git://github.com/toastdriven/django-tastypie.git
+#git+git://github.com/toastdriven/django-tastypie.git
 gevent
 django-jsonfield
 # pip install --index-url https://code.stripe.com --upgrade stripe
@@ -25,3 +25,5 @@ raven
 # Needed for mixpanel-celery
 simplejson
 git+git://github.com/kevinastone/mixpanel-celery.git
+djangorestframework
+django-filter

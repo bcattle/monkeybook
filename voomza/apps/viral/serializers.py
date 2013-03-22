@@ -1,8 +1,8 @@
 from rest_framework import serializers
-from voomza.apps.viral.models import InviteRequestSent
+from voomza.apps.viral.models import SentInvite
 
 
-class InviteRequestSentSerializer(serializers.ModelSerializer):
+class SentInviteSerializer(serializers.ModelSerializer):
     class Meta:
-        model = InviteRequestSent
+        model = SentInvite
         fields = ('to_facebook_user', 'request_id',)

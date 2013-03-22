@@ -5,6 +5,23 @@ from voomza.apps.books_common.getter import ResultGetter
 from voomza.apps.core import bulk
 
 
+class GetFriendsTask(FQLTask):
+    """
+    Pulls all of the user's friends
+    """
+    fql = '''
+        SELECT uid, first_name, name, pic_square FROM user
+            WHERE uid IN (SELECT uid2 FROM friend WHERE uid1 = me())
+    '''
+    def on_results(self, results):
+        getter = ResultGetter(
+            results,
+            fields=['first_name', 'name', 'pic_square'],
+            id_field='uid'
+        )
+        return getter
+
+
 class ProfileFieldsTask(FQLTask):
     fql = '''
         SELECT uid, first_name, pic_square, locale, significant_other_id

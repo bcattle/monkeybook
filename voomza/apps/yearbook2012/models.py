@@ -20,8 +20,6 @@ class PhotoRankings(models.Model):
     The photo rankings for a user,
     holds a ranking of all photos for relevance in each category
     """
-    #    user = models.OneToOneField('auth.User', related_name='photo_rankings')
-    user = models.ForeignKey('auth.User', related_name='photo_rankings')
     # Lists of photos for each category
     top_photos = JSONField(default="[]", max_length=100000)
     group_shots = JSONField(default="[]", max_length=100000)
@@ -39,24 +37,8 @@ class PhotoRankings(models.Model):
         verbose_name_plural = 'Photo rankings'
 
 
-class Yearbook(BaseBookModel):
-#    rankings = models.OneToOneField(PhotoRankings, related_name='yearbook')
+class Book(BaseBookModel):
     rankings = models.ForeignKey(PhotoRankings, related_name='yearbook')
-
-    def get_absolute_url(self):
-        return reverse('yearbook', kwargs={'hash': self.hash})
-
-    def save(self, *args, **kwargs):
-        if not self.hash:
-            # Generate a unique hash to use as the "shareable" url
-            while True:
-                hash = hashlib.md5(str(time.time())).hexdigest()[:settings.BOOK_HASH_LENGTH]
-                try:
-                    existing = Yearbook.objects.get(hash=hash)
-                except self.DoesNotExist:
-                    break
-            self.hash = hash
-        super(BaseBookModel, self).save(*args, **kwargs)
 
     # These indices point to the lists stored in PhotoRanking
     top_photo_1 = models.PositiveSmallIntegerField(null=True)

@@ -64,16 +64,16 @@
         </div>
     </script>
 
-{#    <script type="text/javascript" src="{% static 'js/jquery-1.9.0.js' %}"></script>#}
-    <script type="text/javascript" src="{% static 'js/jquery-1.9.0.min.js' %}"></script>
+{#    <script type="text/javascript" src="{% static 'js/lib/jquery-1.9.0.js' %}"></script>#}
+    <script type="text/javascript" src="{% static 'js/lib/jquery-1.9.0.min.js' %}"></script>
     {% navbar_js %}
     {% compress js %}
-        <script type="text/javascript" src="{% static 'js/yepnope.1.5.4-min.js' %}"></script>
-        <script type="text/javascript" src="{% static 'js/jquery.cookie.js' %}"></script>
-        <script type="text/javascript" src="{% static 'js/mustache.js' %}"></script>
-        <script type="text/javascript" src="{% static 'js/underscore-min.js' %}"></script>
-        <script type="text/javascript" src="{% static 'js/jquery.imagesloaded.min.js' %}"></script>
-        <script type="text/javascript" src="{% static 'js/jquery.scrollTo.min.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/lib/yepnope.1.5.4-min.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/lib/jquery.cookie.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/lib/mustache.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/lib/underscore-min.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/lib/jquery.imagesloaded.min.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/lib/jquery.scrollTo.min.js' %}"></script>
         <script type="text/javascript">
             var signsUrl = "{% url 'api_dispatch_list' api_name='v1' resource_name='yearbooksign' %}";
             var nextSignsUrl = signsUrl;
@@ -99,7 +99,7 @@
                 // Load json2.js if we need it
                 yepnope({
                     test: window.JSON,
-                    nope: '{% static 'js/json2.js' %}'
+                    nope: '{% static 'js/lib/json2.js' %}'
                 });
 
                 {% if show_confirm_modal %}

@@ -21,12 +21,12 @@
 {% endblock %}
 
 {% block script %}
-    <script type="text/javascript" src="{% static 'js/jquery-1.9.0.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/lib/jquery-1.9.0.min.js' %}"></script>
     {% compress js %}
-        <script type="text/javascript" src="{% static 'js/jquery-ui-1.8.20.custom.min.js' %}"></script>
-        <script type="text/javascript" src="{% static 'js/jquery.mousewheel.min.js' %}"></script>
-        <script type="text/javascript" src="{% static 'js/modernizr.2.5.3.min.js' %}"></script>
-        <script type="text/javascript" src="{% static 'js/hash.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/lib/jquery-ui-1.8.20.custom.min.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/lib/jquery.mousewheel.min.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/lib/modernizr.2.5.3.min.js' %}"></script>
+        <script type="text/javascript" src="{% static 'js/lib/hash.js' %}"></script>
     {% endcompress %}
     {% compress js %}
         <script type="text/javascript" src="{% static 'js/addpage-files.js' %}"></script>
@@ -41,8 +41,8 @@
             // Load turn.js
             yepnope({
                 test : Modernizr.csstransforms,
-                yep: ["{% static 'js/turn.min.js' %}"],
-                nope: ["{% static 'js/turn.html4.min.js' %}", "{% static 'css/jquery.ui.html4.css' %}", "{% static 'css/steve-jobs-html4.css' %}"],
+                yep: ["{% static 'js/lib/turn.min.js' %}"],
+                nope: ["{% static 'js/lib/turn.html4.min.js' %}", "{% static 'css/jquery.ui.html4.css' %}", "{% static 'css/steve-jobs-html4.css' %}"],
                 both: ["{% static 'css/jquery.ui.css' %}", "{% static 'css/steve-jobs.css' %}"],
                 complete: loadApp
             });

@@ -1,3 +1,7 @@
+from voomza.apps.books_common.page_factory import BaseBookPageFactory
+from voomza.apps.books_common.pages import *
+from voomza.apps.yearbook2012.pages import *
+from voomza.apps.yearbook2012.settings import *
 
 
 class Yearbook2012PageFactory(BaseBookPageFactory):

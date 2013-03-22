@@ -5,8 +5,18 @@ djcelery.setup_loader()
 
 ## Our app settings
 
-YEARBOOK_HASH_LENGTH = 10
-
+ALL_BOOKS = {
+    '2012yearbook': {
+        'title':         '2012 Yearbook',
+        'cover':         'img/book_icon_144.png',
+        'app_prefix':    'voomza.apps.yearbook2012',
+        'settings':      'settings',
+        'run_task':      'tasks.run_book',
+        'page_factory':  'page_factory.Yearbook2012PageFactory',
+        'url_prefix':    'yearbook',
+        'template':      'yearbook.html'
+    }
+}
 
 ## Installed aps
 
@@ -35,6 +45,7 @@ INSTALLED_APPS = (
     'django_facebook',
 #    'dajaxice',
     'compressor',
+    'rest_framework',
 )
 INSTALLED_APPS += OUR_APPS
 

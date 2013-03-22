@@ -55,3 +55,7 @@ To bring a file from another branch
 To set a local branch to track a remote branch
 
   git branch --set-upstream bryan-working origin/bryan-working
+
+To pull remote changes (new branches, etc.)
+
+  git fetch

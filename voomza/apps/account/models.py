@@ -1,4 +1,3 @@
-# Python 3 compantibility
 from __future__ import division, print_function, unicode_literals
 from django.utils.encoding import python_2_unicode_compatible
 import logging
@@ -71,11 +70,11 @@ class FacebookFriend(models.Model):
     """
     Through model for a M2M (app) User -> FacebookUser
     """
-    facebook_user = models.ForeignKey(FacebookUser, related_name='friend_of')
     owner = models.ForeignKey('auth.User',
                               db_index=True,
                               related_name='friends',
                               help_text='App user this person is a friend of')
+    facebook_user = models.ForeignKey(FacebookUser, related_name='friend_of')
     top_friends_order = models.PositiveSmallIntegerField(default=0,
                                                          help_text='Higher the better',
                                                          db_index=True)

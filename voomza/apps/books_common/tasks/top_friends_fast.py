@@ -1,20 +1,27 @@
 import datetime
 from collections import defaultdict
-from celery import task
+from celery import task, group
+from voomza.apps.books_common.fql import GetFriendsTask, TaggedWithMeTask
 from voomza.apps.core import bulk
-from voomza.apps.core.utils import flush_transaction
+from voomza.apps.core.utils import flush_transaction, unix_date_from_datetime
 from voomza.apps.account.models import FacebookUser, FacebookFriend
-from voomza.apps.books_common.fql.top_friends_fast import TopFriendsFastPipeline
+from voomza.apps.books_common.tasks.fql import run_task as rt
+
 
 @task.task()
-def top_friends_fast(user, run_yearbook=False):
+def top_friends_fast(user, friend_tag_end_time):
     """
     Pulls all friends and all tags,
     combines them to get `top_friends_score`
     and saves `FacebookUser` and `FacebookFriend` models
     """
-    pipeline = TopFriendsFastPipeline(user)
-    results = pipeline.run()
+    unix_friend_tag_end_time = unix_date_from_datetime(friend_tag_end_time)
+    fql_job = group([
+        rt.subtask(kwargs={'task_cls': GetFriendsTask,   'user_id': user.id, }),
+        rt.subtask(kwargs={'task_cls': TaggedWithMeTask, 'user_id': user.id, 'end_time': unix_friend_tag_end_time }),
+    ])
+    job_async = fql_job.apply_async()
+    results = job_async.get()
 
     all_friends = results['get_friends']
     tagged_with_me = results['tagged_with_me']
@@ -61,14 +68,5 @@ def top_friends_fast(user, run_yearbook=False):
     # Insert is faster, we don't care about preserving other fields
     bulk.insert_or_update_many(FacebookFriend, facebook_friends, keys=['owner', 'facebook_user'])
     flush_transaction()
-
-    if run_yearbook:
-        # See if user has a yearbook
-#        try:
-#            yearbook = Yearbook(owner=user)
-#        except Yearbook.DoesNotExist:
-        from voomza.apps.yearbook2012.tasks import run_yearbook
-        yearbook_async = run_yearbook.delay(user, results)
-        results['run_yearbook_async'] = yearbook_async
 
     return results
