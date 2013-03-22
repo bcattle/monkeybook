@@ -123,13 +123,13 @@ background-image:url(../img/pages/page_2_940.jpg) !important;
 	background-image:url(../img/pages/cover_940.jpg) !important;
 }
 
-.sj-book .p51 {
+.sj-book .p31 {
 	background-color:white;
 	background-image:url(../img/pages/page_51_940.jpg)!important;
 		
 }
 
-.sj-book .p52 {
+.sj-book .p32 {
 	background-color:white;
 	background-image:url(../img/pages/page_52_940.jpg)!important;
 }
@@ -278,104 +278,191 @@ background-image:url(../img/pages/page_2_940.jpg) !important;
 
 }
 
+/* .sj-book .p10 { */
+/* 	background-color:white; */
+/* 	background-image:url(../img/pages/top_group_photo_940.jpg) !important; */
+/* } */
+
+/* .sj-book .p11 { */
+/* 	background-color:white; */
+
+/* } */
+
+/* .sj-book .p12 { */
+/* 	background-color:white; */
+/* 	background-image:url(../img/pages/top_group_photos_940.jpg) !important; */
+/* } */
+
+/* .sj-book .p13 { */
+/* 	background-color:white; */
+/* 	background-image:url(../img/pages/top_group_photos_940.jpg) !important; */
+/* 	background-position:456px 0; */
+/* } */
+
 .sj-book .p10 {
-	background-color:white;
-	background-image:url(../img/pages/top_group_photo_940.jpg) !important;
+	background-color:black;
+	background-image:url(../img/pages/page_12_940.jpg) !important;
 }
 
 .sj-book .p11 {
-	background-color:white;
-
+	background-color:black;
 }
 
 .sj-book .p12 {
 	background-color:white;
-	background-image:url(../img/pages/top_group_photos_940.jpg) !important;
+	background-image:url(../img/pages/page_14_15_940.jpg) !important;
+
 }
 
 .sj-book .p13 {
 	background-color:white;
-	background-image:url(../img/pages/top_group_photos_940.jpg) !important;
+	background-image:url(../img/pages/page_14_15_940.jpg) !important;
 	background-position:456px 0;
 
 }
 
 .sj-book .p14 {
-	background-color:black;
-	background-image:url(../img/pages/page_12_940.jpg) !important;
+	background-color:white;
+	background-image:url(../img/pages/page_10_11_940.jpg) !important;
 }
 
 .sj-book .p15 {
 	background-color:black;
+	background-image:url(../img/pages/page_10_11_940.jpg) !important;
+	background-position:456px 0;
 }
 
 .sj-book .p16 {
 	background-color:white;
-	background-image:url(../img/pages/page_14_15_940.jpg) !important;
-
+	background-image:url(../img/pages/page_20_940.jpg) !important;
 }
 
 .sj-book .p17 {
 	background-color:white;
-	background-image:url(../img/pages/page_14_15_940.jpg) !important;
-	background-position:456px 0;
-
+	background-image:url(../img/pages/page_21_940.jpg) !important;
 }
 
 .sj-book .p18 {
 	background-color:white;
-	background-image:url(../img/pages/page_10_11_940.jpg) !important;
+	background-image:url(../img/pages/page_22_23_940.jpg) !important;
 }
 
 .sj-book .p19 {
-	background-color:black;
-	background-image:url(../img/pages/page_10_11_940.jpg) !important;
+	background-color:white;
+	background-image:url(../img/pages/page_22_23_940.jpg) !important;
 	background-position:456px 0;
 }
 
 .sj-book .p20 {
 	background-color:white;
-	background-image:url(../img/pages/page_20_940.jpg) !important;
+	background-image:url(../img/pages/page_24_25_940.jpg) !important;
+
 }
 
 .sj-book .p21 {
 	background-color:white;
-	background-image:url(../img/pages/page_21_940.jpg) !important;
+	background-image:url(../img/pages/page_24_25_940.jpg) !important;
+	background-position:456px 0;
 }
 
 .sj-book .p22 {
 	background-color:white;
-	background-image:url(../img/pages/page_22_23_940.jpg) !important;
+	background-image:url(../img/pages/you_went_social_940.jpg) !important;
 }
 
 .sj-book .p23 {
 	background-color:white;
-	background-image:url(../img/pages/page_22_23_940.jpg) !important;
+	background-image:url(../img/pages/you_went_social_940.jpg) !important;
 	background-position:456px 0;
 }
 
 .sj-book .p24 {
 	background-color:white;
-	background-image:url(../img/pages/page_24_25_940.jpg) !important;
-
+	background-image:url(../img/pages/double_container_940.jpg) !important;
 }
 
 .sj-book .p25 {
 	background-color:white;
-	background-image:url(../img/pages/page_24_25_940.jpg) !important;
-	background-position:456px 0;
+	background-image:url(../img/pages/double_container_940.jpg) !important;
+		background-position:456px 0;
 }
 
 .sj-book .p26 {
 	background-color:white;
-	background-image:url(../img/pages/you_went_social_940.jpg) !important;
+	background-image:url(../img/pages/page_30_31_940.jpg) !important;
 }
 
 .sj-book .p27 {
 	background-color:white;
-	background-image:url(../img/pages/you_went_social_940.jpg) !important;
-	background-position:456px 0;
+	background-image:url(../img/pages/page_30_31_940.jpg) !important;
+		background-position:456px 0;
 }
+
+/* .sj-book .p32 { */
+/* 	background-color:white; */
+/* 	background-image:url(../img/pages/page_32_33_940.jpg) !important; */
+/* } */
+
+/* .sj-book .p33 { */
+/* 	background-color:white; */
+/* 	background-image:url(../img/pages/page_32_33_940.jpg) !important; */
+/* 	background-position:456px 0; */
+/* } */
+
+/* .sj-book .p34 { */
+/* 	background-color:white; */
+/* 	background-image:url(../img/pages/page_34_35_940.jpg) !important; */
+/* } */
+
+/* .sj-book .p35 { */
+/* 	background-color:white; */
+/* 	background-image:url(../img/pages/page_34_35_940.jpg) !important; */
+/* 	background-position:456px 0; */
+/* } */
+
+/* .sj-book .p36 { */
+/* 	background-color:white; */
+/* 	background-image:url(../img/pages/page_36_37_940.jpg) !important; */
+/* } */
+
+/* .sj-book .p37 { */
+/* 	background-color:white; */
+/* 	background-image:url(../img/pages/page_36_37_940.jpg) !important; */
+/* 	background-position:456px 0; */
+/* } */
+
+/* .sj-book .p38 { */
+/* 	background-color:white; */
+/* 	background-image:url(../img/pages/page_38_39_940.jpg) !important; */
+/* } */
+
+/* .sj-book .p39 { */
+/* 	background-color:white; */
+/* 	background-image:url(../img/pages/page_38_39_940.jpg) !important; */
+/* 	background-position:456px 0; */
+/* } */
+
+/* .sj-book .p40 { */
+/* 	background-color:white; */
+/* 	background-image:url(../img/pages/page_40_41_940.jpg) !important; */
+/* } */
+
+/* .sj-book .p41 { */
+/* 	background-color:white; */
+/* 	background-image:url(../img/pages/page_40_41_940.jpg) !important; */
+/* 	background-position:456px 0; */
+/* } */
+
+/* .sj-book .p42 { */
+/* 	background-color:white; */
+/* 	background-image:url(../img/pages/page_42_43_940.jpg) !important; */
+/* } */
+
+/* .sj-book .p43 { */
+/* 	background-color:white; */
+/* 	background-image:url(../img/pages/page_42_43_940.jpg) !important; */
+/* 	background-position:456px 0; */
+/* } */
 
 .sj-book .p28 {
 	background-color:white;
@@ -385,122 +472,33 @@ background-image:url(../img/pages/page_2_940.jpg) !important;
 .sj-book .p29 {
 	background-color:white;
 	background-image:url(../img/pages/double_container_940.jpg) !important;
-		background-position:456px 0;
-}
-
-.sj-book .p30 {
-	background-color:white;
-	background-image:url(../img/pages/page_30_31_940.jpg) !important;
-}
-
-.sj-book .p31 {
-	background-color:white;
-	background-image:url(../img/pages/page_30_31_940.jpg) !important;
-		background-position:456px 0;
-}
-
-.sj-book .p32 {
-	background-color:white;
-	background-image:url(../img/pages/page_32_33_940.jpg) !important;
-}
-
-.sj-book .p33 {
-	background-color:white;
-	background-image:url(../img/pages/page_32_33_940.jpg) !important;
 	background-position:456px 0;
 }
 
-.sj-book .p34 {
-	background-color:white;
-	background-image:url(../img/pages/page_34_35_940.jpg) !important;
-}
+/* .sj-book .p46 { */
+/* 	background-color:white; */
+/* 	background-image:url(../img/pages/page_48_49_940.jpg) !important; */
+/* } */
 
-.sj-book .p35 {
-	background-color:white;
-	background-image:url(../img/pages/page_34_35_940.jpg) !important;
-	background-position:456px 0;
-}
+/* .sj-book .p47 { */
+/* 	background-color:white; */
+/* 	background-image:url(../img/pages/page_48_49_940.jpg)!important; */
+/* 	background-position:456px 0; */
+/* } */
 
-.sj-book .p36 {
-	background-color:white;
-	background-image:url(../img/pages/page_36_37_940.jpg) !important;
-}
+/* .sj-book .p48 { */
+/* 	background-color:white; */
+/* 	background-image:url(../img/pages/notes_blank_940.jpg) !important; */
+/* } */
 
-.sj-book .p37 {
-	background-color:white;
-	background-image:url(../img/pages/page_36_37_940.jpg) !important;
-	background-position:456px 0;
-}
-
-.sj-book .p38 {
-	background-color:white;
-	background-image:url(../img/pages/page_38_39_940.jpg) !important;
-}
-
-.sj-book .p39 {
-	background-color:white;
-	background-image:url(../img/pages/page_38_39_940.jpg) !important;
-	background-position:456px 0;
-}
-
-.sj-book .p40 {
-	background-color:white;
-	background-image:url(../img/pages/page_40_41_940.jpg) !important;
-}
-
-.sj-book .p41 {
-	background-color:white;
-	background-image:url(../img/pages/page_40_41_940.jpg) !important;
-	background-position:456px 0;
-}
-
-.sj-book .p42 {
-	background-color:white;
-	background-image:url(../img/pages/page_42_43_940.jpg) !important;
-}
-
-.sj-book .p43 {
-	background-color:white;
-	background-image:url(../img/pages/page_42_43_940.jpg) !important;
-	background-position:456px 0;
-}
-
-.sj-book .p44 {
-	background-color:white;
-	background-image:url(../img/pages/double_container_940.jpg) !important;
-}
-
-.sj-book .p45 {
-	background-color:white;
-	background-image:url(../img/pages/double_container_940.jpg) !important;
-		background-position:456px 0;
-}
-
-.sj-book .p46 {
-	background-color:white;
-	background-image:url(../img/pages/page_48_49_940.jpg) !important;
-}
-
-.sj-book .p47 {
-	background-color:white;
-	background-image:url(../img/pages/page_48_49_940.jpg)!important;
-		background-position:456px 0;
-}
-
-.sj-book .p48 {
-	background-color:white;
-	background-image:url(../img/pages/notes_blank_940.jpg) !important;
-}
-
-.sj-book .p49 {
-	background-image:url(../img/pages/notes_blank_940.jpg)!important;
-		background-position:456px 0;
-		
-}
+/* .sj-book .p49 { */
+/* 	background-image:url(../img/pages/notes_blank_940.jpg)!important; */
+/* 	background-position:456px 0;	 */
+/* } */
 
 .sj-book .p50 {
 	background-color:white;
-	background-image:url(../img/pages/page_50_940.jpg)!important;
+	background-image:url(../img/pages/page_50_940.jpg) !important;
 }
 
 

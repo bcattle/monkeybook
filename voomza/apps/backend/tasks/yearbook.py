@@ -275,9 +275,9 @@ def run_yearbook(user, results):
     # Assign the group photos from different albums, if possible
     # Make one pass assigning from different albums,
     # then a second filling in the gaps
-    assigned_group_photos = assign_group_photos(yb, rankings, results['photos_of_me'], do_unique_albums=True)
-    if assigned_group_photos < NUM_GROUP_PHOTOS:
-        assign_group_photos(yb, rankings, results['photos_of_me'], do_unique_albums=False)
+#    assigned_group_photos = assign_group_photos(yb, rankings, results['photos_of_me'], do_unique_albums=True)
+#    if assigned_group_photos < NUM_GROUP_PHOTOS:
+#        assign_group_photos(yb, rankings, results['photos_of_me'], do_unique_albums=False)
 
     ## Top friends
     # Do this after we assign the top photos and top group photos,
