@@ -1,6 +1,3 @@
-# Python 3 compantibility
-from __future__ import division, print_function, unicode_literals
-from django.utils.encoding import python_2_unicode_compatible
 import logging, hashlib, time
 from django.core.urlresolvers import reverse
 from django.db import models
@@ -77,7 +74,6 @@ class FacebookPhoto(models.Model):
     objects = FacebookPhotoManager()
 
 
-@python_2_unicode_compatible
 class PhotoRankings(models.Model):
     """
     The photo rankings for a user,
@@ -95,7 +91,7 @@ class PhotoRankings(models.Model):
     top_friends_photos = JSONField(default="[]", max_length=100000)
     top_posts = JSONField(default="[]", max_length=100000)
 
-    def __str__(self):
+    def __unicode__(self):
         return 'PhotoRankings %s' % self.user.username
 
     class Meta:
@@ -276,7 +272,7 @@ class Yearbook(models.Model):
 
     def _get_all_used_ids(self):
         all_ids = []
-        for ranked_list_name, yb_fields in self.lists_to_fields.iteritems():
+        for ranked_list_name, yb_fields in self.lists_to_fields.items():
             for yb_field in yb_fields:
                 photo_id = self.get_photo_id_from_field_string(ranked_list_name, yb_field)
                 if not photo_id is None:
@@ -450,9 +446,9 @@ class Yearbook(models.Model):
             top_photo_1 --> 1120392001 (U)
                             1120392001
         """
-        print('Yearbook for user <%s>\n' % self.rankings.user.username)
-        single_indirect = [item for item in self.lists_to_fields.iteritems() if '.' not in item[1][0]]
-        dbl_indirect = [item for item in self.lists_to_fields.iteritems() if '.' in item[1][0]]
+        print 'Yearbook for user <%s>\n' % self.rankings.user.username
+        single_indirect = [item for item in self.lists_to_fields.items() if '.' not in item[1][0]]
+        dbl_indirect = [item for item in self.lists_to_fields.items() if '.' in item[1][0]]
 
         # Do single indirection first
         for ranked_list_name, yb_fields in single_indirect:
@@ -471,11 +467,11 @@ class Yearbook(models.Model):
 
             # Now have a list of photo fields by field index,
             # dump these
-            for list_name, fields in fields_by_index_field.iteritems():
+            for list_name, fields in fields_by_index_field.items():
                 sub_list_index = getattr(self, list_name)
                 sub_list_name_str = '%s : %s --> %d' % (ranked_list_name, list_name, sub_list_index)
                 self.dump_list(sub_list_name_str, ranked_list[sub_list_index], fields)
-        print('\n')
+        print '\n'
 
 
     def dump_list(self, list_name, photo_list, list_fields):
@@ -484,7 +480,7 @@ class Yearbook(models.Model):
         """
         MAX_PHOTOS_PER_LIST = 25
         # Print the name of the ranking table
-        print('%s\t(%d photos)\n%s' % (list_name, len(photo_list), '-'*(len(list_name) + 20)))
+        print '%s\t(%d photos)\n%s' % (list_name, len(photo_list), '-'*(len(list_name) + 20))
         # For each entry in the list, print
         # (1) whether it is pointed to by a field in `yb_fields`
         # (2) the ID, and (3) whether the ID is in use elsewhere
@@ -508,12 +504,12 @@ class Yearbook(models.Model):
                     if photo['width'] < photo['height']:
                         portrait_str = 'Portrait'
             photo_str = '%s %s %s %s %s' % (field_str, str(self._get_id_from_dict_or_int(photo)).ljust(18), str(score_str).ljust(3), in_use_str, portrait_str)
-            print(photo_str)
+            print photo_str
 
             if index >= MAX_PHOTOS_PER_LIST:
-                print(' '*(longest_field + 4) + '  ...')
+                print ' '*(longest_field + 4) + '  ...'
                 break
-        print('\n')
+        print '\n'
 
 
     def _get_id_from_dict_or_int(self, photo):

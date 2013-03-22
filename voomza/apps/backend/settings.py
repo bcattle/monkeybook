@@ -1,5 +1,3 @@
-# Python 3 compatibility
-from __future__ import unicode_literals
 import datetime, calendar
 from pytz import utc
 
@@ -35,7 +33,7 @@ ALBUM_POINTS_FOR_OTHER_PHOTO        = 1
 COMMENT_POINTS_FOR_MADE_BY_ME       = 7
 COMMENT_POINTS_FOR_COMMENT          = 5
 COMMENT_POINTS_FOR_LIKE             = 1
-COMMENTS_TO_PULL                    = 6
+COMMENTS_TO_PULL                    = 4
 # Used in rendering yb
 COMMENT_POINTS_I_LIKE               = 3
 
@@ -47,7 +45,7 @@ ALBUM_PHOTOS_TO_SHOW        = 4
 ALBUM_MIN_PHOTOS            = 1
 ALBUMS_TO_PULL_AT_ONCE      = 10
 BANNED_ALBUM_NAMES          = {'mobile uploads', 'timeline photos', 'ios photos',
-                               'profile pictures', 'cover photos', 'untitled album'}
+                               'profile pictures', 'cover photos'}
 ALBUM_POINTS_FOR_COMMENT    = 1
 ALBUM_POINTS_FOR_LIKE       = 1
 PICS_OF_USER_TO_PROMOTE     = 2
@@ -62,8 +60,8 @@ NUM_PREV_YEARS              = 7     # 2011-2005
 
 IMMEDIATE_FAMILY            = ['mother', 'father', 'brother', 'sister']
 NUM_GFBF_FAMILY_FIRST       = 2
-SIGNIFICANT_OTHER_STAT      = 'That special somebody'
-FAMILY_STAT                 = 'Family'
+SIGNIFICANT_OTHER_STAT      = u'That special somebody'
+FAMILY_STAT                 = u'Family'
 
 NUM_FRIENDS_IN_FACEPILE     = 90
 NUM_BIRTHDAY_POSTS          = 24
@@ -71,4 +69,4 @@ NUM_BIRTHDAY_POSTS          = 24
 LOWEST_SQUARE_ASPECT_RATIO  = 0.9        # How low can the aspect ratio be for a photo to be considered "square"?
 HIGHEST_SQUARE_ASPECT_RATIO = 1.1        # How high?
 
-PAGE_TEMPLATE_DIR           = 'books/yearbook2012/pages/'
+PAGE_TEMPLATE_DIR           = 'pages/'

@@ -1,15 +1,9 @@
 from voomza.config.common_settings import *
 
-DEBUG = False
+DEBUG = True
+#DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 #COMPRESS_ENABLED = True
-
-## Apps used only in production
-
-INSTALLED_APPS = INSTALLED_APPS + (
-    'raven.contrib.django.raven_compat',
-)
-
 
 ## Facebook
 
@@ -23,10 +17,6 @@ STRIPE_SECRET_KEY       = 'sk_test_aUxwCNe9yrBDJz47A59fDCZx'
 STRIPE_PUBLISHABLE_KEY  = 'pk_test_e32OejkBMZNS4Ow59szBFYNu'
 #STRIPE_SECRET_KEY       = 'sk_live_A4Ycn1r9hbZnYlABFRqoEiq4'
 #STRIPE_PUBLISHABLE_KEY  = 'pk_live_4l4RVHNEZtCWbpJF3Azel5oY'
-
-## Mixpanel
-
-MIXPANEL_API_TOKEN = '845d79abdec83710efff370691a6cc84'
 
 ## Database
 
@@ -59,7 +49,7 @@ CELERY_RESULT_BACKEND = BROKER_URL
 
 ## S3 storage
 
-AWS_STORAGE_BUCKET_NAME = 'monkeybook'
+AWS_STORAGE_BUCKET_NAME = 'yearbook-allstar'
 #DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
 DEFAULT_FILE_STORAGE = 'voomza.apps.core.storage.CachedS3BotoStorage'
 STATICFILES_STORAGE = DEFAULT_FILE_STORAGE
@@ -85,12 +75,6 @@ STATIC_URL = '//s3-us-west-2.amazonaws.com/%s/' % AWS_STORAGE_BUCKET_NAME
 
 ## Django settings
 
-ALLOWED_HOSTS = [
-    # '54.245.243.140',
-    '54.244.243.227',
-    # 'yearbookallstar.com',
-]
-
 ROOT_URLCONF = 'voomza.config.live.urls'
 
 # Python dotted path to the WSGI application used by Django's runserver.
@@ -98,9 +82,6 @@ WSGI_APPLICATION = 'voomza.config.live.wsgi.application'
 
 
 ## Raven / Sentry configuration
-
-# Set your DSN value
-SENTRY_DSN = 'https://e427c264d1ba482cab9a907ada8f8276:d94b989edc7b41479f908d90ebaf9e6f@app.getsentry.com/5653'
 
 #RAVEN_CONFIG = {
 #    'dsn': 'https://0212e4c55eaa40379c1ba782c8137510:96e96df4f883498d83a130c86e965db0@sentry.voomza.com/2',

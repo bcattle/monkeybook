@@ -10,6 +10,6 @@ class Command(NoArgsCommand):
     #        users = User.objects.filter(email__iexact='bryan.cattle@gmail.com')
         users = User.objects.filter(username='bcattle')
         if users:
-            print('%d user object found' % len(users))
+            print '%d user object found' % len(users)
             users.delete()
-            print('Deleted.')
+            print 'Deleted.'

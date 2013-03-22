@@ -1,4 +1,3 @@
-from __future__ import division, print_function, unicode_literals
 import logging
 from celery.exceptions import TimeoutError
 from django_facebook.model_managers import FacebookUserManager as fb_FacebookUserManager

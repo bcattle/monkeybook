@@ -1,4 +1,3 @@
-from __future__ import division, print_function, unicode_literals
 import logging
 from celery import task
 from django_facebook.tasks import get_and_store_friends

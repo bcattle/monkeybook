@@ -49,7 +49,7 @@ def timeit(func):
         start = time.time()
         value = func(*args, **kwds)
         elapsed = time.time() - start
-        print('%r ran in %2.2f sec' % (func.__name__, elapsed))
+        print '%r ran in %2.2f sec' % (func.__name__, elapsed)
         return value
     return wrapper
 

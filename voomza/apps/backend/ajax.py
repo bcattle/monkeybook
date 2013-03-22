@@ -1,6 +1,6 @@
-from __future__ import division, print_function, unicode_literals
 from django.conf import settings
 from django.conf.urls import url
+from django.shortcuts import render
 from django.template.context import RequestContext
 from django.template.loader import render_to_string
 from tastypie import fields
@@ -143,7 +143,7 @@ class PageResource(Resource):
 
 
     def get_next(self, request, next_index, photo_index=None, **kwargs):
-        print('next_index: %s' % next_index)
+        print 'next_index: %s' % next_index
         self.method_check(request, allowed=['get'])
         self.is_authenticated(request)
         self.throttle_check(request)

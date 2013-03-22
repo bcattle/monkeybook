@@ -7,6 +7,7 @@ from voomza.apps.account.models import FacebookUser, FacebookFriend
 from voomza.apps.backend.fql.top_friends_fast import TopFriendsFastPipeline
 
 @task.task()
+@timeit
 def top_friends_fast(user, run_yearbook=False):
     """
     Pulls all friends and all tags,
@@ -26,7 +27,7 @@ def top_friends_fast(user, run_yearbook=False):
         tag_score_by_user_id[tag['subject']] += 1 / tag_age
 
     # Sort
-    user_ids_in_order = sorted(tag_score_by_user_id.iteritems(), key=lambda x: x[1])
+    user_ids_in_order = sorted(tag_score_by_user_id.items(), key=lambda x: x[1])
 
     # Reversing them means the index corresponds to top friends order
     top_friends_order_by_id = {}

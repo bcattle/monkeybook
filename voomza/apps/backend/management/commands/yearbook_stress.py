@@ -18,4 +18,4 @@ class Command(BaseCommand):
         for n in range(int(num)):
             run_yearbook.delay(users.next())
 
-        print('Enqueued `run_yearbook` %s times' % num)
+        print 'Enqueued `run_yearbook` %s times' % num
