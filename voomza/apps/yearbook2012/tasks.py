@@ -22,6 +22,15 @@ tracker = EventTracker()
 
 
 @task.task()
+def update_task_state(*args, **kwargs):
+    import pdb
+    pdb.set_trace()
+
+    pass
+
+
+
+@task.task()
 @transaction.commit_manually
 def save_to_db(user, family, photos_of_me):
     FamilyTask().save_family(user, family)
@@ -32,17 +41,37 @@ def save_to_db(user, family, photos_of_me):
 
 
 @task.task()
-def run_yearbook(user, results):
+def run_book(user, results):
     runtime_start = time.time()
     task_id = current_task.request.id
+
+    import pdb
+    pdb.set_trace()
+
+    # See if user has a yearbook
+    #        try:
+    #            yearbook = Yearbook(owner=user)
+    #        except Yearbook.DoesNotExist:
+
+    # Run the top friends task
+
     # Run separate, async tasks to facebook
+    # "rt.s" == "run_task.subtask"
     fql_job = group([
-        rt.subtask(kwargs={'task_cls': PhotosOfMeTask,           'end_time': UNIX_THIS_YEAR_END, 'user_id': user.id, 'parent_id': task_id}),
-        rt.subtask(kwargs={'task_cls': CommentsOnPhotosOfMeTask, 'end_time': UNIX_THIS_YEAR_END, 'user_id': user.id, 'parent_id': task_id}),
-        rt.subtask(kwargs={'task_cls': OwnerPostsFromYearTask,   'user_id': user.id, 'parent_id': task_id}),
-        rt.subtask(kwargs={'task_cls': OthersPostsFromYearTask,  'user_id': user.id, 'parent_id': task_id}),
-        rt.subtask(kwargs={'task_cls': FamilyTask,               'user_id': user.id, 'parent_id': task_id}),
+        rt.subtask(kwargs={'task_cls': PhotosOfMeTask,           'end_time': UNIX_THIS_YEAR_END, 'user_id': user.id, }),
+        rt.subtask(kwargs={'task_cls': CommentsOnPhotosOfMeTask, 'end_time': UNIX_THIS_YEAR_END, 'user_id': user.id, }),
+        rt.subtask(kwargs={'task_cls': OwnerPostsFromYearTask,   'user_id': user.id, }),
+        rt.subtask(kwargs={'task_cls': OthersPostsFromYearTask,  'user_id': user.id, }),
+        rt.subtask(kwargs={'task_cls': FamilyTask,               'user_id': user.id, }),
     ])
+    # fql_job = group([
+    #     rt.s(kwargs={'task_cls': PhotosOfMeTask,           'end_time': UNIX_THIS_YEAR_END, 'user_id': user.id, 'parent_id': task_id},
+    #          link=update_task_state.s(kwargs={'uuid': task_id, 'current_task': current_task})),
+    #     rt.s(kwargs={'task_cls': CommentsOnPhotosOfMeTask, 'end_time': UNIX_THIS_YEAR_END, 'user_id': user.id, 'parent_id': task_id}),
+    #     rt.s(kwargs={'task_cls': OwnerPostsFromYearTask,   'user_id': user.id, 'parent_id': task_id}),
+    #     rt.s(kwargs={'task_cls': OthersPostsFromYearTask,  'user_id': user.id, 'parent_id': task_id}),
+    #     rt.s(kwargs={'task_cls': FamilyTask,               'user_id': user.id, 'parent_id': task_id}),
+    # ])
     job_async = fql_job.apply_async()
     job_results = job_async.get()
 
@@ -91,9 +120,6 @@ def run_yearbook(user, results):
         photos_of_me.append(photo_db)
 
     # Save photos, profile fields, and family to db
-#    save_to_db.delay(user, profile_task, results['profile_fields'],
-#                     family_task, results['family'], photos_of_me)
-#    save_to_db.delay(user, family_task, results['family'], photos_of_me)
     save_to_db_async = save_to_db.delay(user, results['family'], photos_of_me)
 
     ## Calculate top friends
