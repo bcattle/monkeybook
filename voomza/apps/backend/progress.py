@@ -12,12 +12,13 @@ class YearbookProgress(object):
     user = None
     pull_friends_async = None
 
-    def __init__(self, request):
-        self.user = request.user
-        # session can contain 'pull_friends_async',
-        # which in turn contains 'run_yearbook_async'
-        if 'pull_friends_id' in request.session:
-            self.pull_friends_async = AsyncResult(id=request.session['pull_friends_id'])
+    def __init__(self, request=None):
+        if request:
+            self.user = request.user
+            # session can contain 'pull_friends_async',
+            # which in turn contains 'run_yearbook_async'
+            if 'pull_friends_id' in request.session:
+                self.pull_friends_async = AsyncResult(id=request.session['pull_friends_id'])
 
     def get_status(self):
         if self.pull_friends_async and self.pull_friends_async.successful():

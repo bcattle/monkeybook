@@ -10,7 +10,6 @@ from south.signals import post_migrate
 from voomza.apps.account.models import FacebookUser
 from voomza.apps.backend.managers import FacebookPhotoManager
 from voomza.apps.backend.settings import *
-from voomza.apps.backend.tasks.score import comment_score
 
 logger = logging.getLogger(__name__)
 
@@ -45,12 +44,18 @@ class FacebookPhoto(models.Model):
     def is_landscape(self):
         return self.aspect_ratio > HIGHEST_SQUARE_ASPECT_RATIO
 
+    def _comment_score(self, comment):
+        score = \
+            COMMENT_POINTS_I_LIKE * comment['likes'] + \
+            COMMENT_POINTS_FOR_LIKE * (1 if comment['user_likes'] else 0)
+        return score
+
     def get_top_comment(self):
         if self.comments:
 
             # Assign a score
             for comment in self.comments:
-                comment['score'] = comment_score(comment)
+                comment['score'] = self._comment_score(comment)
 
             # Sort by score, then by date
             # Take the highest-scoring, earliest
@@ -79,6 +84,7 @@ class FacebookPhoto(models.Model):
     objects = FacebookPhotoManager()
 
 
+@python_2_unicode_compatible
 class PhotoRankings(models.Model):
     """
     The photo rankings for a user,
@@ -96,7 +102,7 @@ class PhotoRankings(models.Model):
     top_friends_photos = JSONField(default="[]", max_length=100000)
     top_posts = JSONField(default="[]", max_length=100000)
 
-    def __unicode__(self):
+    def __str__(self):
         return 'PhotoRankings %s' % self.user.username
 
     class Meta:
@@ -451,7 +457,7 @@ class Yearbook(models.Model):
             top_photo_1 --> 1120392001 (U)
                             1120392001
         """
-        print 'Yearbook for user <%s>\n' % self.rankings.user.username
+        print('Yearbook for user <%s>\n' % self.rankings.user.username)
         single_indirect = [item for item in self.lists_to_fields.items() if '.' not in item[1][0]]
         dbl_indirect = [item for item in self.lists_to_fields.items() if '.' in item[1][0]]
 
@@ -476,7 +482,7 @@ class Yearbook(models.Model):
                 sub_list_index = getattr(self, list_name)
                 sub_list_name_str = '%s : %s --> %d' % (ranked_list_name, list_name, sub_list_index)
                 self.dump_list(sub_list_name_str, ranked_list[sub_list_index], fields)
-        print '\n'
+        print('\n')
 
 
     def dump_list(self, list_name, photo_list, list_fields):
@@ -485,7 +491,7 @@ class Yearbook(models.Model):
         """
         MAX_PHOTOS_PER_LIST = 25
         # Print the name of the ranking table
-        print '%s\t(%d photos)\n%s' % (list_name, len(photo_list), '-'*(len(list_name) + 20))
+        print('%s\t(%d photos)\n%s' % (list_name, len(photo_list), '-'*(len(list_name) + 20)))
         # For each entry in the list, print
         # (1) whether it is pointed to by a field in `yb_fields`
         # (2) the ID, and (3) whether the ID is in use elsewhere
@@ -509,12 +515,12 @@ class Yearbook(models.Model):
                     if photo['width'] < photo['height']:
                         portrait_str = 'Portrait'
             photo_str = '%s %s %s %s %s' % (field_str, str(self._get_id_from_dict_or_int(photo)).ljust(18), str(score_str).ljust(3), in_use_str, portrait_str)
-            print photo_str
+            print(photo_str)
 
             if index >= MAX_PHOTOS_PER_LIST:
-                print ' '*(longest_field + 4) + '  ...'
+                print(' '*(longest_field + 4) + '  ...')
                 break
-        print '\n'
+        print('\n')
 
 
     def _get_id_from_dict_or_int(self, photo):

@@ -312,7 +312,8 @@ def process_photo_results(results, scoring_fxn=None, add_to_fields=None, add_to_
     If commit=True, saves them to the db
     """
     fields = ['created', 'height', 'width', 'fb_url',
-              'comment_info.comment_count', 'like_info.like_count']
+              'comment_info.comment_count', 'like_info.like_count',
+              'all_sizes']      # <--- added in _set_photo_by_width
     integer_fields = ['height', 'width', 'comment_info.comment_count', 
                       'like_info.like_count']
     if add_to_fields:
@@ -355,9 +356,6 @@ def _set_photo_by_width(results):
     processed_results = []
     for photo in results:
         try:
-            import ipdb
-            ipdb.set_trace()
-
             new_photo = copy(photo)
             images = {image['width']: image for image in photo['images']}
             widths = sorted(images.keys(), reverse=True)
@@ -370,7 +368,12 @@ def _set_photo_by_width(results):
             new_photo['height'] = images[chosen_width]['height']
             new_photo['width'] = images[chosen_width]['width']
             new_photo['fb_url'] = images[chosen_width]['source']
+            new_photo['all_sizes'] = photo['images']
             del new_photo['images']
+            # Dumb: convert field 'source' in 'images' to name 'url'
+            for image in new_photo['all_sizes']:
+                image['url'] = image['source']
+                del image['source']
             processed_results.append(new_photo)
         except KeyError:
             logger.warning('KeyError in _set_photo_by_width')
