@@ -1,5 +1,5 @@
 import logging, itertools
-from collections import defaultdict
+from collections import defaultdict, Counter
 from celery import task, group
 from django.db import transaction
 from voomza.apps.backend.tasks.albums import pull_album_photos
@@ -11,6 +11,7 @@ from voomza.apps.backend.getter import FreqDistResultGetter, ResultGetter
 from voomza.apps.backend.models import PhotoRankings, FacebookPhoto, Yearbook
 from voomza.apps.backend.settings import *
 from backend.tasks.fql import run_task as rt
+from pytz import utc
 
 logger = logging.getLogger(__name__)
 
@@ -62,6 +63,11 @@ def run_yearbook(user, results):
 
     # Get number of people in each photo
     num_tags_by_photo_id = FreqDistResultGetter(results['tagged_with_me'], id_field='object_id')
+
+    # Get list of people in each photo
+    tagged_people_by_photo_id = defaultdict(list)
+    for tag in results['tagged_with_me']:
+        tagged_people_by_photo_id[tag['object_id']].append(tag['subject'])
 
     comments_by_photo_id = defaultdict(list)
     comments_score_by_user_id = defaultdict(lambda: 0)
@@ -431,6 +437,14 @@ def run_yearbook(user, results):
         field_str = 'back_in_time_%d' % (year_num + 1)
         setattr(yb, field_str, years_to_show[year_num]['year_index'])
         setattr(yb, field_str + '_photo_1', years_to_show[year_num]['photo_index'])
+
+    # Tabulate the list of all friends tagged in the book and store
+    all_photos = yb._get_all_used_ids()
+    all_tagged_people = itertools.chain(*[
+        tagged_people_by_photo_id[photo_id] for photo_id in all_photos
+    ])
+    tagged_people_count = Counter(all_tagged_people)
+    yb.friends_in_book = tagged_people_count.most_common()
 
     # Save everything
     rankings.save()
