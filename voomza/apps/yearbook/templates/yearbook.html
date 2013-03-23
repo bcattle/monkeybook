@@ -28,8 +28,10 @@
             <div class="sj-book">
                 <div depth="5" class="hard"> <div class="side"></div> </div>
                 <div depth="5" class="hard front-side"> <div class="depth"></div> </div>
-                <div class="hard fixed back-side p51"> <div class="depth"></div> </div>
-                <div class="hard p52"></div>
+                {# <div class="hard fixed back-side p51"> <div class="depth"></div> </div> #}
+                {# <div class="hard p52"></div> #}
+		<div class="hard fixed back-side p31"> <div class="depth"></div> </div>
+                <div class="hard p32"></div>
             </div>
         </div>
         <div id="slider-bar" class="turnjs-slider">
@@ -77,7 +79,8 @@
 
             yepnope({
                 test : Modernizr.csstransforms,
-                yep: ["{% static 'js/turn.min.js' %}"],
+            // yep: ["{% static 'js/turn.min.js' %}"],
+	        yep: ["{% static 'js/turn.js' %}"],
                 nope: ["{% static 'js/turn.html4.min.js' %}", "{% static 'css/jquery.ui.html4.css' %}", "{% static 'css/steve-jobs-html4.css' %}"],
                 both: ["{% static 'css/jquery.ui.css' %}", "{% static 'css/steve-jobs.css' %}"],
                 complete: loadApp

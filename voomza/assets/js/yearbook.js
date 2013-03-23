@@ -33,7 +33,7 @@ function loadApp() {
         autoCenter: true,
         gradients: true,
         duration: 1000,
-        pages: 52,
+        pages: 32,
         when: {
             turning: function(e, page, view) {
                 var book = $(this),
@@ -70,9 +70,9 @@ function loadApp() {
                     $('.sj-book .p2').removeClass('fixed');
 
                 if (page<book.turn('pages'))
-                    $('.sj-book .p51').addClass('fixed');
+                    $('.sj-book .p31').addClass('fixed');
                 else
-                    $('.sj-book .p51').removeClass('fixed');
+                    $('.sj-book .p31').removeClass('fixed');
 
                 Hash.go('page/'+page).update();
             },
@@ -136,12 +136,12 @@ function updateDepth(book, newPage) {
     depthWidth = 16*Math.min(1, (pages-page)*2/pages);
 
 	if (newPage<pages-3)
-		$('.sj-book .p51 .depth').css({
+		$('.sj-book .p31 .depth').css({
 			width: depthWidth,
 			right: 20 - depthWidth
 		});
 	else
-		$('.sj-book .p51 .depth').css({width: 0});
+		$('.sj-book .p31 .depth').css({width: 0});
 }
 
 function numberOfViews(book) {
