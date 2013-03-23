@@ -1,3 +1,5 @@
+from __future__ import division, print_function, unicode_literals
+from django.utils.encoding import python_2_unicode_compatible
 import logging, hashlib, time
 from django.core.urlresolvers import reverse
 from django.db import models
@@ -17,9 +19,12 @@ class FacebookPhoto(models.Model):
     facebook_id = models.BigIntegerField(primary_key=True)
     created = models.DateTimeField(null=True)
     people_in_photo = models.PositiveSmallIntegerField(default=0, help_text='Total, i.e. including me')
+
     height = models.PositiveIntegerField(default=0)
     width = models.PositiveIntegerField(default=0)
     fb_url = models.CharField(max_length=200)
+    all_sizes = JSONField(default="[]", max_length=100000)
+
     local_url = models.CharField(max_length=200, default='')
     caption = models.CharField(max_length=1000, default='')
     comments = JSONField(default="[]", max_length=100000)
