@@ -89,6 +89,7 @@ def run_yearbook(user, results):
             height          = photo['height'],
             width           = photo['width'],
             fb_url          = photo['fb_url'],
+            all_sizes       = photo['all_sizes'],
             comments        = comments_by_photo_id[photo['id']],    # it's a defaultdict
             caption         = photo['caption']
         )

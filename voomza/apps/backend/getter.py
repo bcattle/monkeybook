@@ -1,5 +1,6 @@
 from __future__ import division, print_function, unicode_literals
 from collections import defaultdict
+from copy import copy
 import logging, datetime
 from pytz import utc
 from django.conf import settings
@@ -320,7 +321,7 @@ def process_photo_results(results, scoring_fxn=None, add_to_fields=None, add_to_
     add_to_defaults = add_to_defaults or {}
 
     fb_results = len(results)
-    _set_photo_by_width(results)
+    results = _set_photo_by_width(results)
     extra_fields = {}
     if scoring_fxn:
         extra_fields['score'] = scoring_fxn
@@ -352,8 +353,13 @@ def _set_photo_by_width(results):
     We want the smallest > PHOTO_WIDTH_DESIRED or
     the largest otherwise
     """
+    processed_results = []
     for photo in results:
         try:
+            import ipdb
+            ipdb.set_trace()
+
+            new_photo = copy(photo)
             images = {image['width']: image for image in photo['images']}
             widths = sorted(images.iterkeys(), reverse=True)
             above_cutoff = filter(lambda x: x > PHOTO_WIDTH_DESIRED, widths)
@@ -362,10 +368,12 @@ def _set_photo_by_width(results):
             else:
                 # If none large enough, take the largest
                 chosen_width = widths[0]
-            photo['height'] = images[chosen_width]['height']
-            photo['width'] = images[chosen_width]['width']
-            photo['fb_url'] = images[chosen_width]['source']
-            del photo['images']
+            new_photo['height'] = images[chosen_width]['height']
+            new_photo['width'] = images[chosen_width]['width']
+            new_photo['fb_url'] = images[chosen_width]['source']
+            del new_photo['images']
+            processed_results.append(new_photo)
         except KeyError:
             logger.warning('KeyError in _set_photo_by_width')
             continue
+    return processed_results
