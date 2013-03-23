@@ -8,7 +8,6 @@ from south.signals import post_migrate
 from voomza.apps.account.models import FacebookUser
 from voomza.apps.backend.managers import FacebookPhotoManager
 from voomza.apps.backend.settings import *
-from voomza.apps.backend.tasks.score import comment_score
 
 logger = logging.getLogger(__name__)
 
@@ -40,12 +39,18 @@ class FacebookPhoto(models.Model):
     def is_landscape(self):
         return self.aspect_ratio > HIGHEST_SQUARE_ASPECT_RATIO
 
+    def comment_score(self, comment):
+        score =\
+            COMMENT_POINTS_I_LIKE * comment['likes'] +\
+            COMMENT_POINTS_FOR_LIKE * (1 if comment['user_likes'] else 0)
+        return score
+
     def get_top_comment(self):
         if self.comments:
 
             # Assign a score
             for comment in self.comments:
-                comment['score'] = comment_score(comment)
+                comment['score'] = self.comment_score(comment)
 
             # Sort by score, then by date
             # Take the highest-scoring, earliest
