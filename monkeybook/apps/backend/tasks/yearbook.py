@@ -1,10 +1,10 @@
 import logging, itertools
 from collections import defaultdict, Counter
-from celery import task, group
+from celery import task, group, current_task
 from django.db import transaction
 from monkeybook.apps.backend.tasks.albums import pull_album_photos
 from monkeybook.apps.core import bulk
-from monkeybook.apps.core.utils import timeit, merge_dicts
+from monkeybook.apps.core.utils import merge_dicts
 from monkeybook.apps.backend.fql import PhotosOfMeTask, CommentsOnPhotosOfMeTask, \
     OwnerPostsFromYearTask, OthersPostsFromYearTask, ProfileFieldsTask, FamilyTask
 from monkeybook.apps.backend.getter import FreqDistResultGetter, ResultGetter
@@ -34,7 +34,7 @@ def save_to_db(user, family, photos_of_me):
 
 
 @task.task()
-@timeit
+# @profileit('run_yearbook')
 def run_yearbook(user, results):
     # Run separate, async tasks to facebook
     fql_job = group([
@@ -237,6 +237,13 @@ def run_yearbook(user, results):
 
     top_photos_this_year = results['photos_of_me'].filter(lambda x: x['created'] > THIS_YEAR)\
         .order_by('score')
+
+    # If they don't have enough photos this year, bail out of the yearbook process
+    if len(top_photos_this_year) < MIN_TOP_PHOTOS_FOR_BOOK:
+        current_task.update_state(state='NOT_ENOUGH_PHOTOS')
+        # This is a hack because celery overwrites the task state when you return
+        # could also use an `after_return` handler, see http://bit.ly/16U6YKv
+        return 'NOT_ENOUGH_PHOTOS'
 
     rankings.top_photos = top_photos_this_year
     rankings.group_shots = [

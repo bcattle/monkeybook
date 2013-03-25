@@ -84,6 +84,14 @@ def loading(request,
     return render(request, template_name, context)
 
 
+@login_required
+@facebook_required_lazy(canvas=True)
+def not_enough_photos(request,
+            template_name='not_enough_photos.html'):
+    context = { }
+    return render(request, template_name, context)
+
+
 # No login required
 def yearbook(request, hash, template_name='yearbook.html'):
     """

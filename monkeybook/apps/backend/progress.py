@@ -23,8 +23,13 @@ class YearbookProgress(object):
         if self.pull_friends_async and self.pull_friends_async.successful():
             results = self.pull_friends_async.get()
             if 'run_yearbook_async' in results:
-                return results['run_yearbook_async'].status
                 # Can return PENDING, STARTED, RETRY, FAILURE, or SUCCESS
+                # Custom states: NOT_ENOUGH_PHOTOS
+                if results['run_yearbook_async'].status == 'SUCCESS':
+                    # May not actually be success, look for a custom return value
+                    if results['run_yearbook_async'].get() == 'NOT_ENOUGH_PHOTOS':
+                        return 'NOT_ENOUGH_PHOTOS'
+                return results['run_yearbook_async'].status
 
         # Otherwise, look for a yearbook for user in db
         if Yearbook.objects.filter(rankings__user=self.user).exists():

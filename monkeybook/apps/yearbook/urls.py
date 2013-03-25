@@ -10,6 +10,7 @@ urlpatterns = patterns('',
 
     url(r'^start/$', start, name='start'),
     url(r'^running/$', loading, name='loading'),
+    url(r'^bummer/$', not_enough_photos, name='not_enough_photos'),
     url(r'^invite/$', invite_friends_to_sign, name='invite_friends_to_sign'),
 
 #    url(r'^transfer/$', transfer_screen, name='transfer_screen'),
