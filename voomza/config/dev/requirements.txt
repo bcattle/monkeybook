@@ -10,7 +10,7 @@ ipython
 ipdb
 django-redis-sessions
 factory_boy
-git+git://github.com/toastdriven/django-tastypie.git
+git+git://github.com/toastdriven/django-tastypie.git@342076cf6bfacd1b8734e02e6ffe225e590114c4
 gevent
 django-jsonfield
 # pip install --index-url https://code.stripe.com --upgrade stripe
