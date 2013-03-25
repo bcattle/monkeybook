@@ -1,4 +1,4 @@
-from voomza.config.common_settings import *
+from monkeybook.config.common_settings import *
 
 DEBUG = True
 #DEBUG = False
@@ -51,7 +51,7 @@ CELERY_RESULT_BACKEND = BROKER_URL
 
 AWS_STORAGE_BUCKET_NAME = 'monkeybook'
 #DEFAULT_FILE_STORAGE = 'storages.backends.s3boto.S3BotoStorage'
-DEFAULT_FILE_STORAGE = 'voomza.apps.core.storage.CachedS3BotoStorage'
+DEFAULT_FILE_STORAGE = 'monkeybook.apps.core.storage.CachedS3BotoStorage'
 STATICFILES_STORAGE = DEFAULT_FILE_STORAGE
 COMPRESS_STORAGE = DEFAULT_FILE_STORAGE
 
@@ -64,7 +64,7 @@ MEDIA_ROOT = os.path.join(ROOT_PATH, 'media')
 MEDIA_URL = '/media/'
 
 # Needed for compressor's local cache?
-STATIC_ROOT = '/home/ubuntu/src/voomza_static/'
+STATIC_ROOT = '/home/ubuntu/src/monkeybook_static/'
 #COMPRESS_ROOT = STATIC_ROOT
 
 # URL prefix for static files.
@@ -75,10 +75,10 @@ STATIC_URL = '//s3-us-west-2.amazonaws.com/%s/' % AWS_STORAGE_BUCKET_NAME
 
 ## Django settings
 
-ROOT_URLCONF = 'voomza.config.live.urls'
+ROOT_URLCONF = 'monkeybook.config.live.urls'
 
 # Python dotted path to the WSGI application used by Django's runserver.
-WSGI_APPLICATION = 'voomza.config.live.wsgi.application'
+WSGI_APPLICATION = 'monkeybook.config.live.wsgi.application'
 
 
 ## Raven / Sentry configuration

@@ -8,7 +8,7 @@ Originally from http://people.iola.dk/olau/python/bulkops.py
 '''
 from itertools import repeat
 from django.db import models, connections, transaction
-from voomza.apps.core.utils import timeit
+from monkeybook.apps.core.utils import timeit
 
 
 def _model_fields(model):

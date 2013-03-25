@@ -1,5 +1,5 @@
-from voomza.apps.backend.fql.photos import *
-from voomza.apps.backend.fql.posts import *
-from voomza.apps.backend.fql.profile import *
+from monkeybook.apps.backend.fql.photos import *
+from monkeybook.apps.backend.fql.posts import *
+from monkeybook.apps.backend.fql.profile import *
 
 

@@ -1,9 +1,9 @@
 import logging
 from itertools import chain
 import dateutil.parser
-from voomza.apps.account.models import FacebookUser
-from voomza.apps.backend.models import Yearbook, FacebookPhoto
-from voomza.apps.backend.settings import *
+from monkeybook.apps.account.models import FacebookUser
+from monkeybook.apps.backend.models import Yearbook, FacebookPhoto
+from monkeybook.apps.backend.settings import *
 
 logger = logging.getLogger(__name__)
 

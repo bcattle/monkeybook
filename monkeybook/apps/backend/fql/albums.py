@@ -1,6 +1,6 @@
-from voomza.apps.backend.fql.base import FQLTask
-from voomza.apps.backend.getter import process_photo_results, ResultGetter
-from voomza.apps.backend.settings import *
+from monkeybook.apps.backend.fql.base import FQLTask
+from monkeybook.apps.backend.getter import process_photo_results, ResultGetter
+from monkeybook.apps.backend.settings import *
 
 
 class AlbumPhotosTask(FQLTask):

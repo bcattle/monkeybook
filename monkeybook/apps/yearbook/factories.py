@@ -1,7 +1,7 @@
 import factory
 from models import Badge
-from voomza.apps.account.factories import FacebookUserFactory
-from voomza.apps.yearbook.models import YearbookSign
+from monkeybook.apps.account.factories import FacebookUserFactory
+from monkeybook.apps.yearbook.models import YearbookSign
 
 BADGE_NAMES = (
     'The family I love',

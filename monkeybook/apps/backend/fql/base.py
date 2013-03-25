@@ -1,8 +1,8 @@
 import re, types, logging, time
 from django_facebook.api import FacebookUserConverter
-from voomza.apps.backend.getter import ResultGetter
-from voomza.apps.core.utils import merge_spaces, profileit
-from voomza.apps.backend.getter import process_photo_results
+from monkeybook.apps.backend.getter import ResultGetter
+from monkeybook.apps.core.utils import merge_spaces, profileit
+from monkeybook.apps.backend.getter import process_photo_results
 
 logger = logging.getLogger(__name__)
 

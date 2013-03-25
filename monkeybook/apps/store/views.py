@@ -3,9 +3,9 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.conf import settings
-from voomza.apps.store.forms import OrderForm, OrderBillingAddressForm, \
+from monkeybook.apps.store.forms import OrderForm, OrderBillingAddressForm, \
     OrderShippingAddressForm, CreditCardForm
-from voomza.apps.store.models import PRICE_FOR_FULL, PRICE_FOR_ABRIDGED, PRICE_FOR_DIGITAL, CA_SALES_TAX, PRICE_FOR_SHIPPING, Order
+from monkeybook.apps.store.models import PRICE_FOR_FULL, PRICE_FOR_ABRIDGED, PRICE_FOR_DIGITAL, CA_SALES_TAX, PRICE_FOR_SHIPPING, Order
 
 logger = logging.getLogger(__name__)
 

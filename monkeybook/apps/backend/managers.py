@@ -1,5 +1,5 @@
 from django.db import models
-from voomza.apps.core import bulk
+from monkeybook.apps.core import bulk
 
 class FacebookPhotoManager(models.Manager):
     def from_getter(self, getter):
@@ -19,3 +19,12 @@ class FacebookPhotoManager(models.Manager):
             facebook_photos.append(photo_obj)
         bulk.insert_or_update_many(self.model, facebook_photos, exclude_fields=['comments'])
         return self
+
+
+class YearbookManager(models.Manager):
+    def get_friends_books(self, user):
+        """
+        Returns books belonging to facebook friends
+        of the supplied user
+        """
+        return self.model.filter(getter__user__profile__facebook_user__friend_of__owner=user)

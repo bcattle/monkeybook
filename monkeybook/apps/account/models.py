@@ -5,7 +5,7 @@ from django.dispatch.dispatcher import receiver
 from django.contrib.auth.models import User
 from django_facebook.models import BaseFacebookProfileModel
 from django.shortcuts import redirect
-from voomza.apps.account.managers import FacebookUserManager
+from monkeybook.apps.account.managers import FacebookUserManager
 
 logger = logging.getLogger(name=__name__)
 

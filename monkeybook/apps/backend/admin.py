@@ -1,5 +1,5 @@
 from django.contrib import admin
-from voomza.apps.backend.models import FacebookPhoto, PhotoRankings, Yearbook
+from monkeybook.apps.backend.models import FacebookPhoto, PhotoRankings, Yearbook
 
 
 class FacebookPhotoAdmin(admin.ModelAdmin):

@@ -1,9 +1,9 @@
 from django.db import transaction
-from voomza.apps.account.models import FamilyConnection, FacebookUser
-from voomza.apps.backend.fql.base import FQLTask, FqlTaskPipeline
-from voomza.apps.backend.getter import ResultGetter
-from voomza.apps.core import bulk
-from voomza.apps.core.utils import flush_transaction
+from monkeybook.apps.account.models import FamilyConnection, FacebookUser
+from monkeybook.apps.backend.fql.base import FQLTask, FqlTaskPipeline
+from monkeybook.apps.backend.getter import ResultGetter
+from monkeybook.apps.core import bulk
+from monkeybook.apps.core.utils import flush_transaction
 
 
 class ProfileFieldsTask(FQLTask):

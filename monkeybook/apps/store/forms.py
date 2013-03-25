@@ -1,7 +1,7 @@
 from django import forms
 from django_countries.countries import COUNTRIES
 from django_localflavor_us.forms import USStateField, USStateSelect, USZipCodeField
-from voomza.apps.store.models import Order
+from monkeybook.apps.store.models import Order
 
 
 class OrderForm(forms.ModelForm):

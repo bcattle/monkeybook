@@ -1,5 +1,5 @@
 from celery.result import AsyncResult
-from voomza.apps.backend.models import Yearbook
+from monkeybook.apps.backend.models import Yearbook
 
 class YearbookProgress(object):
     """

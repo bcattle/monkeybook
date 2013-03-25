@@ -11,7 +11,7 @@ def accept_invite_requests(invite_requests):
     Send a request to facebook to DELETE the request,
     and update the entry in our db
     """
-    from voomza.apps.yearbook.api import YearbookFacebookUserConverter
+    from monkeybook.apps.yearbook.api import YearbookFacebookUserConverter
 
     for invite_request in invite_requests:
         accepting_user = invite_request.to_facebook_user.profile.user

@@ -2,9 +2,9 @@ from tastypie.resources import ModelResource, fields
 from tastypie.authorization import Authorization
 from tastypie.authentication import SessionAuthentication
 from tastypie.api import Api
-from voomza.apps.yearbook.models import InviteRequestSent, YearbookSign
-from voomza.apps.account.models import FacebookUser
-from voomza.apps.backend.ajax import PageResource, YearbookProgressResource
+from monkeybook.apps.yearbook.models import InviteRequestSent, YearbookSign
+from monkeybook.apps.account.models import FacebookUser
+from monkeybook.apps.backend.ajax import PageResource, YearbookProgressResource
 
 
 class FriendResource(ModelResource):

@@ -1,7 +1,7 @@
 from copy import copy
 import unittest
 from django.test import TestCase
-from voomza.apps.store.forms import OrderBillingAddressForm, OrderShippingAddressForm
+from monkeybook.apps.store.forms import OrderBillingAddressForm, OrderShippingAddressForm
 
 class OrderBillingAddressFormUSTestCase(unittest.TestCase):
     data = {

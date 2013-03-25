@@ -1,7 +1,7 @@
 import logging
-from voomza.apps.backend.fql.base import FQLTask, FqlTaskPipeline
-from voomza.apps.backend.getter import ResultGetter
-from voomza.apps.backend.settings import *
+from monkeybook.apps.backend.fql.base import FQLTask, FqlTaskPipeline
+from monkeybook.apps.backend.getter import ResultGetter
+from monkeybook.apps.backend.settings import *
 
 logger = logging.getLogger(__name__)
 

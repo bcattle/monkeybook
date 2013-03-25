@@ -1,5 +1,5 @@
 from django.db import models
-from voomza.apps.core.models import QuerySetSequence
+from monkeybook.apps.core.models import QuerySetSequence
 
 
 class YearbookSignManager(models.Manager):
@@ -19,17 +19,17 @@ class YearbookSignManager(models.Manager):
         )
 
     def get_my_yearbook_signs(self, user):
-        from voomza.apps.yearbook.models import YearbookSign
+        from monkeybook.apps.yearbook.models import YearbookSign
         return YearbookSign.objects.filter(to_facebook_user=user.profile.facebook_user)
 
     def get_people_who_signed_me_i_havent(self, user):
-        from voomza.apps.yearbook.models import YearbookSign
+        from monkeybook.apps.yearbook.models import YearbookSign
         return YearbookSign.objects.filter(to_facebook_user=user.profile.facebook_user) \
             .exclude(from_facebook_user__yearbook_signs_to__from_facebook_user=user.profile.facebook_user)
 
 
     def get_people_who_signed_me_i_have(self, user):
-        from voomza.apps.yearbook.models import YearbookSign
+        from monkeybook.apps.yearbook.models import YearbookSign
         return YearbookSign.objects.filter(to_facebook_user=user.profile.facebook_user,
             from_facebook_user__yearbook_signs_to__from_facebook_user=user.profile.facebook_user)
 

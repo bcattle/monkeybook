@@ -1,5 +1,5 @@
 from django.contrib import admin
-from voomza.apps.account.models import UserProfile, FamilyConnection, FacebookUser, FacebookFriend
+from monkeybook.apps.account.models import UserProfile, FamilyConnection, FacebookUser, FacebookFriend
 
 
 class UserProfileAdmin(admin.ModelAdmin):

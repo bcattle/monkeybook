@@ -1,5 +1,5 @@
 from django.contrib import admin
-from voomza.apps.yearbook.models import InviteRequestSent, YearbookSign
+from monkeybook.apps.yearbook.models import InviteRequestSent, YearbookSign
 
 
 class InviteRequestSentAdmin(admin.ModelAdmin):

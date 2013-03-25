@@ -6,7 +6,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from django_facebook.api import require_persistent_graph
 from django_facebook.decorators import facebook_required_lazy
 from django_facebook.utils import CanvasRedirect
-from voomza.apps.backend.models import Yearbook
+from monkeybook.apps.backend.models import Yearbook
 from backend.tasks import top_friends_fast, pull_user_profile
 
 logger = logging.getLogger(__name__)

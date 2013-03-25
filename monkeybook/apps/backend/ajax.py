@@ -11,8 +11,8 @@ from tastypie.resources import Resource
 from tastypie.authorization import ReadOnlyAuthorization
 from tastypie.authentication import Authentication, SessionAuthentication
 from tastypie.utils.urls import trailing_slash
-from voomza.apps.backend.progress import YearbookProgress
-from voomza.apps.yearbook.pages import *
+from monkeybook.apps.backend.progress import YearbookProgress
+from monkeybook.apps.yearbook.pages import *
 
 
 class YearbookProgressResource(Resource):

@@ -1,6 +1,6 @@
 import factory
 from django.contrib.auth.models import User
-from voomza.apps.account.models import UserProfile, FacebookUser, FacebookFriend
+from monkeybook.apps.account.models import UserProfile, FacebookUser, FacebookFriend
 
 class UserFactory(factory.Factory):
     FACTORY_FOR = User

@@ -7,9 +7,9 @@ from django.conf import settings
 from django.dispatch.dispatcher import receiver
 from jsonfield.fields import JSONField
 from south.signals import post_migrate
-from voomza.apps.account.models import FacebookUser
-from voomza.apps.backend.managers import FacebookPhotoManager
-from voomza.apps.backend.settings import *
+from monkeybook.apps.account.models import FacebookUser
+from monkeybook.apps.backend.managers import FacebookPhotoManager, YearbookManager
+from monkeybook.apps.backend.settings import *
 
 logger = logging.getLogger(__name__)
 
@@ -200,6 +200,7 @@ class Yearbook(models.Model):
     # Posts
     top_post = models.PositiveSmallIntegerField(null=True)
     birthday_posts = JSONField(default="[]", max_length=100000)
+    friends_in_book = JSONField(default="[]", max_length=100000)
 
     _all_used_ids = None
 
@@ -215,6 +216,7 @@ class Yearbook(models.Model):
             self.hash = hash
         super(Yearbook, self).save(*args, **kwargs)
 
+    objects = YearbookManager()
 
     class Meta:
         ordering = ['-created']

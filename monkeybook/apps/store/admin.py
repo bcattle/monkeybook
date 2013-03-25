@@ -1,5 +1,5 @@
 from django.contrib import admin
-from voomza.apps.store.models import StoreProfile, Order
+from monkeybook.apps.store.models import StoreProfile, Order
 
 
 class StoreProfileAdmin(admin.ModelAdmin):

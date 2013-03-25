@@ -3,9 +3,9 @@ from copy import copy
 import logging, datetime
 from pytz import utc
 from django.conf import settings
-from voomza.apps.backend.models import FacebookPhoto
-from voomza.apps.backend.settings import *
-from voomza.apps.core.utils import merge_dicts
+from monkeybook.apps.backend.models import FacebookPhoto
+from monkeybook.apps.backend.settings import *
+from monkeybook.apps.core.utils import merge_dicts
 
 logger = logging.getLogger(__name__)
 

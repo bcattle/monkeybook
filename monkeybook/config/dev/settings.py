@@ -1,4 +1,4 @@
-from voomza.config.common_settings import *
+from monkeybook.config.common_settings import *
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -81,10 +81,10 @@ COMPRESS_URL = STATIC_URL
 
 ## Django settings
 
-ROOT_URLCONF = 'voomza.config.dev.urls'
+ROOT_URLCONF = 'monkeybook.config.dev.urls'
 
 # Python dotted path to the WSGI application used by Django's runserver.
-WSGI_APPLICATION = 'voomza.config.dev.wsgi.application'
+WSGI_APPLICATION = 'monkeybook.config.dev.wsgi.application'
 
 
 ## Logging

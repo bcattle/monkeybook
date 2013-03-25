@@ -2,8 +2,8 @@ import logging
 from celery.exceptions import TimeoutError
 from django_facebook.model_managers import FacebookUserManager as fb_FacebookUserManager
 from django_facebook.api import require_persistent_graph
-from voomza.apps.core.models import QuerySetSequence
-from voomza.apps.core.utils import flush_transaction
+from monkeybook.apps.core.models import QuerySetSequence
+from monkeybook.apps.core.utils import flush_transaction
 
 logger = logging.getLogger(__name__)
 

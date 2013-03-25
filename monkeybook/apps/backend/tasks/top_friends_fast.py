@@ -1,10 +1,10 @@
 import datetime
 from collections import defaultdict
 from celery import task
-from voomza.apps.core import bulk
-from voomza.apps.core.utils import timeit, flush_transaction
-from voomza.apps.account.models import FacebookUser, FacebookFriend
-from voomza.apps.backend.fql.top_friends_fast import TopFriendsFastPipeline
+from monkeybook.apps.core import bulk
+from monkeybook.apps.core.utils import timeit, flush_transaction
+from monkeybook.apps.account.models import FacebookUser, FacebookFriend
+from monkeybook.apps.backend.fql.top_friends_fast import TopFriendsFastPipeline
 
 @task.task()
 @timeit

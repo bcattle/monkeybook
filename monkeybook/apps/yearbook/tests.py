@@ -1,6 +1,6 @@
 import random
 from django.test import TestCase
-from voomza.apps.yearbook.pages import assign_signs_to_pages
+from monkeybook.apps.yearbook.pages import assign_signs_to_pages
 
 
 class YearbookSignPaginationTestCase(TestCase):

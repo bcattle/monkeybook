@@ -1,6 +1,6 @@
 from celery import task
-from voomza.apps.backend.fql.albums import AlbumInfoTask, AlbumPhotosTask
-from voomza.apps.backend.settings import *
+from monkeybook.apps.backend.fql.albums import AlbumInfoTask, AlbumPhotosTask
+from monkeybook.apps.backend.settings import *
 
 
 @task.task()

@@ -2,7 +2,7 @@ import logging
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch.dispatcher import receiver
-from voomza.apps.yearbook.managers import YearbookSignManager, InviteRequestSentManager
+from monkeybook.apps.yearbook.managers import YearbookSignManager, InviteRequestSentManager
 from yearbook.tasks import accept_invite_requests
 
 logger = logging.getLogger(__name__)

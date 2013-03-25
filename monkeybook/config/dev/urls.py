@@ -1,4 +1,4 @@
-from voomza.config.common_urls import *
+from monkeybook.config.common_urls import *
 from django.conf.urls import patterns, include, url
 from django.conf.urls.static import static
 from django.conf import settings

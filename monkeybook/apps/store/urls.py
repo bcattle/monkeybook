@@ -1,6 +1,6 @@
 from django.conf.urls import patterns, include, url
 from django.views.generic.base import TemplateView
-from voomza.apps.store.views import checkout
+from monkeybook.apps.store.views import checkout
 
 urlpatterns = patterns('',
     url(r'^hardcover/$', TemplateView.as_view(template_name='hardcover_feature.html'), name='hardcover_feature'),

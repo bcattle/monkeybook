@@ -2,18 +2,19 @@ import logging, itertools
 from collections import defaultdict, Counter
 from celery import task, group
 from django.db import transaction
-from voomza.apps.backend.tasks.albums import pull_album_photos
-from voomza.apps.core import bulk
-from voomza.apps.core.utils import timeit, merge_dicts
-from voomza.apps.backend.fql import PhotosOfMeTask, CommentsOnPhotosOfMeTask, \
+from monkeybook.apps.backend.tasks.albums import pull_album_photos
+from monkeybook.apps.core import bulk
+from monkeybook.apps.core.utils import timeit, merge_dicts
+from monkeybook.apps.backend.fql import PhotosOfMeTask, CommentsOnPhotosOfMeTask, \
     OwnerPostsFromYearTask, OthersPostsFromYearTask, ProfileFieldsTask, FamilyTask
-from voomza.apps.backend.getter import FreqDistResultGetter, ResultGetter
-from voomza.apps.backend.models import PhotoRankings, FacebookPhoto, Yearbook
-from voomza.apps.backend.settings import *
+from monkeybook.apps.backend.getter import FreqDistResultGetter, ResultGetter
+from monkeybook.apps.backend.models import PhotoRankings, FacebookPhoto, Yearbook
+from monkeybook.apps.backend.settings import *
 from backend.tasks.fql import run_task as rt
 from pytz import utc
 
 logger = logging.getLogger(__name__)
+
 
 @task.task(ignore_result=True)
 def pull_user_profile(user):
