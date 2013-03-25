@@ -333,7 +333,7 @@ def run_yearbook(user, results):
 
     ## Assign the top friends
 #    used_albums = []
-    for index in range(NUM_TOP_FRIENDS):
+    for index in range(min(NUM_TOP_FRIENDS, len(top_friend_ids))):
         # Index
         setattr(yb, 'top_friend_%d' % (index + 1), index)
         # Friend stat
