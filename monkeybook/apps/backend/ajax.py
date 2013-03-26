@@ -6,13 +6,35 @@ from tastypie import fields
 from tastypie.bundle import Bundle
 from tastypie.exceptions import NotFound
 from tastypie.http import HttpNotFound
-from tastypie.resources import Resource
-from tastypie.authorization import ReadOnlyAuthorization
+from tastypie.resources import Resource, ModelResource
+from tastypie.authorization import ReadOnlyAuthorization, Authorization
 from tastypie.authentication import Authentication, SessionAuthentication
 from tastypie.utils.urls import trailing_slash
 from monkeybook.apps.backend import short_url
 from monkeybook.apps.backend.progress import YearbookProgress
 from monkeybook.apps.yearbook.pages import *
+
+
+class FriendYearbookResource(ModelResource):
+    """
+    Returns yearbooks belonging to the user's friends
+    """
+    name = fields.CharField(attribute='rankings.user.profile.facebook_user.name', readonly=True)
+    pic_square = fields.CharField(attribute='rankings.user.profile.facebook_user.pic_square', readonly=True)
+    yearbook_url = fields.CharField(attribute='get_absolute_url', readonly=True)
+
+    class Meta:
+        resource_name = 'friend_yearbook'
+        queryset = Yearbook.objects.all()
+        list_allowed_methods = ['get']
+        detail_allowed_methods = ['get']
+        fields = ['name', 'pic_square', 'yearbook_url']
+        authentication = SessionAuthentication()
+        authorization = Authorization()
+
+    def get_object_list(self, request):
+        return Yearbook.objects.get_friends_books(request.user)
+
 
 
 class YearbookProgressResource(Resource):
