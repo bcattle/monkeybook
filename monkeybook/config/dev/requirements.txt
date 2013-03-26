@@ -18,7 +18,9 @@ python-dateutil
 # Celery monitoring
 flower
 boto
-django-storages
+# https://bitbucket.org/david/django-storages/issue/156/s3boto-backend-valueerror-time-data-thu-07
+django-storages==1.1.6
 django-countries
 git+https://github.com/django/django-localflavor-us
 raven
+yolk
