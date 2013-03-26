@@ -1,6 +1,6 @@
 from django.conf.urls import patterns, include, url
-from django.conf import settings
 from django.views.generic.base import TemplateView
+from monkeybook.apps.backend import short_url
 from views import *
 from ajax import v1_api
 
@@ -17,7 +17,7 @@ urlpatterns = patterns('',
 #    url(r'^sign/$', sign_friends, name='sign_friends'),
 
     url(r'^yearbook/$', yearbook_no_hash, name='yearbook_no_hash'),
-    url(r'^yearbook/(?P<hash>[a-fA-F0-9]{%d})/$' % settings.YEARBOOK_HASH_LENGTH, yearbook, name='yearbook'),
+    url(r'^yearbook/(?P<hash>[%s]+)/$' % short_url.DEFAULT_ALPHABET, yearbook, name='yearbook'),
 
     (r'^api/', include(v1_api.urls)),
 
