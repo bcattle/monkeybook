@@ -26,11 +26,16 @@ def pull_user_profile(user):
 @task.task()
 @transaction.commit_manually
 def save_to_db(user, family, photos_of_me):
-    FamilyTask().save_family(user, family)
-    transaction.commit()
+    # This transaction thing eats any exceptions that are raised
+    # catch and log manually
+    try:
+        FamilyTask().save_family(user, family)
+        transaction.commit()
 
-    bulk.insert_or_update_many(FacebookPhoto, photos_of_me)
-    transaction.commit()
+        bulk.insert_or_update_many(FacebookPhoto, photos_of_me)
+        transaction.commit()
+    except Exception, e:
+        logger.error('Exception raised in `save_to_db`: %s' % e.message)
 
 
 @task.task()
