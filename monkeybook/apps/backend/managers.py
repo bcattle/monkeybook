@@ -27,4 +27,6 @@ class YearbookManager(models.Manager):
         Returns books belonging to facebook friends
         of the supplied user
         """
-        return self.model.filter(getter__user__profile__facebook_user__friend_of__owner=user)
+        return self.model.objects.filter(
+            rankings__user__profile__facebook_user__friend_of__owner=user
+        ).order_by('-rankings__user__profile__facebook_user__friend_of__top_friends_order')
