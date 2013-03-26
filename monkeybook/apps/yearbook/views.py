@@ -1,3 +1,4 @@
+from __future__ import division, print_function, unicode_literals
 import logging
 from django.core.urlresolvers import reverse
 from django.shortcuts import render, redirect
@@ -8,6 +9,7 @@ from django_facebook.decorators import facebook_required_lazy
 from django_facebook.utils import CanvasRedirect
 from monkeybook.apps.backend.models import Yearbook
 from backend.tasks import top_friends_fast, pull_user_profile
+from monkeybook.apps.backend.progress import YearbookProgress
 
 logger = logging.getLogger(__name__)
 
@@ -18,19 +20,27 @@ def homepage(request):
     send them to the correct page in the flow
     """
     if request.user.is_authenticated():
-        # If they haven't completed the invites page, send them there
-#        if request.user.profile.current_page == 'invite_friends_to_sign':
-#            return CanvasRedirect(reverse(request.user.profile.current_page))
+        progress = YearbookProgress(request=request)
 
-        # Otherwise show the returning-user homepage
-#        else:
-        context = {
-            'show_confirm_modal': request.GET.get('c') == 'order'
-        }
-        return render(request, 'return_home.html', context)
+        if progress.get_status() == 'SUCCESS':
+            # Done? They go to dashboard
+            context = {
+                'show_confirm_modal': request.GET.get('c') == 'order'
+            }
+            return render(request, 'dashboard.html', context)
+
+        elif progress.get_status() == 'NOT_ENOUGH_PHOTOS':
+            return render(request, 'not_enough_photos.html', {})
+
+        # elif progress.get_status() == 'FAILURE':
+        #     return render(request, 'failure.html', {})
+
+        else:
+            # Otherwise they go to loading page
+            return redirect('loading')
 
     else:
-        return render(request, 'homepage.html', {})
+        return render(request, 'homepage-sky.html', {})
 
 
 @login_required
@@ -77,7 +87,7 @@ def invite_friends_to_sign(request,
 @facebook_required_lazy(canvas=True)
 def loading(request,
             template_name='loading.html',
-            next_view='yearbook_no_hash'):
+            next_view='homepage'):
     context = {
         'next_view': next_view
     }

@@ -32,14 +32,14 @@ class YearbookProgress(object):
                 return results['run_yearbook_async'].status
 
         # Otherwise, look for a yearbook for user in db
-        if Yearbook.objects.filter(rankings__user=self.user).exists():
+        if Yearbook.objects.filter(rankings__user__id=self.user.id).exists():
             return 'SUCCESS'
         else:
             return 'FAILURE'
 
     def get_hash(self):
         if self.get_status() == 'SUCCESS':
-            yearbooks = Yearbook.objects.filter(rankings__user=self.user)
+            yearbooks = Yearbook.objects.filter(rankings__user__id=self.user.id)
             return yearbooks[0].hash
         else:
             return ''
