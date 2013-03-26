@@ -1,8 +1,6 @@
 {% extends 'base.html' %}
 {% load staticfiles %}
-
 {% load compress %}
-{% load navbar %}
 
 {% block meta %}
     <meta http-equiv="Access-Control-Allow-Origin" content="*">
@@ -11,59 +9,75 @@
 {% block style_uncompressed %}
     <link href='{% static 'css/jquery.modal.css' %}' rel='stylesheet' type='text/css'>
     <link href='{% static 'css/bootstrap.css' %}' rel='stylesheet' type='text/css'>
+    <link href='{% static 'css/fontello.css' %}' rel='stylesheet' type='text/css'>
+
     <link href='{% static 'css/open_sans.css' %}' rel='stylesheet' type='text/css'>
     <link href='{% static 'css/cabin_fjalla.css' %}' rel='stylesheet' type='text/css'>
     <link href='{% static 'css/inbox.css' %}' rel='stylesheet' type='text/css'>
     <link href='{% static 'css/yearbook.css' %}' rel='stylesheet' type='text/css'>
-    <link href='{% static 'css/navbar.css' %}' rel='stylesheet' type='text/css'>
 {% endblock %}
 
 {% block body %}
-    <div class="container">
-        {% navbar active='view' inverse=1 %}
-    </div>
 
-    <div id="canvas">
-        <div id="book-zoom">
-            <div class="sj-book">
-                <div depth="5" class="hard"> <div class="side"></div> </div>
-                <div depth="5" class="hard front-side"> <div class="depth"></div> </div>
-                {# <div class="hard fixed back-side p51"> <div class="depth"></div> </div> #}
-                {# <div class="hard p52"></div> #}
-		<div class="hard fixed back-side p31"> <div class="depth"></div> </div>
-                <div class="hard p32"></div>
-            </div>
+    <div style="width:996px;margin-left: auto; margin-right:auto;margin-top:20px">
+
+        <div style="width:996px;height:50px;">
+            <img src="{% static 'img/monkeybook_transparent.png' %}" width="140" style="margin-bottom:20px">
+            <a href="{% url 'homepage' %}"><div class="icon-cancel-circle" style="float:right;margin-right:17px;font-size:25px;color:whitesmoke;opacity:.5"></div></a>
         </div>
-        <div id="slider-bar" class="turnjs-slider">
-            <div id="slider"></div>
+
+        <div style="height:342px;width:28px;background-color:gray;opacity:.3;float:left;border-radius:5px;margin-top:10px">
+            <a href="" class="prev-page"><div class="icon-left-open" style="font-size:30px;margin-top:145px;color:whitesmoke;margin-left:-8px;opacity:.4;"></div></a>
         </div>
-    </div>
 
-    <div class="footer_background_black" style="margin-top:40px">
-        <div class="container">
-            <div class="row">
-                <div class="span12">
-                    <img src="{% static 'img/yearbook_allstar.png' %}" width="120px" style="float:right; margin-top:10px">
-                    <div class="footer_column">
-                        <h6 class="headerfont"><a style="color:lightblue">About</a></h6>
-                        <h6 class="headerfont"><a style="color:lightblue">How it Works</a></h6>
-                        <h6 class="headerfont"><a style="color:lightblue">Contact Us</a></h6>
-                    </div>
-
-                    <div class="footer_bottom">
-                        <p>&copy; 2012 Voomza, Inc., All Rights Reserved</p>
-                    </div>
+        <div id="canvas" style="margin-top:10px;float:left">
+            <div id="book-zoom">
+                <div class="sj-book">
+                    <div depth="5" class="hard"> <div class="side"></div> </div>
+                    <div depth="5" class="hard front-side"> <div class="depth"></div> </div>
+                    <div class="hard fixed back-side p31"> <div class="depth"></div> </div>
+                    <div class="hard p32"></div>
                 </div>
             </div>
         </div>
+
+        <div style="height:342px;width:28px;background-color:gray;opacity:.3;float:left;border-radius:5px;margin-top:10px">
+            <a href="" class="next-page"><div class="icon-right-open" style="font-size:30px;margin-top:145px;color:whitesmoke;margin-left:-6px;opacity:.4"></div></a>
+        </div>
+
+        <div style="width:980px;height:20px;float:left">
+            <div style="margin-left:auto;margin-right:auto;width:260px">
+                <button class="btn btn-large" style="margin-right:3px">Edit</button>
+                <button class="btn btn-large btn-info" style="margin-right:3px">Share</button>
+                <button class="btn btn-large btn-primary" >Shop</button>
+            </div>
+        </div>
     </div>
+
+{#    <div class="footer_background_black" style="margin-top:40px">#}
+{#        <div class="container">#}
+{#            <div class="row">#}
+{#                <div class="span12">#}
+{#                    <img src="{% static 'img/yearbook_allstar.png' %}" width="120px" style="float:right; margin-top:10px">#}
+{#                    <div class="footer_column">#}
+{#                        <h6 class="headerfont"><a style="color:lightblue">About</a></h6>#}
+{#                        <h6 class="headerfont"><a style="color:lightblue">How it Works</a></h6>#}
+{#                        <h6 class="headerfont"><a style="color:lightblue">Contact Us</a></h6>#}
+{#                    </div>#}
+{##}
+{#                    <div class="footer_bottom">#}
+{#                        <p>&copy; 2012 Voomza, Inc., All Rights Reserved</p>#}
+{#                    </div>#}
+{#                </div>#}
+{#            </div>#}
+{#        </div>#}
+{#    </div>#}
 
 {% endblock %}
 
 
 {% block script %}
     <script type="text/javascript" src="{% static 'js/jquery-1.9.0.min.js' %}"></script>
-    {% navbar_js %}
     {% compress js %}
         <script type="text/javascript" src="{% static 'js/jquery-ui-1.8.20.custom.min.js' %}"></script>
         <script type="text/javascript" src="{% static 'js/jquery.mousewheel.min.js' %}"></script>
