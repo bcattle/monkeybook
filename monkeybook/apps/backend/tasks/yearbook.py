@@ -1,10 +1,10 @@
 import logging, itertools
 from collections import defaultdict, Counter
-from celery import task, group
+from celery import task, group, current_task
 from django.db import transaction
 from monkeybook.apps.backend.tasks.albums import pull_album_photos
 from monkeybook.apps.core import bulk
-from monkeybook.apps.core.utils import timeit, merge_dicts
+from monkeybook.apps.core.utils import merge_dicts
 from monkeybook.apps.backend.fql import PhotosOfMeTask, CommentsOnPhotosOfMeTask, \
     OwnerPostsFromYearTask, OthersPostsFromYearTask, ProfileFieldsTask, FamilyTask
 from monkeybook.apps.backend.getter import FreqDistResultGetter, ResultGetter
@@ -26,15 +26,20 @@ def pull_user_profile(user):
 @task.task()
 @transaction.commit_manually
 def save_to_db(user, family, photos_of_me):
-    FamilyTask().save_family(user, family)
-    transaction.commit()
+    # This transaction thing eats any exceptions that are raised
+    # catch and log manually
+    try:
+        FamilyTask().save_family(user, family)
+        transaction.commit()
 
-    bulk.insert_or_update_many(FacebookPhoto, photos_of_me)
-    transaction.commit()
+        bulk.insert_or_update_many(FacebookPhoto, photos_of_me)
+        transaction.commit()
+    except Exception, e:
+        logger.error('Exception raised in `save_to_db`: %s' % e.message)
 
 
 @task.task()
-@timeit
+# @profileit('run_yearbook')
 def run_yearbook(user, results):
     # Run separate, async tasks to facebook
     fql_job = group([
@@ -238,7 +243,14 @@ def run_yearbook(user, results):
     top_photos_this_year = results['photos_of_me'].filter(lambda x: THIS_YEAR < x['created'] < THIS_YEAR_END)\
         .order_by('score')
 
+    # If they don't have enough photos this year, bail out of the yearbook process
+    if len(top_photos_this_year) < MIN_TOP_PHOTOS_FOR_BOOK:
+        current_task.update_state(state='NOT_ENOUGH_PHOTOS')
+        # This is a hack because celery overwrites the task state when you return
+        # could also use an `after_return` handler, see http://bit.ly/16U6YKv
+        return 'NOT_ENOUGH_PHOTOS'
     rankings.top_photos = top_photos_this_year
+
     rankings.group_shots = [
         k for k, v in sorted(
             group_photo_score_by_id.items(),
@@ -326,7 +338,7 @@ def run_yearbook(user, results):
 
     ## Assign the top friends
 #    used_albums = []
-    for index in range(NUM_TOP_FRIENDS):
+    for index in range(min(NUM_TOP_FRIENDS, len(top_friend_ids))):
         # Index
         setattr(yb, 'top_friend_%d' % (index + 1), index)
         # Friend stat

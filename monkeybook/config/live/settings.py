@@ -5,6 +5,12 @@ DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 #COMPRESS_ENABLED = True
 
+## Apps
+
+INSTALLED_APPS += (
+    'raven.contrib.django.raven_compat',
+)
+
 ## Facebook
 
 FACEBOOK_APP_ID = '113413968821031'
@@ -83,9 +89,9 @@ WSGI_APPLICATION = 'monkeybook.config.live.wsgi.application'
 
 ## Raven / Sentry configuration
 
-#RAVEN_CONFIG = {
-#    'dsn': 'https://0212e4c55eaa40379c1ba782c8137510:96e96df4f883498d83a130c86e965db0@sentry.voomza.com/2',
-#}
+RAVEN_CONFIG = {
+    'dsn': 'https://e427c264d1ba482cab9a907ada8f8276:d94b989edc7b41479f908d90ebaf9e6f@app.getsentry.com/5653',
+}
 
 
 ## Logging

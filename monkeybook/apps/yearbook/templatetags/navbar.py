@@ -2,7 +2,7 @@ from django import template
 register = template.Library()
 
 @register.inclusion_tag('navbar_features.html', takes_context=True)
-def navbar(context, active=None, inverse=False):
+def navbar(context, active=None, inverse=False, empty=False):
     """
     Shows the navbar,
     `active` :   is the index of which link to show active (if any)
@@ -13,6 +13,7 @@ def navbar(context, active=None, inverse=False):
         'user': context['request'].user,
         'active': active,
         'inverse': inverse,
+        'empty': empty
     }
 
 @register.inclusion_tag('navbar_js.html', takes_context=True)

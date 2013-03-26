@@ -1,5 +1,6 @@
 import re, types, logging, time
 from django_facebook.api import FacebookUserConverter
+from django.utils.datastructures import MultiValueDictKeyError
 from monkeybook.apps.backend.getter import ResultGetter
 from monkeybook.apps.core.utils import merge_spaces, profileit
 from monkeybook.apps.backend.getter import process_photo_results
@@ -53,9 +54,25 @@ class FqlTaskPipeline(TaskPipeline):
             else:
                 for index, query in enumerate(task.fql):
                     queries['%s_%d' % (task.name, index)] = merge_spaces(query)
-            # Run the queries
+        # Run the queries
         queries_start = time.time()
-        fql_results = self.facebook.open_facebook.batch_fql(queries)
+
+        # We get this error if the facebook response didn't contain a `data` field
+        # e.g. https://app.getsentry.com/voomza/monkeybook-production/group/4073517/
+        # If this happens, retry 3 times,
+        # and if it still doesn't work log the response in its entirety
+        tries = 0
+        while True:
+            try:
+                fql_results = self.facebook.open_facebook.batch_fql(queries)
+                break
+            except MultiValueDictKeyError, e:
+                if tries < 3:
+                    tries += 1
+                else:
+                    logger.error('No "data" field returned from facebook: %s' % e.message)
+                    raise
+
         queries_elapsed = time.time() - queries_start
         logger.info('FQL query in class %s ran, took %.2f secs' % (self.__class__.__name__, queries_elapsed))
         # The idea is that all the queries can run together

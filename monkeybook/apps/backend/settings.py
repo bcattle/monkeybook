@@ -9,6 +9,11 @@ UNIX_THIS_YEAR_END  = calendar.timegm(THIS_YEAR_END.utctimetuple())
 
 GROUP_PHOTO_CUTOFF = datetime.datetime(2012 - 2, 1, 1, tzinfo=utc)
 
+
+# Does the user have enough data for the entire book?
+MIN_TOP_PHOTOS_FOR_BOOK     = 10
+
+
 PHOTO_FIELDS = 'object_id, images, created, comment_info, like_info'
 #PHOTO_WIDTH_DESIRED     = 900
 PHOTO_WIDTH_DESIRED     = 565

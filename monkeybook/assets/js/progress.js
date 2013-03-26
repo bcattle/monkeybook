@@ -16,6 +16,7 @@ function getProgress() {
 
 function onGetProgress(data, textStatus, jqXHR) {
     // status could be PENDING, STARTED, RETRY, FAILURE, or SUCCESS
+    // custom status could be NOT_ENOUGH_PHOTOS
     $('.yearbookNotReadyInitial').hide();
     if (data.status == "SUCCESS") {
         // Update the link url and share modal (if any) with the hash
@@ -29,6 +30,9 @@ function onGetProgress(data, textStatus, jqXHR) {
         clearInterval(successTimer);
         // Fire an event
         $(document).trigger('yearbookReady');
+    } else if (data.status == "NOT_ENOUGH_PHOTOS") {
+        // Redirect to the "not enough photos" page
+        top.location.href = notEnoughPhotosUrl;
     } else {
         $('.yearbookNotReady').show();
     }

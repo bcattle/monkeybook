@@ -1,13 +1,13 @@
 from __future__ import division, print_function, unicode_literals
 from django.utils.encoding import python_2_unicode_compatible
-import logging, hashlib, time
+import logging
 from django.core.urlresolvers import reverse
 from django.db import models
-from django.conf import settings
 from django.dispatch.dispatcher import receiver
 from jsonfield.fields import JSONField
 from south.signals import post_migrate
 from monkeybook.apps.account.models import FacebookUser
+from monkeybook.apps.backend import short_url
 from monkeybook.apps.backend.managers import FacebookPhotoManager, YearbookManager
 from monkeybook.apps.backend.settings import *
 
@@ -112,7 +112,7 @@ class PhotoRankings(models.Model):
 class Yearbook(models.Model):
 #    rankings = models.OneToOneField(PhotoRankings, related_name='yearbook')
     rankings = models.ForeignKey(PhotoRankings, related_name='yearbook')
-    hash = models.CharField(max_length=20, unique=True, db_index=True)
+    hash = models.CharField(max_length=20, unique=True, blank=True)       # Not a db index, since we have a deterministic hash fxn
     created = models.DateTimeField(auto_now_add=True)
     run_time = models.FloatField(null=True)
 
@@ -205,16 +205,17 @@ class Yearbook(models.Model):
     _all_used_ids = None
 
     def save(self, *args, **kwargs):
-        if not self.hash:
-            # Generate a unique hash to use as the "shareable" url
-            while True:
-                hash = hashlib.md5(str(time.time())).hexdigest()[:settings.YEARBOOK_HASH_LENGTH]
-                try:
-                    existing = Yearbook.objects.get(hash=hash)
-                except self.DoesNotExist:
-                    break
-            self.hash = hash
+        """
+        If needed, generates a short url for this book
+        """
+        if self.id is None:
+            # Save the book to get the pk
+            super(Yearbook, self).save(*args, **kwargs)
+            # Generate a short url
+            self.hash = short_url.encode_url(self.id)
+            # Re-save
         super(Yearbook, self).save(*args, **kwargs)
+
 
     objects = YearbookManager()
 

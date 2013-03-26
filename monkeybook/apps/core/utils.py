@@ -28,6 +28,9 @@ def db_table_exists(table_name):
 
 import cProfile
 
+# Cool trick:   go through results in pstats interactive mode
+#               python -m pstats run_yearbook-2013-03-25\ 12\:23\:19.851206.profile
+
 def profileit(name):
     def inner(func):
         def wrapper(*args, **kwargs):
