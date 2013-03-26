@@ -130,15 +130,19 @@ class PageResource(Resource):
         except ValueError: pass
         if not page:
             raise NotFound("Couldn't find an instance of '%s' which matched page='%s'." % (self.__class__.__name__, kwargs[self.Meta.detail_uri_name]))
+        print 'ajax.obj_get returning' + str(page)
+        #page returns page.pagecontent() which has two FacebookPhoto objects.
         return page
 
 
     def dehydrate(self, bundle):
         context = bundle.obj.get_page_content()
+        
         # Render the template
         template = PAGE_TEMPLATE_DIR + bundle.obj.template
 #        bundle.data['page_content'] = render(bundle.request, template, context).strip()
         bundle.data['page_content'] = render_to_string(template, context, RequestContext(bundle.request)).strip()
+        bundle.data['alternate_photos'] = bundle.obj.get_alternate_photos()
         return bundle
 
 

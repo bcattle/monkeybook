@@ -3,7 +3,10 @@ import os
 import sys
 
 if __name__ == "__main__":
-    PROJECT_ROOT = '/home/ubuntu/src/monkeybook'
+    if os.getenv('USER') == 'dafzal':
+        PROJECT_ROOT = '/Users/dafzal/monkey/monkeybook'
+    else:
+        PROJECT_ROOT = '/home/ubuntu/src/monkeybook'
     APP_ROOT = os.path.join(PROJECT_ROOT, 'monkeybook', 'apps')
     LIB_ROOT = os.path.join(PROJECT_ROOT, 'monkeybook', 'lib')
     sys.path.append(PROJECT_ROOT)

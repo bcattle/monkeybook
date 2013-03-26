@@ -47,6 +47,7 @@ class FacebookUser(models.Model):
     """
     # This needs to have a pk on facebook_id so any updates from
     # new users won't break existing links
+    print "creating facebook user"
     facebook_id = models.BigIntegerField(primary_key=True, db_index=True)
     name = models.CharField(max_length=100, blank=True, null=True)
     first_name = models.CharField(max_length=50, blank=True, null=True)
@@ -54,7 +55,7 @@ class FacebookUser(models.Model):
     pic_square = models.CharField(max_length=200, blank=True)
 
     objects = FacebookUserManager()
-
+		
     def __unicode__(self):
         return 'Facebook User %s' % self.name
 

@@ -292,6 +292,40 @@ class Yearbook(models.Model):
                     all_ids.append(photo_id)
         return all_ids
 
+    def get_n_unused_photos_ids(self, list_of_photos, n, force_landscape=False, start_index=0):
+        def photo_to_id(photo):
+            if type(photo) == long:
+                return photo
+            elif 'id' in photo:
+                return photo['id']
+		
+        unused_photos = []
+        indices = []
+        used_ids = []
+        # If its a list of lists, run recursively
+        if type(list_of_photos[0]) == list:
+        	for photos in list_of_photos:
+        		unused_photos += self.get_n_unused_photos_ids(photos, n, force_landscape)
+        	return unused_photos[0:n]
+        	
+        # Not a list of lists
+        while len(unused_photos) < n:
+            if force_landscape:
+                unused_index = self.get_first_unused_photo_landscape(list_of_photos, used_ids, start_index)
+            else:
+                unused_index = self.get_first_unused_photo(list_of_photos, used_ids, start_index)
+            if unused_index is None:
+                # List ran out, return what we had
+                ret = [photo_to_id(list_of_photos[i]) for i in indices]
+                return ret
+            else:
+                indices.append(unused_index)
+                used_ids.append(self._get_id_from_dict_or_int(list_of_photos[unused_index]))
+        ret = [photo_to_id(list_of_photos[i]) for i in indices]
+        return ret
+        
+        
+        
     def get_n_unused_photos(self, list_of_photos, n, force_landscape=False, start_index=0):
         unused_photos = []
         used_ids = []

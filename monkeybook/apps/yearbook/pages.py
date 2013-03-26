@@ -7,6 +7,9 @@ from monkeybook.apps.backend.settings import *
 
 logger = logging.getLogger(__name__)
 
+# Maximum number of alternate photos to provide.
+NUM_ALT_PHOTOS = 25
+
 class PageInvalidError(Exception):
     """
     This exception is raised when a page should be omitted,
@@ -19,11 +22,16 @@ class YearbookPage(object):
         self.page = page
         if template:
             self.template = template
+        self.force_landscape = False
+        
 
 #    def set_user(self, user):
 #        self.user = user
 #        # Get the user's PhotoRankings
 #        self.yearbook = Yearbook.objects.get(rankings__user=user)
+
+    def get_alternate_photos(self):
+        return []
 
 #    def get_page_content(self, user):
     def get_page_content(self):
@@ -55,6 +63,10 @@ class StaticPage(YearbookPage):
 
     def page_content(self):
         return { }
+        
+    def get_alternate_photos(self):
+       return []
+
 
 
 class PhotoPage(YearbookPage):
@@ -65,9 +77,35 @@ class PhotoPage(YearbookPage):
         self.index_field_name = field_name
         self.force_landscape = force_landscape
         super(PhotoPage, self).__init__(**kwargs)
-
+        
+    def get_alternate_photos(self):
+        """Get a list of alternate photos. If there are not enough photos, pull from other categories"""
+        alt_photos = []
+        #pdb.set_trace()
+        # for top_photos, looking at all rankings. For everything else
+        # just looking at one ranking.
+        if self.ranking_table_name == 'top_photos':
+            ranking_names = Yearbook.lists_to_fields.keys()
+            ranking_names.remove(self.ranking_table_name)
+            ranking_names.remove('top_albums_photos')
+            ranking_names.append(self.ranking_table_name)
+        else:
+            ranking_names = [self.ranking_table_name]
+        
+        
+        while len(alt_photos) < NUM_ALT_PHOTOS and ranking_names:
+            ranking_name = ranking_names.pop()
+            ranked_photos = getattr(self.yearbook.rankings, ranking_name)
+            photo_ids = self.yearbook.get_n_unused_photos_ids(ranked_photos, NUM_ALT_PHOTOS, force_landscape=self.force_landscape)
+            print photo_ids
+        import pdb
+        alt_photos += [(i, FacebookPhoto.objects.get(pk=i).fb_url) for i in photo_ids]
+        return alt_photos
+        
     def get_photo(self, field_name=None):
         field_name = field_name or self.index_field_name
+        
+        
         photo_id = self.yearbook.get_photo_id_from_field_string(
             self.ranking_table_name, field_name
         )
@@ -84,8 +122,6 @@ class PhotoPage(YearbookPage):
 
     def get_next_image(self, next_index):
         # De-reference the field and get the next unallocated image
-        import ipdb
-        ipdb.set_trace()
 
         next_photo_index = self.yearbook.get_next_unused_photo(
             self.ranking_table_name, self.index_field_name, unused_index=next_index, force_landscape=self.force_landscape
@@ -183,14 +219,42 @@ class TopFriendNamePage(PhotoPage):
 
 
 class AlbumPage(PhotoPage):
-    def __init__(self, ranking_name, field_prefix, max_photos, get_album_name=True, **kwargs):
+    def __init__(self, ranking_name, field_prefix, max_photos, **kwargs):
         self.ranking_table_name = ranking_name
         self.field_prefix = field_prefix
         self.max_photos = max_photos
-        self.get_album_name = get_album_name
         # Calls *PhotoPage* constructor!
         super(PhotoPage, self).__init__(**kwargs)
 
+    def get_alternate_photos(self):
+        """Get a list of alternate photos. If there are not enough photos, pull from other categories"""
+        import pdb
+        pdb.set_trace()
+        album_name = self.get_album_name()
+        alt_photos = []
+        # for top_photos, looking at all rankings. For everything else
+        # just looking at one ranking.
+        ranked_photos = getattr(self.yearbook.rankings, self.ranking_table_name)
+        album = None
+        for album in ranked_photos:
+            if album and album[0]['album_name'] == album_name:
+                ranked_photos = album
+        ranked_photos = [photo for photo in ranked_photos if photo['album_name'] == album_name]
+        photo_ids = self.yearbook.get_n_unused_photos_ids(ranked_photos, NUM_ALT_PHOTOS, force_landscape=self.force_landscape)
+        alt_photos += [(i, FacebookPhoto.objects.get(pk=i).fb_url) for i in photo_ids]
+        return alt_photos
+ 
+    def get_album_name(self):
+        for photo_num in range(self.max_photos):
+            photo = self.yearbook.get_photo_from_field_string(
+                self.ranking_table_name, '%s_photo_%d' % (self.field_prefix, (photo_num + 1))
+            )
+            if photo:
+                if 'album_name' in photo:
+                    return photo['album_name']
+                else:
+                    return ''
+                    
     def get_album_photos(self, field_prefix):
         photos = []
         album_name = ''
@@ -263,6 +327,18 @@ class MultiAlbumPage(AlbumPage):
         self.max_albums = max_albums
         super(MultiAlbumPage, self).__init__(**kwargs)
 
+    def get_alternate_photos(self):
+        """Get a list of alternate photos. If there are not enough photos, pull from other categories"""
+        
+        alt_photos = []
+        # for top_photos, looking at all rankings. For everything else
+        # just looking at one ranking.
+        ranked_photos = getattr(self.yearbook.rankings, self.ranking_table_name)
+        for album in ranked_photos:
+            photo_ids = self.yearbook.get_n_unused_photos_ids(album, NUM_ALT_PHOTOS, force_landscape=self.force_landscape)
+            alt_photos.append([(i, FacebookPhoto.objects.get(pk=i).fb_url) for i in photo_ids])
+        return alt_photos
+
     def get_album_photos(self, field_prefix):
         photos = []
         for photo_num in range(self.max_photos):
@@ -325,6 +401,9 @@ class TopStatusPage(FieldPage):
     def __init__(self, **kwargs):
         super(FieldPage, self).__init__(**kwargs)
 
+    def get_alternate_photos(self):
+       return []
+
     def page_content(self):
         top_post = self.yearbook.rankings.top_posts[self.yearbook.top_post]
         # Parse the date into a datetime
@@ -361,6 +440,9 @@ class BirthdayPage(FieldPage):
     def __init__(self, first_half, **kwargs):
         self.first_half = first_half
         super(FieldPage, self).__init__(**kwargs)
+        
+    def get_alternate_photos(self):
+       return []
 
     def page_content(self):
         max_posts = min(len(self.yearbook.birthday_posts), NUM_BIRTHDAY_POSTS)

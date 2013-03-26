@@ -235,7 +235,7 @@ def run_yearbook(user, results):
     rankings = PhotoRankings(user=user)
 #    rankings, created = PhotoRankings.objects.get_or_create(user=user)
 
-    top_photos_this_year = results['photos_of_me'].filter(lambda x: x['created'] > THIS_YEAR)\
+    top_photos_this_year = results['photos_of_me'].filter(lambda x: THIS_YEAR < x['created'] < THIS_YEAR_END)\
         .order_by('score')
 
     rankings.top_photos = top_photos_this_year
