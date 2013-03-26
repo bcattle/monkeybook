@@ -235,7 +235,7 @@ def run_yearbook(user, results):
     rankings = PhotoRankings(user=user)
 #    rankings, created = PhotoRankings.objects.get_or_create(user=user)
 
-    top_photos_this_year = results['photos_of_me'].filter(lambda x: x['created'] > THIS_YEAR)\
+    top_photos_this_year = results['photos_of_me'].filter(lambda x: THIS_YEAR < x['created'] < THIS_YEAR_END)\
         .order_by('score')
 
     # If they don't have enough photos this year, bail out of the yearbook process
@@ -244,8 +244,8 @@ def run_yearbook(user, results):
         # This is a hack because celery overwrites the task state when you return
         # could also use an `after_return` handler, see http://bit.ly/16U6YKv
         return 'NOT_ENOUGH_PHOTOS'
-
     rankings.top_photos = top_photos_this_year
+
     rankings.group_shots = [
         k for k, v in sorted(
             group_photo_score_by_id.items(),
