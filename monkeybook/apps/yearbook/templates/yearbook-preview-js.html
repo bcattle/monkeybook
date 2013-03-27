@@ -1,0 +1,26 @@
+{% load staticfiles %}
+{% load compress %}
+
+<script type="text/javascript" src="{% static 'js/jquery-1.9.0.min.js' %}"></script>
+{#<script type="text/javascript" src="{% static 'js/jquery-ui-1.8.20.custom.min.js' %}"></script>#}
+{#<script type="text/javascript" src="{% static 'js/jquery.mousewheel.min.js' %}"></script>#}
+<script type="text/javascript" src="{% static 'js/modernizr.2.5.3.min.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/hash.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/addpage-files.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/yearbook-ux.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/yearbook.js' %}"></script>
+<script type="text/javascript">
+    var staticUrl = '{{ STATIC_URL }}';
+
+    // Hide canvas
+    $('#canvas').css({visibility: 'hidden'});
+
+    // Load turn.js
+    yepnope({
+        test : Modernizr.csstransforms,
+        yep: ["{% static 'js/turn.js' %}"],
+        nope: ["{% static 'js/turn.html4.min.js' %}", "{% static 'css/jquery.ui.html4.css' %}", "{% static 'css/steve-jobs-html4.css' %}"],
+        both: ["{% static 'css/jquery.ui.css' %}", "{% static 'css/steve-jobs.css' %}"],
+        complete: loadApp
+    });
+</script>
