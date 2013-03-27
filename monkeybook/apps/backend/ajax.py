@@ -37,8 +37,8 @@ class FriendYearbookResource(ModelResource):
         return Yearbook.objects.get_friends_books(request.user)
 
     def dehydrate(self, bundle):
-        bundle['name'] = bundle.obj.rankings.user.profile.facebook_user.name
-        bundle['pic_square'] = bundle.obj.rankings.user.profile.facebook_user.pic_square
+        bundle.data['name'] = bundle.obj.rankings.user.profile.facebook_user.name
+        bundle.data['pic_square'] = bundle.obj.rankings.user.profile.facebook_user.pic_square
         return bundle
 
 
