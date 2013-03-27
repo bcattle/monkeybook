@@ -147,6 +147,7 @@ class PhotoPage(YearbookPage):
         #only 1 page, ignore index
         # Get image
         new_image = FacebookPhoto.objects.get(pk=id)
+        new_index = None
         
         # massage image
         new_image_dict = vars(new_image)
@@ -156,12 +157,22 @@ class PhotoPage(YearbookPage):
                 new_image_dict.pop(key, None)
         # add image to rankings
         rankings = getattr(self.yearbook.rankings, self.ranking_table_name)
-        rankings.append(new_image_dict)
+        image_exists = False
+        for i, photo in enumerate(rankings):
+            if photo['id'] == new_image_dict['id']:
+                image_exists = True
+                new_index = i
+                break
+            
+        if not image_exists:
+            rankings.append(new_image_dict)
+            new_index = len(rankings) - 1
         self.yearbook.rankings.save()
         
+        # find index if not found
+        
         # update pointer to last index in rankings
-        setattr(self.yearbook, self.index_field_name, 
-                len(getattr(self.yearbook.rankings, self.ranking_table_name))-1)
+        setattr(self.yearbook, self.index_field_name, new_index)
         self.yearbook.save()
         
         
@@ -188,6 +199,7 @@ class PhotoPageDoublePort(PhotoPage):
         #only 1 page, ignore index
         # Get image
         new_image = FacebookPhoto.objects.get(pk=id)
+        new_index = None
         
         # massage image
         new_image_dict = vars(new_image)
@@ -197,7 +209,18 @@ class PhotoPageDoublePort(PhotoPage):
                 new_image_dict.pop(key, None)
         # add image to rankings
         rankings = getattr(self.yearbook.rankings, self.ranking_table_name)
-        rankings.append(new_image_dict)
+        image_exists = False
+        
+        for i, photo in enumerate(rankings):
+            if photo['id'] == new_image_dict['id']:
+                image_exists = True
+                new_index = i
+                break
+            
+        if not image_exists:
+            rankings.append(new_image_dict)
+            new_index = len(rankings) - 1
+            
         self.yearbook.rankings.save()
         
         # update pointer to last index in rankings
@@ -205,9 +228,6 @@ class PhotoPageDoublePort(PhotoPage):
         setattr(self.yearbook, field_name, 
                 len(getattr(self.yearbook.rankings, self.ranking_table_name))-1)
         self.yearbook.save()
-        
-
-
 
 #class SinglePhotoVariableLayout(PhotoPage):
 #    template = 'lands_sq_port_dbl_port.html'
@@ -298,7 +318,43 @@ class AlbumPage(PhotoPage):
                     return photo['album_name']
                 else:
                     return ''
-                    
+           
+    def update_image(self, index, id):
+        #only 1 page, ignore index
+        # Get image
+        if index > self.max_photos:
+            return
+        album_name = self.get_album_name()
+        new_image = FacebookPhoto.objects.get(pk=id)
+        
+        # massage image
+        new_image_dict = vars(new_image)
+        new_image_dict['id'] = new_image_dict['facebook_id']
+        for key in new_image_dict.keys():
+            if key not in ['id','created','width','fb_url','all_sizes','caption']:
+                new_image_dict.pop(key, None)
+                
+        # find index
+        rankings = getattr(self.yearbook.rankings, self.ranking_table_name)
+        album = None
+        new_index = 0
+        for a in rankings:
+            if a[0]['album_name'] == album_name:
+                album = a
+        if not album:
+            print 'no album found'
+            return
+        for i, album_photo in enumerate(album):
+            if album_photo['id'] == id:
+                new_index = i
+        
+        print 'new index is ' + str(new_index)
+        #[[albumname,...][albumname...]]
+        # update pointer to last index in rankings
+        field_name = '%s_photo_%d' %(self.field_prefix, index)
+        setattr(self.yearbook, field_name.split('.')[1], new_index )
+        self.yearbook.save()
+         
     def get_album_photos(self, field_prefix):
         photos = []
         album_name = ''
