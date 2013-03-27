@@ -182,6 +182,31 @@ class PhotoPageDoublePort(PhotoPage):
             'photo': photo,
             'photo_2': photo_2
         }
+        
+    def update_image(self, index, id):
+        #index=1 or 2
+        #only 1 page, ignore index
+        # Get image
+        new_image = FacebookPhoto.objects.get(pk=id)
+        
+        # massage image
+        new_image_dict = vars(new_image)
+        new_image_dict['id'] = new_image_dict['facebook_id']
+        for key in new_image_dict.keys():
+            if key not in ['id','created','width','fb_url','all_sizes','caption']:
+                new_image_dict.pop(key, None)
+        # add image to rankings
+        rankings = getattr(self.yearbook.rankings, self.ranking_table_name)
+        rankings.append(new_image_dict)
+        self.yearbook.rankings.save()
+        
+        # update pointer to last index in rankings
+        field_name = self.index_field_name if index==1 else self.index_field_name_2
+        setattr(self.yearbook, field_name, 
+                len(getattr(self.yearbook.rankings, self.ranking_table_name))-1)
+        self.yearbook.save()
+        
+
 
 
 #class SinglePhotoVariableLayout(PhotoPage):
