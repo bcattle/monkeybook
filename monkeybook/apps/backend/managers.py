@@ -34,21 +34,24 @@ class YearbookManager(models.Manager):
         """
         return self.model.objects.filter(
             rankings__user__profile__facebook_user__friend_of__owner=user
-        ).order_by('-rankings__user__profile__facebook_user__friend_of__top_friends_order', '-created')
+        ).order_by(
+            '-rankings__user__profile__facebook_user__friend_of__top_friends_order', 'rankings__user', '-created'
+        )
 
-    def get_distinct_friends_books(self, user):
-        """
-        This returns a *list*, made by returning only the
-        most recent book from each user
-        """
-        friends_books_qs = self.get_friends_books(user)
-        books_by_friend = collections.OrderedDict()
-        for yb in friends_books_qs:
-            if yb.rankings.user in books_by_friend:
-                if yb.created > books_by_friend[yb.rankings.user].created:
-                    books_by_friend[yb.rankings.user] = yb
-            else:
-                books_by_friend[yb.rankings.user] = yb
-        return books_by_friend.items()
+
+    # def get_distinct_friends_books(self, user):
+    #     """
+    #     This returns a *list*, made by returning only the
+    #     most recent book from each user
+    #     """
+    #     friends_books_qs = self.get_friends_books(user)
+    #     books_by_friend = collections.OrderedDict()
+    #     for yb in friends_books_qs:
+    #         if yb.rankings.user in books_by_friend:
+    #             if yb.created > books_by_friend[yb.rankings.user].created:
+    #                 books_by_friend[yb.rankings.user] = yb
+    #         else:
+    #             books_by_friend[yb.rankings.user] = yb
+    #     return books_by_friend.items()
 
 

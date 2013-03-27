@@ -21,6 +21,7 @@ class FriendYearbookResource(ModelResource):
     """
     name = fields.CharField(readonly=True)
     pic_square = fields.CharField(readonly=True)
+    fb_id = fields.CharField(readonly=True)
     yearbook_url = fields.CharField(attribute='get_absolute_url', readonly=True)
     # unread = fields.BooleanField(attribute='', readonly=True, default=False)        # TODO: hook this up
 
@@ -29,16 +30,17 @@ class FriendYearbookResource(ModelResource):
         queryset = Yearbook.objects.all()
         list_allowed_methods = ['get']
         detail_allowed_methods = ['get']
-        fields = ['name', 'pic_square', 'yearbook_url']
+        fields = ['name', 'pic_square', 'fb_id', 'yearbook_url']
         authentication = SessionAuthentication()
         authorization = Authorization()
 
     def get_object_list(self, request):
-        return Yearbook.objects.get_distinct_friends_books(request.user)
+        return Yearbook.objects.get_friends_books(request.user)
 
     def dehydrate(self, bundle):
         bundle.data['name'] = bundle.obj.rankings.user.profile.facebook_user.name
         bundle.data['pic_square'] = bundle.obj.rankings.user.profile.facebook_user.pic_square
+        bundle.data['fb_id'] = bundle.obj.rankings.user.profile.facebook_user.facebook_id
         return bundle
 
 
