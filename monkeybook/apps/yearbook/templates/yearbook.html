@@ -45,6 +45,7 @@
             <div class="paddle-icon icon-right-open" style="margin-left:-6px;"></div>
         </div>
 
+	{% if is_user_yearbook %}
         <div style="width:980px;height:20px;float:left">
             <div style="margin-left:auto;margin-right:auto;width:260px">
                 <button class="btn btn-large" style="margin-right:3px">Edit</button>
@@ -52,6 +53,7 @@
                 <button class="btn btn-large btn-primary" >Shop</button>
             </div>
         </div>
+	{% endif %}
     </div>
 
 {#    <div class="footer_background_black" style="margin-top:40px">#}
