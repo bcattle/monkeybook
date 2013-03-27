@@ -4,8 +4,7 @@ from tastypie.authentication import SessionAuthentication
 from tastypie.api import Api
 from monkeybook.apps.yearbook.models import InviteRequestSent, YearbookSign
 from monkeybook.apps.account.models import FacebookUser
-from monkeybook.apps.backend.ajax import PageResource, YearbookProgressResource
-
+from monkeybook.apps.backend.ajax import PageResource, YearbookProgressResource, YearbookUpdateResource
 
 class FriendResource(ModelResource):
     """
@@ -139,4 +138,5 @@ v1_api.register(YearbookToSignResource())
 v1_api.register(UnsignedYearbookResource())
 v1_api.register(SignedYearbookResource())
 v1_api.register(PageResource())
+v1_api.register(YearbookUpdateResource())
 v1_api.register(YearbookProgressResource())

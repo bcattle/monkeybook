@@ -7,7 +7,7 @@ from tastypie.bundle import Bundle
 from tastypie.exceptions import NotFound
 from tastypie.http import HttpNotFound
 from tastypie.resources import Resource
-from tastypie.authorization import ReadOnlyAuthorization
+from tastypie.authorization import ReadOnlyAuthorization, DjangoAuthorization
 from tastypie.authentication import Authentication, SessionAuthentication
 from tastypie.utils.urls import trailing_slash
 from monkeybook.apps.backend import short_url
@@ -50,9 +50,65 @@ class YearbookProgressResource(Resource):
         Fetches an individual object on the resource.
         If the object can not be found this should raise a NotFound exception
         """
+        print 'obj_get yearbook progress ' + str(kwargs)
         progress = YearbookProgress(request=request)
         return progress
 
+# Empty class to make shit work.
+class YearbookUpdate(object):
+	def __init__(self):
+		return
+	
+data = [YearbookUpdate()]
+class YearbookUpdateResource(Resource):
+    """
+    Update yearbook
+    """
+    class Meta:
+        resource_name = 'yearbook_update'
+        object_class = YearbookUpdate
+        list_allowed_methods = ['post']
+        detail_allowed_methods = ['post']
+        authentication = Authentication()       # open to the world!
+        authorization = DjangoAuthorization()
+
+    def get_resource_uri(self, bundle_or_obj):
+    	return 'yearbook_update'
+ 
+    def get_object_list(self, request):
+        # inner get of object list... this is where you'll need to
+        # fetch the data from what ever data source
+        return [YearbookUpdate()]
+ 
+    def obj_get_list(self, request = None, **kwargs):
+        # outer get of object list... this calls get_object_list and
+        # could be a point at which additional filtering may be applied
+        return self.get_object_list(request)
+ 
+    def obj_get(self, request = None, **kwargs):
+        # get one object from data source
+        return YearbookUpdate()
+    
+    def obj_create(self, bundle, request = None, **kwargs):
+        # create a new row
+        # hash, page, index, id
+        print 'obj_create ' + str(kwargs) + ' ' + str(bundle)
+        try:
+            page = YearbookPageFactory(user=request.user, hash=bundle.data['hash']
+            						   ).get_page(int(bundle.data['page']))
+            						  
+            print page
+        except Exception as e: 
+        	print e
+        if not page:
+            raise NotFound("Couldn't find an instance of '%s' which matched page='%s'." % (self.__class__.__name__, bundle.data['page']))
+        
+        page.update_image(int(bundle.data['index']), int(bundle.data['id']))
+        bundle.obj = YearbookUpdate()
+        
+        bundle = self.full_hydrate(bundle)
+        return bundle
+  
 
 class PageResource(Resource):
     page = fields.IntegerField(attribute='page', readonly=True)
@@ -123,6 +179,7 @@ class PageResource(Resource):
         Fetches an individual object on the resource.
         If the object can not be found this should raise a NotFound exception
         """
+        print 'Getting objects for ' + str(kwargs)
         factory = YearbookPageFactory(hash=kwargs['hash'])
         page = None
         try:

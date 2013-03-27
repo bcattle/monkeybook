@@ -51,7 +51,10 @@ class YearbookPage(object):
         page_content['page'] = self.page
         return page_content
 
-
+    def update_image(self, index, id):
+        # noop
+        return
+        
 class StaticPage(YearbookPage):
     """
     Returns an empty div, the background image is set in CSS
@@ -97,8 +100,6 @@ class PhotoPage(YearbookPage):
             ranking_name = ranking_names.pop()
             ranked_photos = getattr(self.yearbook.rankings, ranking_name)
             photo_ids = self.yearbook.get_n_unused_photos_ids(ranked_photos, NUM_ALT_PHOTOS, force_landscape=self.force_landscape)
-            print photo_ids
-        import pdb
         alt_photos += [(i, FacebookPhoto.objects.get(pk=i).fb_url) for i in photo_ids]
         return alt_photos
         
@@ -142,8 +143,28 @@ class PhotoPage(YearbookPage):
         photo = self.get_photo()
         return self.get_photo_content(photo)
 
-
-
+    def update_image(self, index, id):
+        #only 1 page, ignore index
+        # Get image
+        new_image = FacebookPhoto.objects.get(pk=id)
+        
+        # massage image
+        new_image_dict = vars(new_image)
+        new_image_dict['id'] = new_image_dict['facebook_id']
+        for key in new_image_dict.keys():
+            if key not in ['id','created','width','fb_url','all_sizes','caption']:
+                new_image_dict.pop(key, None)
+        # add image to rankings
+        rankings = getattr(self.yearbook.rankings, self.ranking_table_name)
+        rankings.append(new_image_dict)
+        self.yearbook.rankings.save()
+        
+        # update pointer to last index in rankings
+        setattr(self.yearbook, self.index_field_name, 
+                len(getattr(self.yearbook.rankings, self.ranking_table_name))-1)
+        self.yearbook.save()
+        
+        
 class PhotoPageDoublePort(PhotoPage):
     template='lands_sq_port_dbl_port.html'
 
@@ -228,8 +249,6 @@ class AlbumPage(PhotoPage):
 
     def get_alternate_photos(self):
         """Get a list of alternate photos. If there are not enough photos, pull from other categories"""
-        import pdb
-        pdb.set_trace()
         album_name = self.get_album_name()
         alt_photos = []
         # for top_photos, looking at all rankings. For everything else
