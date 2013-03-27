@@ -231,6 +231,7 @@ class Yearbook(models.Model):
 
     class Meta:
         ordering = ['-created']
+        get_latest_by = 'created'
 
     def get_absolute_url(self):
         return reverse('yearbook', kwargs={'hash': self.hash})

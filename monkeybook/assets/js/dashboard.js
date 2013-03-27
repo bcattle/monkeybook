@@ -16,10 +16,9 @@ $(document).ready(function() {
 });
 
 function onGetFriendsBooks(data, textStatus, jqXHR) {
+    // Get the next page of results, if any
     var nextUrl = data.meta.next;
-
-    // If something, call the next url
-    if (false)
+    if (nextUrl)
         $.ajax(nextUrl);
 
     _.each(data.objects, function(book) {
