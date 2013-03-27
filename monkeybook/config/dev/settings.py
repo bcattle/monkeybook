@@ -16,6 +16,9 @@ FACEBOOK_CANVAS_PAGE = 'http://apps.facebook.com/yearbook_dev/'
 STRIPE_SECRET_KEY       = 'sk_test_aUxwCNe9yrBDJz47A59fDCZx'
 STRIPE_PUBLISHABLE_KEY  = 'pk_test_e32OejkBMZNS4Ow59szBFYNu'
 
+## Mixpanel
+
+MIXPANEL_API_TOKEN = 'd777afd9cbbb0a60d303f18ccd05ce67'
 
 ## Database
 

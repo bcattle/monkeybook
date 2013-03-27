@@ -1,4 +1,4 @@
-import logging, itertools
+import logging, itertools, time
 from collections import defaultdict, Counter
 from celery import task, group, current_task
 from django.db import transaction
@@ -12,8 +12,10 @@ from monkeybook.apps.backend.models import PhotoRankings, FacebookPhoto, Yearboo
 from monkeybook.apps.backend.settings import *
 from backend.tasks.fql import run_task as rt
 from pytz import utc
+from mixpanel.tasks import EventTracker
 
 logger = logging.getLogger(__name__)
+tracker = EventTracker()
 
 
 @task.task(ignore_result=True)
@@ -39,8 +41,8 @@ def save_to_db(user, family, photos_of_me):
 
 
 @task.task()
-# @profileit('run_yearbook')
 def run_yearbook(user, results):
+    runtime_start = time.time()
     # Run separate, async tasks to facebook
     fql_job = group([
         rt.subtask(kwargs={'task_cls': PhotosOfMeTask,           'user_id': user.id}),
@@ -462,7 +464,17 @@ def run_yearbook(user, results):
     # Save everything
     rankings.save()
     yb.rankings = rankings
+    yb.run_time = time.time() - runtime_start
     yb.save()
+
+    # Log the yearbook run time to mixpanel
+    tracker.delay('Book Created', properties={
+        'distinct_id': user.username,
+        'mp_name_tag': user.username,
+        'time': time.time(),
+        'Book': 'Yearbook 2012',
+        'Run Time (sec)': '%.1f' % yb.run_time
+    })
 
     # Initiate a task to start downloading user's yearbook phointos?
     return yb

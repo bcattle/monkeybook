@@ -24,3 +24,4 @@ django-countries
 git+https://github.com/django/django-localflavor-us
 raven
 yolk
+git+git://github.com/kevinastone/mixpanel-celery.git
