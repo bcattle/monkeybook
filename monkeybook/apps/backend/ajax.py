@@ -34,7 +34,7 @@ class FriendYearbookResource(ModelResource):
         authorization = Authorization()
 
     def get_object_list(self, request):
-        return Yearbook.objects.get_friends_books(request.user)
+        return Yearbook.objects.get_distinct_friends_books(request.user)
 
     def dehydrate(self, bundle):
         bundle['name'] = bundle.obj.rankings.user.profile.facebook_user.name
