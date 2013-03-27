@@ -22,6 +22,7 @@ class FriendYearbookResource(ModelResource):
     name = fields.CharField(attribute='rankings.user.profile.facebook_user.name', readonly=True)
     pic_square = fields.CharField(attribute='rankings.user.profile.facebook_user.pic_square', readonly=True)
     yearbook_url = fields.CharField(attribute='get_absolute_url', readonly=True)
+    # unread = fields.BooleanField(attribute='', readonly=True, default=False)        # TODO: hook this up
 
     class Meta:
         resource_name = 'friend_yearbook'

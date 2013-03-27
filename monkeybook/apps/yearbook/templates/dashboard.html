@@ -82,5 +82,17 @@
 {% endblock %}
 
 {% block script %}
-    <script src="{% static 'js/prevent-touchmove.js' %}"></script>
+    <script type="text/html" id="friend_book_template">
+
+    </script>
+    {# jQuery loaded, json2 if needed, and Mustache.tags set loaded in base.html #}
+    <script type="text/javascript" src="{% static 'js/mustache.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/underscore-min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/jquery.imagesloaded.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/prevent-touchmove.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/dashboard.js' %}"></script>
+    <script type="text/javascript">
+        var friendsBooksUrl = "{% url 'api_dispatch_list' api_name='v1' resource_name='friend_yearbook' %}";
+
+    </script>
 {% endblock %}
