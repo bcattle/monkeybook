@@ -1,3 +1,5 @@
+from __future__ import division, print_function, unicode_literals
+from django.utils.encoding import python_2_unicode_compatible
 from itertools import chain, dropwhile
 from operator import mul, attrgetter, __not__
 from django.db import models
@@ -11,7 +13,7 @@ class DefaultUnicodeBase(models.Model):
     """
     Stolen from django_facebook
     """
-    def __unicode__(self):
+    def __str__(self):
         """
         Looks at some common ORM naming standards and tries to display those before
         default to the django default

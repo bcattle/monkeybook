@@ -14,6 +14,7 @@ from monkeybook.apps.backend.settings import *
 logger = logging.getLogger(__name__)
 
 
+@python_2_unicode_compatible
 class FacebookPhoto(models.Model):
     facebook_id = models.BigIntegerField(primary_key=True)
     created = models.DateTimeField(null=True)
@@ -109,6 +110,7 @@ class PhotoRankings(models.Model):
         verbose_name_plural = 'Photo rankings'
 
 
+@python_2_unicode_compatible
 class Yearbook(models.Model):
 #    rankings = models.OneToOneField(PhotoRankings, related_name='yearbook')
     rankings = models.ForeignKey(PhotoRankings, related_name='yearbook')

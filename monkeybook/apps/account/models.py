@@ -1,3 +1,5 @@
+from __future__ import division, print_function, unicode_literals
+from django.utils.encoding import python_2_unicode_compatible
 import logging
 from django.db import models
 from django.db.models.signals import post_save
@@ -55,7 +57,7 @@ class FacebookUser(models.Model):
 
     objects = FacebookUserManager()
 
-    def __unicode__(self):
+    def __str__(self):
         return 'Facebook User %s' % self.name
 
     class Meta:
@@ -79,7 +81,7 @@ class FacebookFriend(models.Model):
         unique_together = ['owner', 'facebook_user']
         ordering = ['-top_friends_order']           # Don't change this! Used to recommend top friends first
 
-    def __unicode__(self):
+    def __str__(self):
         return u'Facebook user %s' % self.facebook_user.name
 
 
