@@ -20,6 +20,10 @@ def homepage(request):
     send them to the correct page in the flow
     """
     if request.user.is_authenticated():
+        # If user is 'admin' - log them out
+        if request.user.username == 'admin':
+            return redirect('logout')
+
         progress = YearbookProgress(request=request)
 
         if progress.get_status() == 'SUCCESS':

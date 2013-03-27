@@ -7,3 +7,50 @@ body {
     background-color:black;
 
 }
+
+.paddle-button {
+    height:342px;
+    width:28px;
+    background-color:gray;
+    opacity:.3;
+    float:left;
+    margin-top:10px;
+    z-index:100;
+}
+
+.paddle-button:hover {
+    background-color:#d3d3d3;
+    cursor:pointer;
+}
+
+.next-button {
+    -webkit-border-top-right-radius: 5px;
+    -webkit-border-bottom-right-radius: 5px;
+    -moz-border-radius-topright: 5px;
+    -moz-border-radius-bottomright: 5px;
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+}
+
+.previous-button {
+    -webkit-border-top-left-radius: 5px;
+    -webkit-border-bottom-left-radius: 5px;
+    -moz-border-radius-topleft: 5px;
+    -moz-border-radius-bottomleft: 5px;
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+}
+
+.paddle-icon {
+    font-size:30px;
+    margin-top:145px;
+    color:whitesmoke;
+    margin-left:-8px;
+    opacity:.4;
+}
+
+.paddle-button:hover .paddle-icon {
+    color: white;
+    opacity:1;
+}
+

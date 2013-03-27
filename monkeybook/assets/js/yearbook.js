@@ -16,6 +16,10 @@ function addPage(page, book) {
 function loadApp() {
     var flipbook = $('.sj-book');
 
+    // Hook up left and right buttons
+    $('.next-button').click(function(){ flipbook.turn('next'); });
+    $('.previous-button').click(function(){ flipbook.turn('previous'); });
+
     // Check if the CSS was already loaded
     if (flipbook.width()==0 || flipbook.height()==0) {
         setTimeout(loadApp, 10);
