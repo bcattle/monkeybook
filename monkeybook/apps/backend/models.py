@@ -227,7 +227,7 @@ class Yearbook(models.Model):
 
 #    def __str__(self):    
     def __unicode__(self):
-        return 'Yearbook %d <%s, %s>' % (self.id, self.rankings.username, self.hash)
+        return 'Yearbook %d <%s, %s>' % (self.id, self.rankings.user.username, self.hash)
 
     class Meta:
         ordering = ['-created']

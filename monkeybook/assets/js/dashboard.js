@@ -1,20 +1,5 @@
 var friendBookTemplate, friendBookList;
 
-$(document).ready(function() {
-    // Load friends' books from the server and populate
-
-    // Get the first page of friends
-    $.ajaxSetup({
-        success: onGetFriends,
-        error: onGetFriendsError
-    });
-    $.ajax(friendsBooksUrl);
-
-    // Load template
-    friendBookTemplate = $('#friend_book_template').html();
-    friendBookList = $();
-});
-
 function onGetFriendsBooks(data, textStatus, jqXHR) {
     // Get the next page of results, if any
     var nextUrl = data.meta.next;
@@ -33,6 +18,21 @@ function onGetFriendsBooks(data, textStatus, jqXHR) {
 
 }
 
-function onGetFriendsError(jqXHR, textStatus, errorThrown) {
+function onGetFriendsBooksError(jqXHR, textStatus, errorThrown) {
 
 }
+
+$(document).ready(function() {
+    // Load friends' books from the server and populate
+
+    // Get the first page of friends
+    $.ajaxSetup({
+        success: onGetFriendsBooks,
+        error: onGetFriendsBooksError
+    });
+    $.ajax(friendsBooksUrl);
+
+    // Load template
+    friendBookTemplate = $('#friend_book_template').html();
+    friendBookList = $();
+});
