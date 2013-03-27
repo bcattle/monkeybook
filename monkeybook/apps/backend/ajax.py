@@ -19,8 +19,8 @@ class FriendYearbookResource(ModelResource):
     """
     Returns yearbooks belonging to the user's friends
     """
-    name = fields.CharField(attribute='rankings.user.profile.facebook_user.name', readonly=True)
-    pic_square = fields.CharField(attribute='rankings.user.profile.facebook_user.pic_square', readonly=True)
+    name = fields.CharField(readonly=True)
+    pic_square = fields.CharField(readonly=True)
     yearbook_url = fields.CharField(attribute='get_absolute_url', readonly=True)
     # unread = fields.BooleanField(attribute='', readonly=True, default=False)        # TODO: hook this up
 
@@ -36,6 +36,10 @@ class FriendYearbookResource(ModelResource):
     def get_object_list(self, request):
         return Yearbook.objects.get_friends_books(request.user)
 
+    def dehydrate(self, bundle):
+        bundle['name'] = bundle.obj.rankings.user.profile.facebook_user.name
+        bundle['pic_square'] = bundle.obj.rankings.user.profile.facebook_user.pic_square
+        return bundle
 
 
 class YearbookProgressResource(Resource):
