@@ -1,5 +1,5 @@
-from __future__ import division, print_function, unicode_literals
-from django.utils.encoding import python_2_unicode_compatible
+#from __future__ import division, print_function, unicode_literals
+#from django.utils.encoding import python_2_unicode_compatible
 import logging
 from django.core.urlresolvers import reverse
 from django.db import models
@@ -14,7 +14,7 @@ from monkeybook.apps.backend.settings import *
 logger = logging.getLogger(__name__)
 
 
-@python_2_unicode_compatible
+#@python_2_unicode_compatible
 class FacebookPhoto(models.Model):
     facebook_id = models.BigIntegerField(primary_key=True)
     created = models.DateTimeField(null=True)
@@ -31,6 +31,9 @@ class FacebookPhoto(models.Model):
 
     def url(self):
         return self.local_url or self.fb_url
+
+#    def __str__(self):
+#        return 'FacebookPhoto <%d>' % self.facebook_id 
 
     @property
     def aspect_ratio(self):
@@ -85,7 +88,7 @@ class FacebookPhoto(models.Model):
     objects = FacebookPhotoManager()
 
 
-@python_2_unicode_compatible
+#@python_2_unicode_compatible
 class PhotoRankings(models.Model):
     """
     The photo rankings for a user,
@@ -103,14 +106,15 @@ class PhotoRankings(models.Model):
     top_friends_photos = JSONField(default="[]", max_length=100000)
     top_posts = JSONField(default="[]", max_length=100000)
 
-    def __str__(self):
+#    def __str__(self):         
+    def __unicode__(self):
         return 'PhotoRankings %s' % self.user.username
 
     class Meta:
         verbose_name_plural = 'Photo rankings'
 
 
-@python_2_unicode_compatible
+#@python_2_unicode_compatible
 class Yearbook(models.Model):
 #    rankings = models.OneToOneField(PhotoRankings, related_name='yearbook')
     rankings = models.ForeignKey(PhotoRankings, related_name='yearbook')
@@ -220,6 +224,10 @@ class Yearbook(models.Model):
 
 
     objects = YearbookManager()
+
+#    def __str__(self):    
+    def __unicode__(self):
+        return 'Yearbook %d <%s, %s>' % (self.id, self.rankings.username, self.hash)
 
     class Meta:
         ordering = ['-created']
