@@ -17,24 +17,18 @@ function getProgress() {
 function onGetProgress(data, textStatus, jqXHR) {
     // status could be PENDING, STARTED, RETRY, FAILURE, or SUCCESS
     // custom status could be NOT_ENOUGH_PHOTOS
-    $('.yearbookNotReadyInitial').hide();
     if (data.status == "SUCCESS") {
-        // Update the link url and share modal (if any) with the hash
-        var yearbookUrl = window.location.origin + yearbookUrlPath + data.hash + '/';
-        $('a.yearbookReady').attr('href', yearbookUrl);
-        $('.shareUrl').text(yearbookUrl);
-        // Show the "view yearbook" button
-        $('.yearbookNotReady').hide();
-        $('.yearbookReady').show();
-        // Stop the timer
-        clearInterval(successTimer);
         // Fire an event
         $(document).trigger('yearbookReady');
     } else if (data.status == "NOT_ENOUGH_PHOTOS") {
-        // Redirect to the "not enough photos" page
-        top.location.href = notEnoughPhotosUrl;
+        // Fire an event
+        $(document).trigger('yearbookNotEnoughPhotos');
+    } else if (data.status == "FAILURE") {
+        // Fire an event
+        $(document).trigger('yearbookFailure');
     } else {
-        $('.yearbookNotReady').show();
+        // Fire an event
+        $(document).trigger('yearbookNotReady');
     }
 }
 

@@ -87,12 +87,12 @@ function loadApp() {
                     book.turn('peel', 'br');
                 }
                 updateDepth(book);
-                $('#slider').slider('value', getViewNumber(book, page));
+//                $('#slider').slider('value', getViewNumber(book, page));
                 book.turn('center');
             },
 
             start: function(e, pageObj) {
-                moveBar(true);
+//                moveBar(true);
             },
 
             end: function(e, pageObj) {
@@ -103,7 +103,7 @@ function loadApp() {
                     $('#slider').slider('value', getViewNumber(book));
                 }, 1);
 
-                moveBar(false);
+//                moveBar(false);
             },
 
             missing: function (e, pages) {
@@ -113,7 +113,7 @@ function loadApp() {
         }
     });
 
-    $('#slider').slider('option', 'max', numberOfViews(flipbook));
+//    $('#slider').slider('option', 'max', numberOfViews(flipbook));
 
     flipbook.addClass('animated');
 

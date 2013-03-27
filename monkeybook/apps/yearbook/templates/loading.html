@@ -5,56 +5,63 @@
 {% load navbar %}
 
 {% block style_uncompressed %}
-    <link href='{% static 'css/jquery.modal.css' %}' rel='stylesheet' type='text/css'>
     <link href='{% static 'css/bootstrap.css' %}' rel='stylesheet' type='text/css'>
-    <link href='{% static 'css/open_sans.css' %}' rel='stylesheet' type='text/css'>
-    <link href='{% static 'css/inbox.css' %}' rel='stylesheet' type='text/css'>
-    <link href='{% static 'css/yearbook.css' %}' rel='stylesheet' type='text/css'>
-    <link href='{% static 'css/navbar.css' %}' rel='stylesheet' type='text/css'>
+    <link href='{% static 'css/bootstrap-responsive.css' %}' rel='stylesheet' type='text/css'>
+    <link href='{% static 'css/monkeybook-loading.css' %}' rel='stylesheet' type='text/css'>
+    <link href='{% static 'webfonts/ss-standard.css' %}' rel='stylesheet' type='text/css'>
+    <link href='{% static 'webfonts/ss-social.css' %}' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Roboto+Condensed:400,700,400italic,700italic,300italic,300' rel='stylesheet' type='text/css'>
+{% endblock %}
+
+{% block body_tag %}
+    <body class="monkeybook-bgcolor-lightyellow landing">
 {% endblock %}
 
 {% block body %}
-    <div class="container">
-        {% navbar inverse=1 %}
+    <div class="row-fluid header monkeybook-bgcolor-darkbrown clear">
+        <div class="span3 offset2 monkeybook-landing-logo"></div>
+    </div>
 
-        <div class="row">
-            <div class="span12" style="text-align:center;padding-top:100px">
-                <img src="{% static 'img/blue_loader.gif' %}">
-            </div>
+    <div class="row-fluid monkeybook-loading-image centered clear">
+        <div class="row-fluid clear top-margin">
+            <div class="loading-headline offset2 span8">Loading <img src="{% static 'img/loading_spin.gif' %}"></div>
+        </div>
+        <div class="row-fluid clear top-margin">
+            <div class="loading-subhead offset2 span8">Book should load in under a minute.</div>
         </div>
     </div>
 
-    <div class="footer_background_black" style="margin-top:40px">
-        <div class="container">
-            <div class="row">
-                <div class="span12">
-                    <img src="{% static 'img/yearbook_allstar.png' %}" width="120px" style="float:right; margin-top:10px">
-                    <div class="footer_column">
-                        <h6 class="headerfont"><a style="color:lightblue">About</a></h6>
-                        <h6 class="headerfont"><a style="color:lightblue">How it Works</a></h6>
-                        <h6 class="headerfont"><a style="color:lightblue">Contact Us</a></h6>
-                    </div>
-
-                    <div class="footer_bottom">
-                        <p>&copy; 2012 Voomza, Inc., All Rights Reserved</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <div class="row-fluid clear">
+        <div class="landing-body-text offset2 span7 top-margin">MonkeyBook instantly turns your Facebook
+            timeline into a fun, free, beautiful ebook that you can share with your friends. You can order
+            a printed book for your coffee table or send one as a gift. </div>
     </div>
 
+    <div class="row-fluid header monkeybook-bgcolor-darkbrown clear landing-footer top-margin">
+    </div>
 {% endblock %}
 
 
 {% block script %}
     <script type="text/javascript" src="{% static 'js/jquery-1.9.0.min.js' %}"></script>
-    {% navbar_js %}
+    <script type="text/javascript" src="{% static 'js/progress.js' %}"></script>
     <script type="text/javascript">
+        var yearbookStatusUrl = "{% url 'api_dispatch_detail' api_name='v1' resource_name='yearbook_progress' pk='1' %}";
+
         $(document).ready(function(){
             // Bind to the yearbook ready event
             $(document).on('yearbookReady', function(){
                 // Redirect to the next page
-                top.location.href = "{% url next_view %}";
+                top.location.href = "{% url 'homepage' %}";
+            });
+            // Bind to the failure or not enough photos events
+            $(document).on('yearbookFailure', function(){
+                // Redirect to the dashboard
+                top.location.href = "{% url 'homepage' %}";
+            });
+            $(document).on('yearbookNotEnoughPhotos', function(){
+                // Redirect to the next page
+                top.location.href = "{% url 'homepage' %}";
             });
         });
     </script>

@@ -6,21 +6,25 @@ function onGetFriendsBooks(data, textStatus, jqXHR) {
     if (nextUrl)
         $.ajax(nextUrl);
 
-    var lastId;
-    _.each(data.objects, function(book) {
-	// We may get more than one book per person
-	// reject any users we've already seen 
-	if (book.fb_id == lastId)
-	    return;
-	lastId = book.fb_id;
-        var book_element = $(Mustache.to_html(friendBookTemplate, book).trim())
-            .hide().appendTo(friendBookList);
+    if (!data.objects.length) {
+        $('#no_friend_books').show();
+    } else {
+        var lastId;
+        _.each(data.objects, function(book) {
+            // We may get more than one book per person
+            // reject any users we've already seen
+            if (book.fb_id == lastId)
+                return;
+            lastId = book.fb_id;
+            var book_element = $(Mustache.to_html(friendBookTemplate, book).trim())
+                .hide().appendTo(friendBookList);
 
-        book_element.imagesLoaded(function(){
-            this.fadeIn(500);
+            book_element.imagesLoaded(function(){
+                this.fadeIn(500);
 //            this.show("scale", {}, 500);
+            });
         });
-    });
+    }
 
 }
 

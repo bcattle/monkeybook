@@ -23,8 +23,8 @@ urlpatterns = patterns('',
 
     url(r'^about/$', TemplateView.as_view(template_name='about.html'), name='about_us'),
     url(r'^contact/$', TemplateView.as_view(template_name='contact.html'), name='contact'),
-    url(r'^terms/$', TemplateView.as_view(template_name='terms.html'), name='terms'),
-    url(r'^privacy/$', TemplateView.as_view(template_name='privacy.html'), name='privacy'),
+    url(r'^terms/$', TemplateView.as_view(template_name='terms-sky.html'), name='terms'),
+    url(r'^privacy/$', TemplateView.as_view(template_name='privacy-sky.html'), name='privacy'),
     # Sample yearbook pages
     url(r'^sample-pages/(?P<filename>page[0-9]+\.html)$', sample_yearbook_page, name='sample_yearbook_page')
 )

@@ -3,6 +3,7 @@
 {% load compress %}
 
 {% block style_uncompressed %}
+    <link href="{% static 'css/jquery.modal.css' %}" rel="stylesheet">
     <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
     <link href="{% static 'css/bootstrap-responsive.css' %}" rel="stylesheet">
 {% endblock %}
@@ -41,9 +42,16 @@
     
     <div class="row-fluid clear top-margin monkeybook-main-selected-book-wrapper">
         <div class="span10 offset2 monkeybook-main-selected-book-image">
-            <a href="{% url 'yearbook_no_hash' %}">
-                <img src="{% static 'img/monkeybook-main-selected-book-placeholder.jpg' %}" class="basedropshadow" />
-            </a>
+            {# If it worked #}
+            <div id="myBookWorked" style="display:none">
+                <a href="{% url 'yearbook_no_hash' %}">
+                    <img src="{% static 'img/monkeybook-main-selected-book-placeholder.jpg' %}" class="basedropshadow" />
+                </a>
+            </div>
+            {# If it didn't work #}
+            <div id="myBookDidntWork" style="display:none">
+                <img src="{% static 'img/coming_soon.png' %}" class="basedropshadow" />
+            </div>
         </div>
 	</div>
 
@@ -70,28 +78,73 @@
     </style>
 
     <div class="row-fluid clear friend-books">
-      <div class="span2"></div>
+        <div class="span2"></div>
+        <div id="no_friend_books" class="span2 offset2 friend-1 profile-image-user basedropshadow" style="background: url({% static 'img/coming_soon_small.png' %}) top left no-repeat;display:none;"></div>
+
     </div>
+
+    <div id="insufficient_photos_modal" class="modal">
+        <img src="{% static 'img/error_image.jpg' %}" style="float:left;margin-right:10px;margin-bottom:2px" >
+        <h4 style="margin-top:0px;margin-bottom:14px">Insufficient Photos.</h4>
+        <p>You don't have enough photos, or your privacy settings are such that we cannot process
+            your book at this time. You can still have fun by taking a look at your friends' books
+            if they have signed up. Scroll down your homepage to see. </p>
+    </div>
+
+    <div id="bug_modal" class="modal">
+        <img src="{% static 'img/error_image.jpg' %}" style="float:left;margin-right:10px;margin-top:2px" >
+        <h4 style="margin-top:0px;margin-bottom:14px">You Helped Kill a Bug!</h4>
+        <p style="margin-left:140px">Something went wrong, and we're finding out what happened.
+            As soon as we know, we'll send you an email. Thanks for your patience with our limited
+            beta. You can still have fun by taking a look at your friends' books if they have signed
+            up. Scroll down your homepage to see. </p>
+    </div>
+
 
 {% endblock %}
 
 {% block script %}
     <script type="text/html" id="friend_book_template">
-      <div class="span2 profile-image-user basedropshadow">
-        <a href="[[ &yearbook_url ]]" title="[[ name ]]">
-	  <div style="height:100%; width:100%;">
-            <img src="[[ &pic_square ]]" width="50" height="50" class="book-cover-over-profile">
-	  </div>
-	</a>
-      </div>
+        <div class="span2 profile-image-user basedropshadow">
+            <a href="[[ &yearbook_url ]]" title="[[ name ]]">
+                <div style="height:100%; width:100%;">
+                    <img src="[[ &pic_square ]]" width="50" height="50" class="book-cover-over-profile">
+                </div>
+            </a>
+        </div>
     </script>
     {# jQuery loaded, json2 if needed, and Mustache.tags set loaded in base.html #}
     <script type="text/javascript" src="{% static 'js/mustache.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/underscore-min.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/jquery.imagesloaded.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/jquery.modal.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/prevent-touchmove.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/progress.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/dashboard.js' %}"></script>
     <script type="text/javascript">
         var friendsBooksUrl = "{% url 'api_dispatch_list' api_name='v1' resource_name='friend_yearbook' %}";
+        var yearbookStatusUrl = "{% url 'api_dispatch_detail' api_name='v1' resource_name='yearbook_progress' pk='1' %}";
+
+        $(document).ready(function() {
+            // Bind to the yearbook ready event
+            $(document).on('yearbookReady', function(){
+                // If the yearbook worked, show the giant book
+                $('#myBookWorked').show();
+            });
+            // Bind to the failure or not enough photos events
+            $(document).on('yearbookFailure', function(){
+                // If error, show the modal
+                $('#bug_modal').modal();
+                // Show the coming soon book
+                $('#myBookDidntWork').show();
+            });
+            $(document).on('yearbookNotEnoughPhotos', function(){
+                // If error, show the modal
+                $('#insufficient_photos_modal').modal();
+                // Show the coming soon book
+                $('#myBookDidntWork').show();
+            });
+        });
     </script>
 {% endblock %}
+
