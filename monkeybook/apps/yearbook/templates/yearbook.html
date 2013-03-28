@@ -107,6 +107,7 @@
         <script type="text/javascript" src="{% static 'js/yearbook.js' %}"></script>
         <script type="text/javascript">
             var pagesUrl = "{% url 'api_dispatch_list' api_name='v1' resource_name='yearbookpage' hash=hash %}";
+	    var yearbookStatusUrl = "{% url 'api_dispatch_detail' api_name='v1' resource_name='yearbook_progress' pk='1' %}";
 
             yepnope({
                 test : Modernizr.csstransforms,
