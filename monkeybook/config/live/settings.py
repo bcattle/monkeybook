@@ -1,9 +1,10 @@
 from monkeybook.config.common_settings import *
 
-DEBUG = True
-#DEBUG = False
+DEBUG = False
 TEMPLATE_DEBUG = DEBUG
-#COMPRESS_ENABLED = True
+COMPRESS_ENABLED = False
+
+ALLOWED_HOSTS = ['monkeybook.com',]
 
 ## Apps
 
