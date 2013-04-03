@@ -485,6 +485,8 @@ def run_yearbook(user, results):
 
 
 def get_unused_if_portrait(photo_index, photo_list, yearbook, photos_of_me):
+    if photo_index is None:
+        return None
     photo_id = yearbook._get_id_from_dict_or_int(photo_list[photo_index])
     photo = photos_of_me.fields_by_id[photo_id]
     if photo['width'] / float(photo['height']) < HIGHEST_SQUARE_ASPECT_RATIO:
