@@ -442,7 +442,7 @@ def run_yearbook(user, results):
 
     # Special case: if only found one year, pull an additional photo from that year
     if len(years_to_show) == 1:
-        that_year_index = years_to_show[0]['index']
+        that_year_index = years_to_show[0]['year_index']
         unused_photo_2 = yb.get_first_unused_photo(back_in_time[that_year_index])
         if unused_photo_2 is not None:
             years_to_show.append({'year_index': that_year_index, 'photo_index': unused_photo_2})
