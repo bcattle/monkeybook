@@ -2,7 +2,9 @@ from monkeybook.config.common_settings import *
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
-#COMPRESS_ENABLED = True
+#COMPRESS_ENABLED = False
+
+ALLOWED_HOSTS = ['localhost',]
 
 
 ## Facebook

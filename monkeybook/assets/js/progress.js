@@ -20,6 +20,8 @@ function onGetProgress(data, textStatus, jqXHR) {
     if (data.status == "SUCCESS") {
         // Fire an event
         $(document).trigger('yearbookReady');
+	// Stop checking
+	clearInterval(successTimer);
     } else if (data.status == "NOT_ENOUGH_PHOTOS") {
         // Fire an event
         $(document).trigger('yearbookNotEnoughPhotos');
