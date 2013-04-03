@@ -50,7 +50,7 @@ ALBUM_PHOTOS_TO_SHOW        = 4
 ALBUM_MIN_PHOTOS            = 1
 ALBUMS_TO_PULL_AT_ONCE      = 10
 BANNED_ALBUM_NAMES          = {'mobile uploads', 'timeline photos', 'ios photos',
-                               'profile pictures', 'cover photos'}
+                               'profile pictures', 'cover photos', 'instagram photos', 'buffer photos'}
 ALBUM_POINTS_FOR_COMMENT    = 1
 ALBUM_POINTS_FOR_LIKE       = 1
 PICS_OF_USER_TO_PROMOTE     = 2
