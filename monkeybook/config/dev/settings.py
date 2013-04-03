@@ -1,8 +1,8 @@
 from monkeybook.config.common_settings import *
 
-DEBUG = True
+DEBUG = False
 TEMPLATE_DEBUG = DEBUG
-#COMPRESS_ENABLED = False
+COMPRESS_ENABLED = False
 
 ALLOWED_HOSTS = ['localhost',]
 
