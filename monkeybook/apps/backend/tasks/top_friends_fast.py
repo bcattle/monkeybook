@@ -69,6 +69,9 @@ def top_friends_fast(user, run_yearbook=False):
 #            yearbook = Yearbook(owner=user)
 #        except Yearbook.DoesNotExist:
         from backend.tasks import run_yearbook
+
+        # 4/3: Error here pickling this task to the server
+        # but only happens when DEBUG=False
         yearbook_async = run_yearbook.delay(user, results)
         results['run_yearbook_async'] = yearbook_async
 
