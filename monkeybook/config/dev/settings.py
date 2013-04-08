@@ -1,6 +1,6 @@
 from monkeybook.config.common_settings import *
 
-DEBUG = False
+DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 COMPRESS_ENABLED = False
 

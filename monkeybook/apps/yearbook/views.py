@@ -1,6 +1,8 @@
 from __future__ import division, print_function, unicode_literals
 import logging
+from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
+from django.http import Http404
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import ensure_csrf_cookie
@@ -148,3 +150,20 @@ def sample_yearbook_page(request, filename):
     Just return the file indiciated by `filename`
     """
     return render(request, 'sample_pages/%s' % filename, {})
+
+
+@login_required
+@facebook_required_lazy(canvas=True)
+def yearbook_list(request,
+                  template_name='yearbook-list.html'):
+    # Only Ethan and I can see it:
+    if request.user.username in ('bcattle', 'ethan.s.montoya',):
+        yearbooks = Yearbook.objects.all()
+        failed_users = User.objects.filter(photo_rankings=None)
+        context = {
+            'yearbooks': yearbooks,
+            'failed_users': failed_users,
+        }
+        return render(request, template_name, context)
+    else:
+        raise Http404

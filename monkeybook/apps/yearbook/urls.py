@@ -26,5 +26,8 @@ urlpatterns = patterns('',
     url(r'^terms/$', TemplateView.as_view(template_name='terms-sky.html'), name='terms'),
     url(r'^privacy/$', TemplateView.as_view(template_name='privacy-sky.html'), name='privacy'),
     # Sample yearbook pages
-    url(r'^sample-pages/(?P<filename>page[0-9]+\.html)$', sample_yearbook_page, name='sample_yearbook_page')
+    url(r'^sample-pages/(?P<filename>page[0-9]+\.html)$', sample_yearbook_page, name='sample_yearbook_page'),
+
+    # Admin pages
+    url(r'^yearbook/list/$', yearbook_list, name='yearbook-list'),
 )
