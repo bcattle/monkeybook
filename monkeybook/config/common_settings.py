@@ -155,6 +155,7 @@ from django.conf.global_settings import TEMPLATE_CONTEXT_PROCESSORS
 TEMPLATE_CONTEXT_PROCESSORS += (
     'django_facebook.context_processors.facebook',
     'django.core.context_processors.request',
+    'core.context_processors.analytics'
 )
 
 AUTHENTICATION_BACKENDS = (

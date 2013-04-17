@@ -85,9 +85,15 @@
                     $('#preview-modal').modal();
                     $.modal.resize();
 
+                    // Log that they clicked "see preview"
+                    mixpanel.track('Book preview click', {'Book': '2012 Yearbook'});
+
                     // Open the book automatically
                     setTimeout(function () { $('.sj-book').turn('page', 4); }, 3000);
                 });
+
+                // Log that they viewed the homepage
+                mixpanel.track('Homepage view');
             });
         </script>
     {% endcompress %}

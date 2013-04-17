@@ -3,6 +3,7 @@ from monkeybook.config.common_settings import *
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 COMPRESS_ENABLED = False
+IS_LIVE = True
 
 ALLOWED_HOSTS = ['monkeybook.com',]
 

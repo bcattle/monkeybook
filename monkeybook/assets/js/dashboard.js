@@ -26,10 +26,12 @@ function onGetFriendsBooks(data, textStatus, jqXHR) {
         });
     }
 
+    // Fire an event
+    $(document).trigger('friendsBooksLoaded', data.objects.length);
 }
 
 function onGetFriendsBooksError(jqXHR, textStatus, errorThrown) {
-
+    $(document).trigger('friendsBooksLoaded', {'count': 0});
 }
 
 $(document).ready(function() {

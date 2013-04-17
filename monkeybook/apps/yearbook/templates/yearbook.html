@@ -119,6 +119,13 @@
             });
 
             $(document).ready(function() {
+                // Log that the user viewed the book
+                {% if is_user_yearbook %}
+                    mixpanel.track('Book viewed', {'Book': '2012 Yearbook', 'Owner': 'me'});
+                {% else %}
+                    mixpanel.track('Book viewed', {'Book': '2012 Yearbook', 'Owner': '{{ owner.username }}'});
+                {% endif %}
+
                 $.modal.defaults = {
                     overlay: "#000",        // Overlay color
                     opacity: 0.75,          // Overlay opacity
@@ -134,10 +141,31 @@
 
                 $('.edit-button').click(function() {
                     $('#edit-button-modal').modal();
+                    mixpanel.track('Book edit click', {'Book': '2012 Yearbook'});
                 });
 
                 $('.shop-button').click(function() {
                     $('#buy-button-modal').modal();
+                    mixpanel.track('Book buy click', {'Book': '2012 Yearbook'});
+                });
+
+                // Track what pages the user views and how long they spend
+                var lastFlipTime = null;
+                var lastPages = null;
+                $('.sj-book').bind("turning", function(event, page, view) {
+                    var flipTime = new Date().getTime() / 1000;
+                    if (lastFlipTime) {
+                        var timeOnStation = flipTime - lastFlipTime;
+                        if (lastPages.length == 1)
+                            var pagesStr = 'Page ' + lastPages[0].toString();
+                        else
+                            var pagesStr = 'Pages ' + lastPages[0].toString() + ' and ' + lastPages[1].toString();
+                        mixpanel.track('Book page viewed', {
+                            'Book': '2012 Yearbook', 'Pages': pagesStr, 'Time': timeOnStation.toFixed(2)
+                        });
+                    }
+                    lastFlipTime = flipTime;
+                    lastPages = view;
                 });
             });
         </script>

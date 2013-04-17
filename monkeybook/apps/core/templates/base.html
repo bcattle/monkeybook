@@ -36,6 +36,10 @@
 {% block body_tag %}
 <body>
 {% endblock %}
+    {% include 'includes/mixpanel-js.html' %}
+    {% if IS_LIVE %}
+        {% include 'includes/ga.html' %}
+    {% endif %}
     {% block feedback_button %}
         <a href="https://docs.google.com/a/voomza.com/spreadsheet/viewform?formkey=dGFJMUNHYVRVSjEzeWJXQ2k5T1R1NUE6MQ#gid=0" target="_blank" id="feedback_tab"></a>
     {% endblock %}
@@ -55,6 +59,12 @@
                 test: window.JSON,
                 nope: '{% static 'js/json2.js' %}'
             });
+            {# Identify the mixpanel user, if user logged in  #}
+            {% if request.user.is_authenticated %}
+                mixpanel.identify('{{ request.user.username }}');
+            {% endif %}
+            {# Log the click on feedback to Mixpanel #}
+            mixpanel.track_links('#feedback_tab', 'Feedback tab click');
         });
     </script>
     {% block script_0 %}{% endblock %}

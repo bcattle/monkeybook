@@ -49,6 +49,11 @@
         var yearbookStatusUrl = "{% url 'api_dispatch_detail' api_name='v1' resource_name='yearbook_progress' pk='1' %}";
 
         $(document).ready(function(){
+            // Alias the user to mixpanel
+            mixpanel.alias('{{ request.user.username }}');
+            // Log the new user
+            mixpanel.track('New user login');
+
             // Bind to the yearbook ready event
             $(document).on('yearbookReady', function(){
                 // Redirect to the next page

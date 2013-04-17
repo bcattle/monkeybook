@@ -137,12 +137,27 @@
                 $('#bug_modal').modal();
                 // Show the coming soon book
                 $('#myBookDidntWork').show();
+                // Log the error to Mixpanel
+                mixpanel.track('Book error', {'Book': '2012 Yearbook'});
             });
             $(document).on('yearbookNotEnoughPhotos', function(){
                 // If error, show the modal
                 $('#insufficient_photos_modal').modal();
                 // Show the coming soon book
                 $('#myBookDidntWork').show();
+                // Log the error to Mixpanel
+                mixpanel.track('Book not enough photos', {'Book': '2012 Yearbook'});
+            });
+            // Bind to the friends' books loaded event
+            $(document).on('friendsBooksLoaded', function(event, count) {
+                mixpanel.track('Dashboard loaded', {'Friend books': count});
+                // Set some global user properties
+                mixpanel.register({
+                    'Email': '{{ request.user.email }}',
+                    {# 'Age': '{{ request.user.profile.facebook_user.age }}',#}
+                    'Gender': '{{ request.user.profile.facebook_user.gender }}',
+                    'Locale': '{{ request.user.profile.locale }}'
+                });
             });
         });
     </script>
